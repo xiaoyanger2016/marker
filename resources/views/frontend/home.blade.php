@@ -83,29 +83,27 @@
             <span class="eyebrow">§ 01 — 类型索引</span>
             <span class="font-mono text-[10px] text-ink-3">8 types</span>
         </div>
-        <div class="overflow-x-auto scrollbar-hide snap-x -mx-5 sm:-mx-8">
-            <div class="flex px-5 sm:px-8 min-w-max">
-                @php
-                    $typeIndex = [
-                        ['01', 'self_drive',     '自驾线路',     'self-driving route', '#114B5F'],
-                        ['02', 'play_water',     '玩水点',       'where the water is', '#0D3A4A'],
-                        ['03', 'hiking',         '徒步线路',     'on foot',             '#1A1814'],
-                        ['04', 'sup',            '桨板点',       'stand up',            '#2D5F3F'],
-                        ['05', 'photo',          '拍照点',       'frame the shot',      '#847E72'],
-                        ['06', 'food',           '美食探店',     'eat like a local',    '#C45626'],
-                        ['07', 'camping',        '露营点',       'sleep under stars',   '#1A3A3A'],
-                        ['08', 'sunrise_sunset', '日出日落',     'the light shows up',  '#A1461E'],
-                    ];
-                @endphp
-                @foreach($typeIndex as $i => [$no, $key, $label, $en, $color])
-                    <a href="{{ url('/type/' . $key) }}"
-                       class="group flex flex-col items-start min-w-[110px] sm:min-w-[120px] px-3 sm:px-4 py-3 border-r border-line {{ $loop->last ? 'border-r-0' : '' }}">
-                        <span class="font-mono text-[10px] tracking-wider text-ink-3 mb-1.5">N°{{ $no }}</span>
-                        <span class="font-display text-lg sm:text-xl text-ink group-hover:text-warm transition-colors leading-none">{{ $label }}</span>
-                        <span class="font-mono text-[10px] text-ink-3 mt-1.5 italic">{{ $en }}</span>
-                    </a>
-                @endforeach
-            </div>
+        <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-8 gap-px bg-line border border-line">
+            @php
+                $typeIndex = [
+                    ['01', 'self_drive',     '自驾线路',     'self-driving route', '#114B5F'],
+                    ['02', 'play_water',     '玩水点',       'where the water is', '#0D3A4A'],
+                    ['03', 'hiking',         '徒步线路',     'on foot',             '#1A1814'],
+                    ['04', 'sup',            '桨板点',       'stand up',            '#2D5F3F'],
+                    ['05', 'photo',          '拍照点',       'frame the shot',      '#847E72'],
+                    ['06', 'food',           '美食探店',     'eat like a local',    '#C45626'],
+                    ['07', 'camping',        '露营点',       'sleep under stars',   '#1A3A3A'],
+                    ['08', 'sunrise_sunset', '日出日落',     'the light shows up',  '#A1461E'],
+                ];
+            @endphp
+            @foreach($typeIndex as $i => [$no, $key, $label, $en, $color])
+                <a href="{{ url('/type/' . $key) }}"
+                   class="group bg-paper hover:bg-paper-2 transition-colors px-3 sm:px-4 py-4 sm:py-5 flex flex-col">
+                    <span class="font-mono text-[10px] tracking-wider text-ink-3 mb-2">N°{{ $no }}</span>
+                    <span class="font-display text-base sm:text-lg text-ink group-hover:text-warm transition-colors leading-tight">{{ $label }}</span>
+                    <span class="font-mono text-[9px] sm:text-[10px] text-ink-3 mt-1.5 italic truncate">{{ $en }}</span>
+                </a>
+            @endforeach
         </div>
     </div>
 </section>

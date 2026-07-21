@@ -14,6 +14,16 @@ Route::get('/register', [WebAuthController::class, 'showRegister'])->name('regis
 Route::post('/register', [WebAuthController::class, 'register']);
 Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
 
+// 主题切换（写到 session + localStorage）
+Route::post('/theme', function (\Illuminate\Http\Request $request) {
+    $t = $request->input('theme', 'paper');
+    if (! in_array($t, ['paper', 'ink', 'mono'], true)) {
+        $t = 'paper';
+    }
+    $request->session()->put('theme', $t);
+    return response()->json(['theme' => $t]);
+})->name('theme.set');
+
 Route::get('/', [HomeController::class, 'home'])->name('home');
 
 Route::get('/type/{key}', [HomeController::class, 'type'])->name('frontend.type');

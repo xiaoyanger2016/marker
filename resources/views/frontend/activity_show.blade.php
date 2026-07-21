@@ -172,8 +172,8 @@
     </section>
 </div>
 
-{{-- 底部报名按钮 --}}
-<div class="fixed bottom-[64px] sm:bottom-[68px] left-0 right-0 z-40 px-4 pb-3 safe-bottom bg-gradient-to-t from-paper via-paper to-transparent pt-4">
+{{-- 底部报名按钮（适配浮动 dock：mobile 让位给 dock pill） --}}
+<div class="fixed bottom-[72px] sm:bottom-[64px] left-0 right-0 z-40 px-2 sm:px-4 pb-2 sm:pb-3 safe-bottom bg-gradient-to-t from-paper via-paper to-transparent pt-4">
 @auth
     @if($activity->user_id === auth()->id())
         <div class="max-w-5xl mx-auto flex gap-2">
@@ -227,4 +227,4 @@
 @endif
 @endsection
 
-@section('main_class', 'pb-32')
+@section('main_class', 'pb-40 sm:pb-32')

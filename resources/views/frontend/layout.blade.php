@@ -1,12 +1,24 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="{{ str_replace('_', '-', $locale ?? 'zh-CN') }}" data-theme="{{ $theme ?? 'paper' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#10b981">
+    <meta name="theme-color" content="#F2EDE2" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0E0D0B" media="(prefers-color-scheme: dark)">
     <meta name="format-detection" content="telephone=no">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Marker · 我的收藏地图')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script>
+        // SSR 阶段设主题，渲染前避免主题闪烁
+        (function() {
+            try {
+                var t = localStorage.getItem('marker.theme') || '{{ $theme ?? "paper" }}';
+                if (['paper', 'ink', 'mono'].indexOf(t) === -1) t = 'paper';
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) {}
+        })();
+    </script>
     @stack('head')
 </head>
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased" style="font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;">
@@ -62,7 +74,7 @@
     </div>
     @include('frontend.partials.tabbar_hidden')
     @else
-    <main class="@yield('main_class', 'pb-20')">
+    <main class="@yield('main_class', 'pb-28 sm:pb-20')">
         @yield('content')
     </main>
     @include('frontend.partials.tabbar')

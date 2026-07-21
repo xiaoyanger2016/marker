@@ -25,8 +25,14 @@
  * → 系统字体优先 fallback，不阻塞渲染 */
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-@theme {
-    /* ---- 色板：暖纸 + 深墨 + 土陶 ---- */
+/* =========================================================================
+ * MARKER 设计系统 · v3
+ * 3 种主题：paper（暖纸） / ink（夜读） / mono（高对比）
+ * 通过 <html data-theme="..."> 切换
+ * ========================================================================= */
+
+:root,
+[data-theme="paper"] {
     --color-paper:        #F2EDE2;   /* 主背景（暖米白纸面） */
     --color-paper-2:      #EBE4D2;   /* 略深纸面（卡片背景/分层） */
     --color-ink:          #1A1814;   /* 主文字（深墨，几乎黑） */
@@ -43,6 +49,65 @@
     --color-blood:        #8B2C2C;   /* 砖红：错误 */
     --color-sun:          #C49B2A;   /* 暗金：装饰/星标 */
 
+    --noise-mode: multiply;
+    --noise-opacity: 0.5;
+    --shadow-card: 0 1px 0 rgba(26, 24, 20, 0.04), 0 4px 16px -4px rgba(26, 24, 20, 0.08);
+    --shadow-card-hover: 0 1px 0 rgba(26, 24, 20, 0.04), 0 12px 32px -8px rgba(26, 24, 20, 0.16);
+    --shadow-dock: 0 -4px 16px -4px rgba(26, 24, 20, 0.1);
+    --selection-text: var(--color-paper);
+}
+
+[data-theme="ink"] {
+    --color-paper:        #0E0D0B;   /* 主背景（深夜墨） */
+    --color-paper-2:      #181612;   /* 卡片背景 */
+    --color-ink:          #E8E2D4;   /* 主文字（暖白） */
+    --color-ink-2:        #B4ADA0;   /* 次要文字 */
+    --color-ink-3:        #7A746A;   /* 三级文字 */
+    --color-line:         #2A2722;   /* 分割线 */
+    --color-line-2:       #3A3631;   /* 深一档 */
+
+    --color-accent:       #6FA8B5;   /* 深海青（亮） */
+    --color-accent-2:     #8FBFC9;
+    --color-warm:         #D87A4A;   /* 土陶橙（亮） */
+    --color-warm-2:       #E89970;
+    --color-grass:        #6B9F7A;   /* 草绿（亮） */
+    --color-blood:        #C97070;   /* 砖红（亮） */
+    --color-sun:          #D9B265;   /* 暗金（亮） */
+
+    --noise-mode: screen;
+    --noise-opacity: 0.15;
+    --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04), 0 4px 16px -4px rgba(0, 0, 0, 0.5);
+    --shadow-card-hover: 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 32px -8px rgba(0, 0, 0, 0.7);
+    --shadow-dock: 0 -4px 24px -4px rgba(0, 0, 0, 0.6);
+    --selection-text: #0E0D0B;
+}
+
+[data-theme="mono"] {
+    --color-paper:        #FFFFFF;   /* 纯白 */
+    --color-paper-2:      #F5F5F5;   /* 浅灰 */
+    --color-ink:          #000000;   /* 纯黑 */
+    --color-ink-2:        #333333;
+    --color-ink-3:        #666666;
+    --color-line:         #E0E0E0;
+    --color-line-2:       #CCCCCC;
+
+    --color-accent:       #000000;
+    --color-accent-2:     #1A1A1A;
+    --color-warm:         #D32F2F;   /* 警示红 */
+    --color-warm-2:       #B71C1C;
+    --color-grass:        #2E7D32;
+    --color-blood:        #C62828;
+    --color-sun:          #F57F17;
+
+    --noise-mode: multiply;
+    --noise-opacity: 0;
+    --shadow-card: 0 0 0 1px rgba(0, 0, 0, 0.1);
+    --shadow-card-hover: 0 0 0 1px rgba(0, 0, 0, 0.2), 0 4px 12px -2px rgba(0, 0, 0, 0.08);
+    --shadow-dock: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    --selection-text: #FFFFFF;
+}
+
+@theme {
     /* ---- 字体（WeChat / iOS / Android fallback 优先） ---- */
     --font-display: 'Fraunces', 'Songti SC', 'STSong', 'Source Han Serif SC', 'Noto Serif CJK SC', 'PingFang SC', Georgia, serif;
     --font-sans:    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', 'Inter', sans-serif;
@@ -66,6 +131,13 @@ html, body {
     text-rendering: optimizeLegibility;
     /* 防止 iOS 长按选中 */
     -webkit-touch-callout: none;
+    /* 主题切换平滑过渡 */
+    transition: background-color 0.3s cubic-bezier(0.2, 0.7, 0.2, 1), color 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* 主题切换时禁用过渡（避免初次加载闪烁） */
+html.theme-loading * {
+    transition: none !important;
 }
 
 /* 默认最小可点击区域 (44x44) — Apple HIG */
@@ -73,16 +145,17 @@ button, a.btn, [role="button"] {
     min-height: 36px;
 }
 
-/* 噪点纹理叠加（极淡的纸感） */
+/* 噪点纹理叠加（极淡的纸感，主题相关） */
 body::before {
     content: '';
     position: fixed;
     inset: 0;
     pointer-events: none;
     z-index: 0;
-    opacity: 0.5;
+    opacity: var(--noise-opacity, 0.5);
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
-    mix-blend-mode: multiply;
+    mix-blend-mode: var(--noise-mode, multiply);
+    transition: opacity 0.3s, mix-blend-mode 0.3s;
 }
 
 /* 让所有内容在噪点之上 */
@@ -94,7 +167,7 @@ body > * {
 /* 选区颜色 */
 ::selection {
     background: var(--color-accent);
-    color: var(--color-paper);
+    color: var(--selection-text, var(--color-paper));
 }
 
 /* =========================================================================
@@ -133,22 +206,23 @@ body > * {
 .text-warm { color: var(--color-warm); }
 .border-line { border-color: var(--color-line); }
 .border-line-2 { border-color: var(--color-line-2); }
+.bg-accent { background-color: var(--color-accent); }
+.bg-ink { background-color: var(--color-ink); }
 
 /* =========================================================================
- * 自定义阴影（带色温的，不用 0 0 0 灰阴影）
+ * 自定义阴影（主题相关）
  * ========================================================================= */
 .shadow-paper {
-    box-shadow:
-        0 1px 0 rgba(26, 24, 20, 0.04),
-        0 4px 16px -4px rgba(26, 24, 20, 0.08);
+    box-shadow: var(--shadow-card);
 }
 .shadow-paper-hover {
-    box-shadow:
-        0 1px 0 rgba(26, 24, 20, 0.04),
-        0 12px 32px -8px rgba(26, 24, 20, 0.16);
+    box-shadow: var(--shadow-card-hover);
 }
 .shadow-accent {
     box-shadow: 0 8px 24px -8px rgba(17, 75, 95, 0.35);
+}
+.shadow-dock {
+    box-shadow: var(--shadow-dock);
 }
 
 /* =========================================================================

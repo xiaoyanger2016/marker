@@ -34,6 +34,14 @@ class SetLocale
         view()->share('locale', $locale);
         view()->share('availableLocales', self::SUPPORTED);
 
+        // 主题（从 session 读，让切换结果跨页面保留）
+        $theme = $request->session()->get('theme');
+        if (! in_array($theme, ['paper', 'ink', 'mono'], true)) {
+            $theme = 'paper';
+        }
+        view()->share('theme', $theme);
+        view()->share('availableThemes', ['paper', 'ink', 'mono']);
+
         return $next($request);
     }
 
