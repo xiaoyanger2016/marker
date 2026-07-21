@@ -47,7 +47,9 @@
 
         <div>
             <label class="text-xs text-gray-600 mb-1 block">出发时间 <span class="text-rose-500">*</span></label>
-            <input name="start_at" type="datetime-local" required value="{{ old('start_at') }}"
+            <input name="start_at" type="datetime-local" required
+                   min="{{ now()->format('Y-m-d\TH:i') }}"
+                   value="{{ old('start_at') }}"
                    class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none">
         </div>
 

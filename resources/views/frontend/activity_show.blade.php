@@ -12,6 +12,13 @@
             <span>👁️ {{ $activity->view_count }}</span>
             <span class="ml-auto px-2 py-0.5 bg-white/20 text-white text-xs rounded-full">{{ $activity->status_label }}</span>
         </div>
+        @auth
+            @if($activity->user_id === auth()->id())
+                <div class="mt-2">
+                    <a href="/admin/activities/{{ $activity->id }}/edit" class="text-xs text-white/90 underline">后台编辑 →</a>
+                </div>
+            @endif
+        @endauth
     </div>
 </section>
 
@@ -113,50 +120,51 @@
 </div>
 
 {{-- 底部报名按钮 --}}
+<div class="fixed bottom-20 left-0 right-0 z-40 px-4 pb-2 bg-gradient-to-t from-white via-white to-transparent pt-3">
 @auth
     @if($activity->user_id === auth()->id())
-        <div class="fixed bottom-20 left-0 right-0 z-40 px-4 pb-2">
-            <div class="max-w-2xl mx-auto">
-                <div class="bg-gray-100 text-gray-500 text-center py-3 rounded-2xl text-sm">你发起的活动</div>
-            </div>
+        <div class="max-w-2xl mx-auto space-y-2">
+            <div class="bg-gray-100 text-gray-500 text-center py-2.5 rounded-2xl text-sm">你发起的活动</div>
+            @if(! $activity->is_expired)
+                <form method="POST" action="/activities/{{ $activity->id }}" onsubmit="return confirm('确定取消活动？报名的人会收到通知')">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="w-full py-2 bg-rose-50 text-rose-500 rounded-2xl text-xs">取消活动</button>
+                </form>
+            @endif
         </div>
     @elseif($activity->is_expired)
-        <div class="fixed bottom-20 left-0 right-0 z-40 px-4 pb-2">
-            <div class="max-w-2xl mx-auto">
-                <div class="bg-gray-100 text-gray-500 text-center py-3 rounded-2xl text-sm">活动已截止/取消</div>
-            </div>
+        <div class="max-w-2xl mx-auto">
+            <div class="bg-gray-100 text-gray-500 text-center py-3 rounded-2xl text-sm">活动已截止/取消</div>
         </div>
     @else
-        <div class="fixed bottom-20 left-0 right-0 z-40 px-4 pb-2">
-            <div class="max-w-2xl mx-auto">
-                @if($isJoined)
-                    <form method="POST" action="/activities/{{ $activity->id }}/leave">
-                        @csrf
-                        <button type="submit" class="w-full py-3 bg-gray-200 text-gray-700 rounded-2xl text-sm font-medium">
-                            ✓ 已报名（点击取消）
-                        </button>
-                    </form>
-                @else
-                    <form method="POST" action="/activities/{{ $activity->id }}/join" class="flex gap-2">
-                        @csrf
-                        <select name="people_count" class="bg-white border border-gray-300 rounded-2xl px-3 text-sm">
-                            @for($i=1; $i<=5; $i++)<option value="{{ $i }}">{{ $i }}人</option>@endfor
-                        </select>
-                        <button type="submit" class="flex-1 py-3 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl text-sm font-bold">
-                            🎒 一键报名
-                        </button>
-                    </form>
-                @endif
-            </div>
+        <div class="max-w-2xl mx-auto">
+            @if($isJoined)
+                <form method="POST" action="/activities/{{ $activity->id }}/leave">
+                    @csrf
+                    <button type="submit" class="w-full py-3 bg-gray-200 text-gray-700 rounded-2xl text-sm font-medium">
+                        ✓ 已报名（点击取消）
+                    </button>
+                </form>
+            @else
+                <form method="POST" action="/activities/{{ $activity->id }}/join" class="flex gap-2">
+                    @csrf
+                    <select name="people_count" class="bg-white border border-gray-300 rounded-2xl px-3 text-sm">
+                        @for($i=1; $i<=5; $i++)<option value="{{ $i }}">{{ $i }}人</option>@endfor
+                    </select>
+                    <button type="submit" class="flex-1 py-3 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl text-sm font-bold">
+                        🎒 一键报名
+                    </button>
+                </form>
+            @endif
         </div>
     @endif
 @else
-    <div class="fixed bottom-20 left-0 right-0 z-40 px-4 pb-2">
-        <div class="max-w-2xl mx-auto">
-            <a href="/login" class="block w-full py-3 bg-rose-500 text-white text-center rounded-2xl text-sm font-bold">登录后报名</a>
-        </div>
+    <div class="max-w-2xl mx-auto">
+        <a href="/login" class="block w-full py-3 bg-rose-500 text-white text-center rounded-2xl text-sm font-bold">登录后报名</a>
     </div>
 @endauth
+</div>
 
 @if(session('ok'))
     <div class="fixed top-20 left-0 right-0 z-50 px-4">

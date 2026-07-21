@@ -254,7 +254,7 @@
 @endif
 
 {{-- 发起约伴按钮 --}}
-<div class="fixed bottom-20 left-0 right-0 z-40 px-4 pb-2">
+<div class="fixed bottom-20 left-0 right-0 z-40 px-4 pb-2 bg-gradient-to-t from-white via-white to-transparent pt-3">
     <div class="max-w-2xl mx-auto flex gap-2">
         <a href="/activities/create?place_id={{ $place->id }}" class="flex-1 py-3 bg-rose-500 hover:bg-rose-600 text-white text-center rounded-2xl text-sm font-bold shadow-lg">
             🎒 发起约伴

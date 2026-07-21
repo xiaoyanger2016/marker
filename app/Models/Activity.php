@@ -83,11 +83,14 @@ class Activity extends Model
     }
 
     /**
-     * 是否已截止报名
+     * 是否已截止（开始时间已过 / 状态关闭 / 报名截止）
      */
     public function getIsExpiredAttribute(): bool
     {
         if (in_array($this->status, ['closed', 'cancelled'], true)) {
+            return true;
+        }
+        if ($this->start_at && $this->start_at->isPast()) {
             return true;
         }
         if ($this->signup_deadline && now()->gt($this->signup_deadline)) {

@@ -455,11 +455,30 @@ class PlaceResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('togglePublish')
+                    ->label(fn ($record) => $record->is_public ? '下架' : '上架')
+                    ->icon(fn ($record) => $record->is_public ? 'heroicon-o-eye-slash' : 'heroicon-o-eye')
+                    ->color(fn ($record) => $record->is_public ? 'warning' : 'success')
+                    ->requiresConfirmation()
+                    ->modalHeading(fn ($record) => $record->is_public ? '下架该地点？' : '上架该地点？')
+                    ->modalDescription(fn ($record) => $record->is_public ? '前台将不再展示，公开分享链接也会失效' : '前台将立即展示给所有用户')
+                    ->action(function ($record) {
+                        $record->update(['is_public' => ! $record->is_public]);
+                    }),
                 Tables\Actions\DeleteAction::make(),
                 Tables\Actions\RestoreAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\BulkAction::make('publish')
+                        ->label('批量上架')
+                        ->icon('heroicon-o-eye')
+                        ->action(fn ($records) => $records->each->update(['is_public' => true])),
+                    Tables\Actions\BulkAction::make('unpublish')
+                        ->label('批量下架')
+                        ->icon('heroicon-o-eye-slash')
+                        ->color('warning')
+                        ->action(fn ($records) => $records->each->update(['is_public' => false])),
                     Tables\Actions\DeleteBulkAction::make(),
                     Tables\Actions\RestoreBulkAction::make(),
                     Tables\Actions\ForceDeleteBulkAction::make(),

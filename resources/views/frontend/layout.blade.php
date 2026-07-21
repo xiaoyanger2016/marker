@@ -12,8 +12,8 @@
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased" style="font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;">
     @include('frontend.partials.nav')
 
-    {{-- PC 端：左侧 sidebar 导航 --}}
-    @if(!($isMobile ?? true))
+    {{-- PC 端：左侧 sidebar 导航（登录/注册页除外，页面简洁优先） --}}
+    @if(!($isMobile ?? true) && ! in_array(request()->path(), ['login', 'register', 'profile']))
     <div class="flex max-w-7xl mx-auto">
         <aside class="hidden md:block w-56 flex-shrink-0 border-r border-gray-100 min-h-screen bg-white">
             <nav class="sticky top-16 p-3 space-y-1 text-sm">
