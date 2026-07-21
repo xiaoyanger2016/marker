@@ -6,6 +6,51 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+/* 瀑布流布局 */
+.masonry {
+    column-count: 2;
+    column-gap: 0.75rem;
+    padding: 0.5rem;
+}
+@media (min-width: 640px) {
+    .masonry { column-count: 3; }
+}
+@media (min-width: 1024px) {
+    .masonry { column-count: 4; }
+}
+.masonry-item {
+    break-inside: avoid;
+    margin-bottom: 0.75rem;
+    display: block;
+}
+
+/* 隐藏滚动条但保持可滚动 */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* 移动端触摸优化 */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Leaflet 自适应 */
+.leaflet-container {
+    font-family: inherit;
+}
+
+/* 自定义滑入动画 */
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+.animate-slide-up {
+    animation: slideUp 0.3s ease-out;
 }

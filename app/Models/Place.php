@@ -36,6 +36,7 @@ class Place extends Model
         'rating',
         'visited_at',
         'visit_count',
+        'view_count',
         'is_visited',
         'is_wishlist',
         'is_public',
@@ -74,6 +75,7 @@ class Place extends Model
         'parking_fee' => 'decimal:2',
         'ticket_price' => 'decimal:2',
         'rating' => 'integer',
+        'view_count' => 'integer',
         'visit_count' => 'integer',
         'parking_capacity' => 'integer',
         'altitude_meters' => 'integer',
@@ -134,6 +136,14 @@ class Place extends Model
         'autumn' => '秋',
         'winter' => '冬',
         'all' => '四季',
+    ];
+
+    public const RATING_LABELS = [
+        'terrible' => ['label' => '拉垮', 'color' => '#7f1d1d', 'icon' => '😩'],
+        'npc' => ['label' => 'NPC', 'color' => '#6b7280', 'icon' => '😐'],
+        'nice' => ['label' => 'NICE', 'color' => '#0ea5e9', 'icon' => '😊'],
+        'great' => ['label' => '超值', 'color' => '#10b981', 'icon' => '🤩'],
+        'amazing' => ['label' => '夯', 'color' => '#dc2626', 'icon' => '🔥'],
     ];
 
     protected static function booted(): void

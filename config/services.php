@@ -35,4 +35,16 @@ return [
         ],
     ],
 
+    'amap' => [
+        'key' => env('AMAP_WEB_KEY'),
+        'security_js_code' => env('AMAP_SECURITY_JS_CODE'),
+    ],
+
+    'oss' => [
+        'access_key' => env('OSS_ACCESS_KEY'),
+        'secret_key' => env('OSS_SECRET_KEY'),
+        'bucket' => env('OSS_BUCKET'),
+        'endpoint' => env('OSS_ENDPOINT'),
+    ],
+
 ];
