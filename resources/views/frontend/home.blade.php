@@ -6,11 +6,11 @@
 {{-- 顶部 banner --}}
 <section class="px-4 pt-3 pb-5 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 text-white">
     <div class="max-w-2xl mx-auto">
-        <h1 class="text-2xl font-bold mb-1">Hi 开车人 🚗</h1>
-        <p class="text-sm text-white/90">收藏你的自驾宝藏，按热度推荐</p>
+        <h1 class="text-2xl font-bold mb-1">{{ __('ui.greeting') }} 🚗</h1>
+        <p class="text-sm text-white/90">{{ __('ui.tagline') }}</p>
         <div class="mt-3 flex items-center gap-2 bg-white/20 backdrop-blur rounded-full px-4 py-2.5">
             <svg class="w-4 h-4 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-            <input type="search" placeholder="搜索 露营 / 咖啡 / 徒步..." class="bg-transparent border-0 outline-none text-white placeholder-white/70 flex-1 text-sm" id="search-input">
+            <input type="search" placeholder="{{ __('ui.search_ph') }}" class="bg-transparent border-0 outline-none text-white placeholder-white/70 flex-1 text-sm" id="search-input">
         </div>
     </div>
 </section>
