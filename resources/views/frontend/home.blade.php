@@ -4,7 +4,7 @@
 
 @section('content')
 {{-- 顶部 banner --}}
-<section class="px-4 pt-3 pb-4 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 text-white">
+<section class="px-4 pt-3 pb-5 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 text-white">
     <div class="max-w-2xl mx-auto">
         <h1 class="text-2xl font-bold mb-1">Hi 开车人 🚗</h1>
         <p class="text-sm text-white/90">收藏你的自驾宝藏，按热度推荐</p>
@@ -15,17 +15,17 @@
     </div>
 </section>
 
-{{-- 类型导航 --}}
-<section class="px-4 py-4 bg-white border-b border-gray-100">
-    <div class="max-w-2xl mx-auto">
-        <div class="grid grid-cols-3 sm:grid-cols-6 gap-3">
+{{-- 类型导航（横向滚动） --}}
+<section class="bg-white border-b border-gray-100">
+    <div class="overflow-x-auto scrollbar-hide">
+        <div class="flex items-stretch gap-1 px-3 py-3 min-w-max">
             @foreach($types as $t)
-                <a href="{{ url('/type/' . $t['key']) }}" class="group flex flex-col items-center">
-                    <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl shadow-sm group-hover:scale-110 transition-transform"
+                <a href="{{ url('/type/' . $t['key']) }}" class="group flex flex-col items-center w-[68px] flex-shrink-0">
+                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-sm group-hover:scale-110 active:scale-95 transition-transform"
                          style="background: linear-gradient(135deg, {{ $t['color'] }}, {{ $t['color'] }}cc);">
                         <span>{{ $t['icon'] }}</span>
                     </div>
-                    <div class="mt-1.5 text-[11px] sm:text-xs font-medium text-gray-700 text-center leading-tight">{{ $t['label'] }}</div>
+                    <div class="mt-1 text-[11px] font-medium text-gray-700 text-center leading-tight whitespace-nowrap">{{ $t['label'] }}</div>
                 </a>
             @endforeach
         </div>

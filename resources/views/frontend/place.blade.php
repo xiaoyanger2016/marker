@@ -236,6 +236,32 @@
     </section>
 @endif
 
+{{-- 关联活动 --}}
+@if(isset($activities) && $activities->isNotEmpty())
+    <section class="px-4 py-4 bg-white border-t border-gray-100">
+        <div class="max-w-2xl mx-auto">
+            <h2 class="text-base font-semibold text-gray-900 mb-2">🎒 关联活动 <span class="text-xs text-gray-400 font-normal">({{ $activities->count() }})</span></h2>
+            <div class="space-y-2">
+                @foreach($activities as $a)
+                    <a href="/activities/{{ $a->id }}" class="block p-3 bg-rose-50 hover:bg-rose-100 rounded-xl">
+                        <div class="font-medium text-sm text-gray-900 line-clamp-1">{{ $a->title }}</div>
+                        <div class="text-xs text-gray-500 mt-0.5">📅 {{ $a->start_at?->format('m-d H:i') }} · 👥 {{ $a->joined_participants_count }}{{ $a->max_participants > 0 ? '/' . $a->max_participants : '' }}</div>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    </section>
+@endif
+
+{{-- 发起约伴按钮 --}}
+<div class="fixed bottom-20 left-0 right-0 z-40 px-4 pb-2">
+    <div class="max-w-2xl mx-auto flex gap-2">
+        <a href="/activities/create?place_id={{ $place->id }}" class="flex-1 py-3 bg-rose-500 hover:bg-rose-600 text-white text-center rounded-2xl text-sm font-bold shadow-lg">
+            🎒 发起约伴
+        </a>
+    </div>
+</div>
+
 @endsection
 
 @section('main_class', 'pb-20')

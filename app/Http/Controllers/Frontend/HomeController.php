@@ -45,7 +45,7 @@ class HomeController extends Controller
         [
             'key' => 'sup',
             'kind' => 'place',
-            'place_type' => 'play_water', // 暂复用，可加 sup 类型
+            'place_type' => 'play_water',
             'label' => '桨板点',
             'icon' => '🏄',
             'color' => '#3b82f6',
@@ -71,6 +71,26 @@ class HomeController extends Controller
             'color' => '#f59e0b',
             'gradient' => 'from-amber-500 to-orange-500',
             'desc' => '本地人才知道的店',
+        ],
+        [
+            'key' => 'camping',
+            'kind' => 'place',
+            'place_type' => 'camping',
+            'label' => '露营点',
+            'icon' => '🏕️',
+            'color' => '#16a34a',
+            'gradient' => 'from-green-500 to-emerald-500',
+            'desc' => '帐篷、星空、夜晚',
+        ],
+        [
+            'key' => 'sunrise_sunset',
+            'kind' => 'place',
+            'place_type' => 'viewpoint',
+            'label' => '日出日落',
+            'icon' => '🌅',
+            'color' => '#f97316',
+            'gradient' => 'from-orange-400 to-rose-400',
+            'desc' => '日出/日落机位',
         ],
     ];
 
@@ -134,11 +154,21 @@ class HomeController extends Controller
 
         $place->increment('view_count');
 
+        $activities = \App\Models\Activity::where('is_public', true)
+            ->where('place_id', $id)
+            ->whereIn('status', ['open', 'full'])
+            ->where('start_at', '>=', now())
+            ->withCount('joinedParticipants')
+            ->orderBy('start_at')
+            ->limit(5)
+            ->get();
+
         return view('frontend.place', [
             'place' => $place,
             'cover' => $place->media->firstWhere('is_cover', true) ?? $place->media->first(),
             'gallery' => $place->media->where('type', 'image'),
             'videos' => $place->media->where('type', 'video'),
+            'activities' => $activities,
         ]);
     }
 
@@ -152,10 +182,20 @@ class HomeController extends Controller
 
         $route->increment('view_count');
 
+        $activities = \App\Models\Activity::where('is_public', true)
+            ->where('route_id', $id)
+            ->whereIn('status', ['open', 'full'])
+            ->where('start_at', '>=', now())
+            ->withCount('joinedParticipants')
+            ->orderBy('start_at')
+            ->limit(5)
+            ->get();
+
         return view('frontend.route_show', [
             'route' => $route,
             'type' => TravelRoute::TYPES[$route->type] ?? null,
             'rating' => TravelRoute::RATING_LABELS[$route->rating_label] ?? null,
+            'activities' => $activities,
         ]);
     }
 
@@ -172,6 +212,221 @@ class HomeController extends Controller
     public function radar(Request $request)
     {
         return view('frontend.radar');
+    }
+
+    /**
+     * 「我的」主页
+     */
+    public function me(Request $request)
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return redirect('/login');
+        }
+
+        $stats = [
+            'places_total' => $user->places()->count(),
+            'places_wishlist' => $user->places()->where('is_wishlist', true)->count(),
+            'places_visited' => $user->places()->where('is_visited', true)->count(),
+            'routes_total' => $user->routes()->count(),
+            'collections_total' => $user->collections()->count(),
+            'notes_total' => $user->notes()->count(),
+        ];
+
+        $recentPlaces = $user->places()->latest()->limit(6)->get();
+        $recentRoutes = $user->routes()->latest()->limit(3)->get();
+        $collections = $user->collections()->withCount('places')->latest()->limit(5)->get();
+
+        return view('frontend.me', [
+            'user' => $user,
+            'stats' => $stats,
+            'recentPlaces' => $recentPlaces,
+            'recentRoutes' => $recentRoutes,
+            'collections' => $collections,
+        ]);
+    }
+
+    public function myPlaces(Request $request)
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return redirect('/login');
+        }
+
+        $filter = $request->query('filter', 'all');
+        $query = $user->places()->with(['category', 'media' => fn ($q) => $q->where('is_cover', true)]);
+        if ($filter === 'wishlist') {
+            $query->where('is_wishlist', true);
+        } elseif ($filter === 'visited') {
+            $query->where('is_visited', true);
+        } elseif ($filter === 'unpublic') {
+            $query->where('is_public', false);
+        }
+        $places = $query->latest()->paginate(20);
+
+        return view('frontend.my_places', ['places' => $places, 'filter' => $filter]);
+    }
+
+    public function myRoutes(Request $request)
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return redirect('/login');
+        }
+        $routes = $user->routes()->withCount('places')->latest()->paginate(20);
+        return view('frontend.my_routes', ['routes' => $routes]);
+    }
+
+    public function myCollections(Request $request)
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return redirect('/login');
+        }
+        $collections = $user->collections()->withCount('places')->latest()->get();
+        return view('frontend.my_collections', ['collections' => $collections]);
+    }
+
+    public function myActivities(Request $request)
+    {
+        $user = auth()->user();
+        if (! $user) {
+            return redirect('/login');
+        }
+        $myCreated = collect();
+        $myJoined = collect();
+        if (class_exists(\App\Models\Activity::class)) {
+            $myCreated = \App\Models\Activity::where('user_id', $user->id)
+                ->withCount('participants')
+                ->with('place', 'route')
+                ->latest()->get();
+            $myJoined = \App\Models\ActivityParticipant::where('user_id', $user->id)
+                ->with('activity')
+                ->latest()->get();
+        }
+        return view('frontend.my_activities', compact('myCreated', 'myJoined'));
+    }
+
+    // ====== 活动 ======
+
+    public function activities(Request $request)
+    {
+        $filters = array_filter([
+            'upcoming' => $request->query('upcoming', 1),
+            'region_code' => $request->query('region'),
+        ]);
+        $page = \App\Models\Activity::where('is_public', true)
+            ->whereIn('status', ['open', 'full'])
+            ->when(! empty($filters['upcoming']), fn ($q) => $q->where('start_at', '>=', now()))
+            ->when(! empty($filters['region_code']), fn ($q) => $q->where('region_code', $filters['region_code']))
+            ->with(['user', 'place', 'route'])
+            ->withCount('joinedParticipants')
+            ->latest('start_at')
+            ->paginate(20);
+
+        return view('frontend.activities_index', [
+            'activities' => $page,
+            'regionCode' => $filters['region_code'] ?? null,
+        ]);
+    }
+
+    public function activityCreate(Request $request)
+    {
+        if (! auth()->check()) {
+            return redirect('/login');
+        }
+        $placeId = $request->query('place_id');
+        $routeId = $request->query('route_id');
+        $preset = [
+            'place' => null,
+            'route' => null,
+        ];
+        if ($placeId) {
+            $preset['place'] = Place::public()->find($placeId);
+        }
+        if ($routeId) {
+            $preset['route'] = TravelRoute::public()->find($routeId);
+        }
+        return view('frontend.activity_create', $preset);
+    }
+
+    public function activityStore(Request $request)
+    {
+        if (! auth()->check()) {
+            return redirect('/login');
+        }
+        $data = $request->validate([
+            'title' => 'required|string|max:200',
+            'description' => 'nullable|string|max:5000',
+            'start_at' => 'required|date',
+            'end_at' => 'nullable|date|after:start_at',
+            'signup_deadline' => 'nullable|date|before:start_at',
+            'meeting_point' => 'nullable|string|max:200',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
+            'max_participants' => 'nullable|integer|min:0',
+            'transport' => 'nullable|string|max:50',
+            'fee' => 'nullable|numeric|min:0',
+            'fee_includes' => 'nullable|string|max:500',
+            'fee_excludes' => 'nullable|string|max:500',
+            'region_code' => 'nullable|string|max:20',
+            'region_name' => 'nullable|string|max:50',
+            'place_id' => 'nullable|integer|exists:places,id',
+            'route_id' => 'nullable|integer|exists:routes,id',
+        ]);
+        $data['user_id'] = auth()->id();
+        $data['status'] = 'open';
+        \App\Models\Activity::create($data);
+        return redirect('/activities')->with('ok', '活动已发布');
+    }
+
+    public function activityShow(int $id)
+    {
+        $activity = \App\Models\Activity::with(['user', 'place', 'route'])
+            ->withCount('joinedParticipants')
+            ->findOrFail($id);
+        $participants = $activity->participants()
+            ->whereIn('status', ['joined', 'pending'])
+            ->with('user:id,name,avatar')
+            ->get();
+        $activity->increment('view_count');
+        $isJoined = auth()->check() && $activity->participants()
+            ->where('user_id', auth()->id())
+            ->whereIn('status', ['joined', 'pending'])
+            ->exists();
+        return view('frontend.activity_show', [
+            'activity' => $activity,
+            'participants' => $participants,
+            'isJoined' => $isJoined,
+        ]);
+    }
+
+    public function activityJoin(Request $request, int $id)
+    {
+        if (! auth()->check()) {
+            return redirect('/login');
+        }
+        $activity = \App\Models\Activity::findOrFail($id);
+        if ($activity->is_expired) {
+            return back()->with('error', '活动已截止/取消');
+        }
+        $people = max(1, (int) $request->input('people_count', 1));
+        \App\Models\ActivityParticipant::updateOrCreate(
+            ['activity_id' => $id, 'user_id' => auth()->id()],
+            ['status' => 'joined', 'people_count' => $people]
+        );
+        return back()->with('ok', '报名成功');
+    }
+
+    public function activityLeave(Request $request, int $id)
+    {
+        if (! auth()->check()) {
+            return redirect('/login');
+        }
+        \App\Models\ActivityParticipant::where('activity_id', $id)
+            ->where('user_id', auth()->id())
+            ->update(['status' => 'cancelled']);
+        return back()->with('ok', '已取消报名');
     }
 
     // ---- helpers ----

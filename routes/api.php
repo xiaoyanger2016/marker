@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\Api\ActivityController;
 use App\Http\Controllers\Api\AmapController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CollectionController;
 use App\Http\Controllers\Api\NoteController;
 use App\Http\Controllers\Api\PlaceController;
+use App\Http\Controllers\Api\RegionController;
 use App\Http\Controllers\Api\RouteController;
 use App\Http\Controllers\Api\ShareController;
 use App\Http\Controllers\Api\TagController;
@@ -48,6 +50,15 @@ Route::prefix('v1')->group(function () {
 
     Route::get('categories', [CategoryController::class, 'index']);
     Route::get('tags', [TagController::class, 'index']);
+
+    // 区域三级联动（国家/省/市）
+    Route::get('regions', [RegionController::class, 'index']);
+    Route::get('regions/search', [RegionController::class, 'search']);
+    Route::get('regions/{code}', [RegionController::class, 'children']);
+
+    // 活动（公开可读，写需登录）
+    Route::get('activities', [ActivityController::class, 'index']);
+    Route::get('activities/{id}', [ActivityController::class, 'show']);
 
     // 高德 POI 搜索（用于"导入"功能，无需登录）
     Route::get('amap/text', [AmapController::class, 'textSearch']);
@@ -101,4 +112,12 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 
     // 高德 API 代理（around 需要定位，所以要 auth）
     Route::get('amap/around', [AmapController::class, 'aroundSearch']);
+
+    // 活动写
+    Route::post('activities', [ActivityController::class, 'store']);
+    Route::put('activities/{id}', [ActivityController::class, 'update']);
+    Route::patch('activities/{id}', [ActivityController::class, 'update']);
+    Route::delete('activities/{id}', [ActivityController::class, 'destroy']);
+    Route::post('activities/{id}/join', [ActivityController::class, 'join']);
+    Route::delete('activities/{id}/join', [ActivityController::class, 'leave']);
 });
