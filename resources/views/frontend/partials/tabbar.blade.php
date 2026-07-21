@@ -1,5 +1,5 @@
 {{-- 编辑感底部导航：图标 + 编号 + 标签（无 emoji） --}}
-<nav class="fixed bottom-0 left-0 right-0 z-50 bg-paper/95 backdrop-blur-sm border-t border-line">
+<nav class="fixed bottom-0 left-0 right-0 z-50 bg-paper/95 backdrop-blur-sm border-t border-line safe-bottom">
     <div class="grid grid-cols-4 max-w-2xl mx-auto">
         <a href="{{ url('/') }}" class="flex flex-col items-center gap-1 py-2.5 {{ request()->is('/') || request()->path() === '/' ? 'text-ink' : 'text-ink-3' }} hover:text-ink transition-colors">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">

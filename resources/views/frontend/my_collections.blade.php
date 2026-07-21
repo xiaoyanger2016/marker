@@ -15,9 +15,9 @@
 </section>
 
 <section class="border-b border-line">
-    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-6 sm:py-10">
         <h1 class="font-display font-medium text-3xl sm:text-5xl text-ink leading-none">收藏集</h1>
-        <p class="font-display italic text-lg text-ink-2 mt-3">把好地方按主题归类。</p>
+        <p class="font-display italic text-base sm:text-lg text-ink-2 mt-3">把好地方按主题归类。</p>
     </div>
 </section>
 

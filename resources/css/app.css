@@ -20,8 +20,10 @@
  *   JetBrains Mono - 编号 / 坐标 / 距离 / 标签
  * ========================================================================= */
 
-/* Google Fonts - 加载 editorial 字体组合 */
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* Google Fonts - 加载 editorial 字体组合
+ * 重要：WeChat 内嵌浏览器对 Google Fonts 不友好
+ * → 系统字体优先 fallback，不阻塞渲染 */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @theme {
     /* ---- 色板：暖纸 + 深墨 + 土陶 ---- */
@@ -41,10 +43,10 @@
     --color-blood:        #8B2C2C;   /* 砖红：错误 */
     --color-sun:          #C49B2A;   /* 暗金：装饰/星标 */
 
-    /* ---- 字体 ---- */
-    --font-display: 'Fraunces', 'Source Han Serif SC', 'Songti SC', 'STSong', 'PingFang SC', serif;
-    --font-sans:    'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-    --font-mono:    'JetBrains Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
+    /* ---- 字体（WeChat / iOS / Android fallback 优先） ---- */
+    --font-display: 'Fraunces', 'Songti SC', 'STSong', 'Source Han Serif SC', 'Noto Serif CJK SC', 'PingFang SC', Georgia, serif;
+    --font-sans:    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', 'Inter', sans-serif;
+    --font-mono:    'JetBrains Mono', 'SF Mono', 'Menlo', Consolas, 'Courier New', monospace;
 
     /* ---- 间距 4px 倍数 ---- */
     --spacing-unit: 0.25rem;
@@ -62,6 +64,13 @@ html, body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    /* 防止 iOS 长按选中 */
+    -webkit-touch-callout: none;
+}
+
+/* 默认最小可点击区域 (44x44) — Apple HIG */
+button, a.btn, [role="button"] {
+    min-height: 36px;
 }
 
 /* 噪点纹理叠加（极淡的纸感） */
@@ -276,23 +285,26 @@ select.input {
 }
 
 /* =========================================================================
- * 瀑布流（编辑感：不要 column-count 默认间距）
+ * 瀑布流（编辑感：mobile 2 列 / sm 3 列 / lg 4 列，留 2px 间隙）
  * ========================================================================= */
 .masonry {
     column-count: 2;
-    column-gap: 0;
+    column-gap: 2px;
     padding: 0;
 }
 @media (min-width: 640px) {
-    .masonry { column-count: 3; }
+    .masonry { column-count: 3; column-gap: 3px; }
 }
 @media (min-width: 1024px) {
-    .masonry { column-count: 4; }
+    .masonry { column-count: 4; column-gap: 3px; }
 }
 .masonry-item {
     break-inside: avoid;
-    margin-bottom: 0;
+    margin-bottom: 2px;
     display: block;
+}
+@media (min-width: 640px) {
+    .masonry-item { margin-bottom: 3px; }
 }
 
 /* =========================================================================
@@ -321,7 +333,7 @@ a.link {
 a.link:hover { color: var(--color-warm); background-image: linear-gradient(var(--color-warm), var(--color-warm)); }
 
 /* =========================================================================
- * 工具：滚动条
+ * 工具：滚动条 / 水平滚动 snap
  * ========================================================================= */
 .scrollbar-hide {
     -ms-overflow-style: none;
@@ -329,11 +341,31 @@ a.link:hover { color: var(--color-warm); background-image: linear-gradient(var(-
 }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 
+/* 水平滚动 snap（mobile type nav 用） */
+.snap-x {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+}
+.snap-x > * {
+    scroll-snap-align: start;
+}
+
 /* =========================================================================
  * 移动端触摸优化
  * ========================================================================= */
 * {
     -webkit-tap-highlight-color: transparent;
+}
+
+/* iOS safe area 适配 */
+.safe-top    { padding-top: env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.safe-l      { padding-left: env(safe-area-inset-left); }
+.safe-r      { padding-right: env(safe-area-inset-right); }
+
+/* 禁止 iOS 橡皮筋效果在某些容器 */
+.overflow-hidden-touch {
+    overscroll-behavior: contain;
 }
 
 /* =========================================================================

@@ -6,38 +6,38 @@
 
 {{-- 杂志式 profile 头部 --}}
 <section class="border-b border-line-2">
-    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-12 sm:py-16">
-        <div class="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3 mb-6">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-6 sm:py-16">
+        <div class="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3 mb-4 sm:mb-6">
             <span>PROFILE</span>
             <span class="w-px h-3 bg-line-2"></span>
             <span>N°01 · 读者档案</span>
         </div>
 
         <div class="grid grid-cols-12 gap-6 sm:gap-12">
-            <div class="col-span-12 sm:col-span-7 flex items-start gap-5">
-                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-ink text-paper font-display text-3xl sm:text-4xl flex items-center justify-center flex-shrink-0">
+            <div class="col-span-12 sm:col-span-7 flex items-start gap-4 sm:gap-5">
+                <div class="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-ink text-paper font-display text-2xl sm:text-4xl flex items-center justify-center flex-shrink-0">
                     {{ mb_substr($user->name, 0, 1) }}
                 </div>
-                <div>
-                    <h1 class="font-display font-medium text-4xl sm:text-5xl text-ink leading-none">{{ $user->name }}</h1>
-                    <p class="font-mono text-xs text-ink-3 mt-2 tracking-wider">{{ $user->email }}</p>
-                    <p class="font-display italic text-ink-2 mt-4">Joined {{ $user->created_at->format('M Y') }}</p>
+                <div class="min-w-0">
+                    <h1 class="font-display font-medium text-3xl sm:text-5xl text-ink leading-none truncate">{{ $user->name }}</h1>
+                    <p class="font-mono text-[11px] text-ink-3 mt-2 tracking-wider truncate">{{ $user->email }}</p>
+                    <p class="font-display italic text-sm sm:text-base text-ink-2 mt-2 sm:mt-4">Joined {{ $user->created_at->format('M Y') }}</p>
                 </div>
             </div>
 
             <div class="col-span-12 sm:col-span-5 sm:pt-2">
                 <div class="eyebrow mb-3">CONTRIBUTIONS</div>
                 <div class="grid grid-cols-3 gap-2">
-                    <div class="border border-line p-3">
-                        <div class="font-display text-3xl text-ink">{{ $stats['places_total'] }}</div>
+                    <div class="border border-line p-2 sm:p-3">
+                        <div class="font-display text-2xl sm:text-3xl text-ink">{{ $stats['places_total'] }}</div>
                         <div class="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3 mt-1">地点</div>
                     </div>
-                    <div class="border border-line p-3">
-                        <div class="font-display text-3xl text-ink">{{ $stats['routes_total'] }}</div>
+                    <div class="border border-line p-2 sm:p-3">
+                        <div class="font-display text-2xl sm:text-3xl text-ink">{{ $stats['routes_total'] }}</div>
                         <div class="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3 mt-1">线路</div>
                     </div>
-                    <div class="border border-line p-3">
-                        <div class="font-display text-3xl text-ink">{{ $stats['collections_total'] }}</div>
+                    <div class="border border-line p-2 sm:p-3">
+                        <div class="font-display text-2xl sm:text-3xl text-ink">{{ $stats['collections_total'] }}</div>
                         <div class="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3 mt-1">收藏集</div>
                     </div>
                 </div>
@@ -48,27 +48,27 @@
 
 {{-- 索引 --}}
 <section class="border-b border-line">
-    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-8">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-6 sm:py-8">
         <div class="eyebrow mb-4">SECTIONS</div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-0 border-t border-b border-line">
-            <a href="/me/places" class="p-5 border-r border-line hover:bg-paper-2 transition-colors">
+            <a href="/me/places" class="p-3 sm:p-5 border-r border-line hover:bg-paper-2 transition-colors">
                 <div class="font-mono text-[10px] text-ink-3">N°01</div>
-                <div class="font-display text-lg text-ink mt-1">我的地点</div>
+                <div class="font-display text-base sm:text-lg text-ink mt-1">我的地点</div>
                 <div class="font-mono text-[10px] text-ink-3 mt-1">{{ $stats['places_total'] }} items</div>
             </a>
-            <a href="/me/routes" class="p-5 border-r border-line hover:bg-paper-2 transition-colors">
+            <a href="/me/routes" class="p-3 sm:p-5 border-r border-line hover:bg-paper-2 transition-colors">
                 <div class="font-mono text-[10px] text-ink-3">N°02</div>
-                <div class="font-display text-lg text-ink mt-1">我的线路</div>
+                <div class="font-display text-base sm:text-lg text-ink mt-1">我的线路</div>
                 <div class="font-mono text-[10px] text-ink-3 mt-1">{{ $stats['routes_total'] }} items</div>
             </a>
-            <a href="/me/collections" class="p-5 border-r border-line hover:bg-paper-2 transition-colors">
+            <a href="/me/collections" class="p-3 sm:p-5 border-r border-line hover:bg-paper-2 transition-colors">
                 <div class="font-mono text-[10px] text-ink-3">N°03</div>
-                <div class="font-display text-lg text-ink mt-1">收藏集</div>
+                <div class="font-display text-base sm:text-lg text-ink mt-1">收藏集</div>
                 <div class="font-mono text-[10px] text-ink-3 mt-1">{{ $stats['collections_total'] }} items</div>
             </a>
-            <a href="/me/activities" class="p-5 hover:bg-paper-2 transition-colors">
+            <a href="/me/activities" class="p-3 sm:p-5 hover:bg-paper-2 transition-colors">
                 <div class="font-mono text-[10px] text-ink-3">N°04</div>
-                <div class="font-display text-lg text-ink mt-1">我的活动</div>
+                <div class="font-display text-base sm:text-lg text-ink mt-1">我的活动</div>
                 <div class="font-mono text-[10px] text-ink-3 mt-1">—</div>
             </a>
         </div>

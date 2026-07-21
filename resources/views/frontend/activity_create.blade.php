@@ -15,14 +15,14 @@
 </section>
 
 <section class="border-b border-line">
-    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-10 sm:py-14">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-6 sm:py-14">
         <div class="grid grid-cols-12 gap-6 sm:gap-12">
             <div class="col-span-12 sm:col-span-7">
-                <h1 class="font-display font-medium text-4xl sm:text-6xl leading-[1.0] text-ink">
+                <h1 class="font-display font-medium text-3xl sm:text-6xl leading-[1.0] text-ink">
                     发起<br>
                     <span class="serif-italic text-warm">约伴</span>
                 </h1>
-                <p class="font-display italic text-xl text-ink-2 mt-4">填好时间地点，剩下的交给感兴趣的人。</p>
+                <p class="font-display italic text-base sm:text-xl text-ink-2 mt-4">填好时间地点，剩下的交给感兴趣的人。</p>
 
                 @if($place || $route)
                     <div class="mt-6 p-4 border-l-2 border-warm bg-paper-2 max-w-md">

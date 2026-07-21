@@ -298,7 +298,7 @@
 {{-- =================================================================
    11 · 发起约伴按钮（编辑感底注）
    ================================================================= --}}
-<div class="fixed bottom-14 sm:bottom-16 left-0 right-0 z-40 px-4 pb-2 bg-gradient-to-t from-paper via-paper to-transparent pt-4">
+<div class="fixed bottom-[64px] sm:bottom-[68px] left-0 right-0 z-40 px-4 pb-3 safe-bottom bg-gradient-to-t from-paper via-paper to-transparent pt-4">
     @auth
         <div class="max-w-5xl mx-auto">
             <a href="/activities/create?place_id={{ $place->id }}" class="btn btn-warm w-full">
@@ -315,7 +315,7 @@
 
 @endsection
 
-@section('main_class', 'pb-24')
+@section('main_class', 'pb-32')
 
 @push('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>

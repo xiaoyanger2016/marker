@@ -6,7 +6,7 @@
 
 {{-- 杂志式 hero：编辑感排版 --}}
 <section class="border-b border-line-2 bg-paper-2">
-    <div class="max-w-5xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
+    <div class="max-w-5xl mx-auto px-5 sm:px-8 py-6 sm:py-12">
         <div class="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3 mb-4">
             <a href="/activities" class="hover:text-ink transition-colors">← BACK</a>
             <span class="w-px h-3 bg-line-2"></span>
@@ -15,28 +15,28 @@
             <span>EVENT</span>
         </div>
 
-        <h1 class="font-display font-medium text-3xl sm:text-5xl leading-[1.1] text-ink max-w-3xl">
+        <h1 class="font-display font-medium text-2xl sm:text-5xl leading-[1.15] sm:leading-[1.1] text-ink max-w-3xl">
             {{ $activity->title }}
         </h1>
 
         <div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 max-w-3xl">
             <div>
                 <div class="eyebrow">出发</div>
-                <div class="font-display text-lg sm:text-xl text-ink mt-1">{{ $activity->start_at?->format('m/d H:i') }}</div>
+                <div class="font-display text-base sm:text-xl text-ink mt-1">{{ $activity->start_at?->format('m/d H:i') }}</div>
             </div>
             <div>
                 <div class="eyebrow">报名截止</div>
-                <div class="font-display text-lg sm:text-xl text-warm mt-1">{{ $activity->signup_deadline?->format('m/d H:i') ?? '—' }}</div>
+                <div class="font-display text-base sm:text-xl text-warm mt-1">{{ $activity->signup_deadline?->format('m/d H:i') ?? '—' }}</div>
             </div>
             <div>
                 <div class="eyebrow">人数</div>
-                <div class="font-display text-lg sm:text-xl text-ink mt-1">
+                <div class="font-display text-base sm:text-xl text-ink mt-1">
                     {{ $activity->joined_participants_count }}<span class="text-ink-3 text-sm">/{{ $activity->max_participants > 0 ? $activity->max_participants : '∞' }}</span>
                 </div>
             </div>
             <div>
                 <div class="eyebrow">状态</div>
-                <div class="font-display text-lg sm:text-xl text-ink mt-1">{{ $activity->status_label }}</div>
+                <div class="font-display text-base sm:text-xl text-ink mt-1">{{ $activity->status_label }}</div>
             </div>
         </div>
 
@@ -55,14 +55,14 @@
     </div>
 </section>
 
-<div class="max-w-5xl mx-auto px-5 sm:px-8 py-8 sm:py-12 space-y-8 sm:space-y-12">
+<div class="max-w-5xl mx-auto px-5 sm:px-8 py-6 sm:py-12 space-y-6 sm:space-y-12">
 
     {{-- 详情 --}}
     @if($activity->description)
     <section>
         <div class="eyebrow mb-3">§ DETAILS</div>
-        <div class="border-l-2 border-warm pl-5 max-w-3xl">
-            <p class="font-display text-lg sm:text-xl leading-relaxed text-ink whitespace-pre-line">{{ $activity->description }}</p>
+        <div class="border-l-2 border-warm pl-4 sm:pl-5 max-w-3xl">
+            <p class="font-display text-base sm:text-xl leading-relaxed text-ink whitespace-pre-line">{{ $activity->description }}</p>
         </div>
     </section>
     @endif
@@ -74,18 +74,18 @@
             <dl class="space-y-3 font-mono text-sm">
                 @if($activity->meeting_point)
                 <div class="flex justify-between border-b border-line pb-2">
-                    <dt class="text-ink-3">集合 / GATHER</dt>
-                    <dd class="text-ink text-right max-w-[60%]">{{ $activity->meeting_point }}</dd>
+                    <dt class="text-ink-3 flex-shrink-0">集合</dt>
+                    <dd class="text-ink text-right ml-3">{{ $activity->meeting_point }}</dd>
                 </div>
                 @endif
                 @if($activity->transport)
                 <div class="flex justify-between border-b border-line pb-2">
-                    <dt class="text-ink-3">方式 / TRANSIT</dt>
+                    <dt class="text-ink-3">方式</dt>
                     <dd class="text-ink">{{ $activity->transport }}</dd>
                 </div>
                 @endif
                 <div class="flex justify-between border-b border-line pb-2">
-                    <dt class="text-ink-3">城市 / CITY</dt>
+                    <dt class="text-ink-3">城市</dt>
                     <dd class="text-ink">{{ $activity->region_name ?: '不限' }}</dd>
                 </div>
             </dl>
@@ -94,7 +94,7 @@
         {{-- 费用 --}}
         <div>
             <div class="eyebrow mb-3">§ FEE</div>
-            <div class="font-display text-4xl sm:text-5xl {{ $activity->fee > 0 ? 'text-warm' : 'text-grass' }} mb-3">
+            <div class="font-display text-3xl sm:text-5xl {{ $activity->fee > 0 ? 'text-warm' : 'text-grass' }} mb-1">
                 {{ $activity->fee > 0 ? '¥' . number_format($activity->fee, 0) : '免费' }}
             </div>
             @if($activity->fee > 0)
@@ -173,7 +173,7 @@
 </div>
 
 {{-- 底部报名按钮 --}}
-<div class="fixed bottom-14 sm:bottom-16 left-0 right-0 z-40 px-4 pb-2 bg-gradient-to-t from-paper via-paper to-transparent pt-4">
+<div class="fixed bottom-[64px] sm:bottom-[68px] left-0 right-0 z-40 px-4 pb-3 safe-bottom bg-gradient-to-t from-paper via-paper to-transparent pt-4">
 @auth
     @if($activity->user_id === auth()->id())
         <div class="max-w-5xl mx-auto flex gap-2">
@@ -226,3 +226,5 @@
     </div>
 @endif
 @endsection
+
+@section('main_class', 'pb-32')

@@ -14,14 +14,14 @@
 </section>
 
 <section class="border-b border-line">
-    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-12 sm:py-20">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-20">
         <div class="grid grid-cols-12 gap-6 sm:gap-12">
             <div class="col-span-12 sm:col-span-7">
                 <span class="eyebrow">N°02 · SIGN UP</span>
-                <h1 class="font-display font-medium text-5xl sm:text-7xl leading-[1.0] text-ink mt-3">
+                <h1 class="font-display font-medium text-4xl sm:text-7xl leading-[1.0] text-ink mt-3">
                     加入<br>读者群
                 </h1>
-                <p class="font-display italic text-xl text-ink-2 mt-4">成为这本公路杂志的共同编辑者。</p>
+                <p class="font-display italic text-lg sm:text-xl text-ink-2 mt-4">成为这本公路杂志的共同编辑者。</p>
 
                 @if($errors->any())
                     <div class="mt-8 p-4 border-l-2 border-blood bg-paper-2 max-w-md">

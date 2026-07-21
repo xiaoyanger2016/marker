@@ -14,15 +14,15 @@
 </section>
 
 <section class="border-b border-line">
-    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-12 sm:py-20">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-20">
         <div class="grid grid-cols-12 gap-6 sm:gap-12">
             {{-- 左侧：编辑感标题 --}}
             <div class="col-span-12 sm:col-span-7">
                 <span class="eyebrow">N°01 · LOG IN</span>
-                <h1 class="font-display font-medium text-5xl sm:text-7xl leading-[1.0] text-ink mt-3">
+                <h1 class="font-display font-medium text-4xl sm:text-7xl leading-[1.0] text-ink mt-3">
                     欢迎<br>回来
                 </h1>
-                <p class="font-display italic text-xl text-ink-2 mt-4">继续你的公路地图志。</p>
+                <p class="font-display italic text-lg sm:text-xl text-ink-2 mt-4">继续你的公路地图志。</p>
 
                 @if($errors->any())
                     <div class="mt-8 p-4 border-l-2 border-blood bg-paper-2 max-w-md">

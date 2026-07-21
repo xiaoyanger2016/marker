@@ -33,10 +33,10 @@
    标题左 7/12，引语右 4/12 错位下行
    ================================================================= --}}
 <section class="border-b border-line">
-    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-10 sm:py-16">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-6 sm:py-14">
         <div class="grid grid-cols-12 gap-4 sm:gap-8">
             <div class="col-span-12 sm:col-span-8">
-                <h1 class="font-display font-medium text-[2.5rem] sm:text-[4rem] leading-[1.05] tracking-tight text-ink">
+                <h1 class="font-display font-medium text-[2.125rem] sm:text-[4rem] leading-[1.05] tracking-tight text-ink">
                     一份<br>
                     只属于你的<br>
                     <span class="serif-italic text-warm">公路地图志</span>
@@ -83,7 +83,7 @@
             <span class="eyebrow">§ 01 — 类型索引</span>
             <span class="font-mono text-[10px] text-ink-3">8 types</span>
         </div>
-        <div class="overflow-x-auto scrollbar-hide -mx-5 sm:-mx-8">
+        <div class="overflow-x-auto scrollbar-hide snap-x -mx-5 sm:-mx-8">
             <div class="flex px-5 sm:px-8 min-w-max">
                 @php
                     $typeIndex = [
@@ -99,9 +99,9 @@
                 @endphp
                 @foreach($typeIndex as $i => [$no, $key, $label, $en, $color])
                     <a href="{{ url('/type/' . $key) }}"
-                       class="group flex flex-col items-start min-w-[120px] px-4 py-3 border-r border-line {{ $loop->last ? 'border-r-0' : '' }}">
-                        <span class="font-mono text-[10px] tracking-wider text-ink-3 mb-2">N°{{ $no }}</span>
-                        <span class="font-display text-xl text-ink group-hover:text-warm transition-colors leading-none">{{ $label }}</span>
+                       class="group flex flex-col items-start min-w-[110px] sm:min-w-[120px] px-3 sm:px-4 py-3 border-r border-line {{ $loop->last ? 'border-r-0' : '' }}">
+                        <span class="font-mono text-[10px] tracking-wider text-ink-3 mb-1.5">N°{{ $no }}</span>
+                        <span class="font-display text-lg sm:text-xl text-ink group-hover:text-warm transition-colors leading-none">{{ $label }}</span>
                         <span class="font-mono text-[10px] text-ink-3 mt-1.5 italic">{{ $en }}</span>
                     </a>
                 @endforeach
@@ -140,7 +140,7 @@
                     @endphp
                     <div class="w-full h-full relative" style="background: linear-gradient(135deg, {{ $g[$gi] }} 0%, #1A1814 100%);">
                         <div class="absolute inset-0 flex items-center justify-center">
-                            <span class="font-display text-[8rem] sm:text-[12rem] text-paper/15 leading-none select-none">N°{{ str_pad($heroItem['id'], 2, '0', STR_PAD_LEFT) }}</span>
+                            <span class="font-display text-[6rem] sm:text-[12rem] text-paper/15 leading-none select-none">N°{{ str_pad($heroItem['id'], 2, '0', STR_PAD_LEFT) }}</span>
                         </div>
                         <div class="absolute top-3 left-3 flex items-center gap-2">
                             <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/80">N°01</span>
@@ -176,7 +176,7 @@
                     @if($item)
                         <a href="{{ url('/place/' . $item['id']) }}" class="group flex-1 flex gap-3 sm:gap-4 border border-line p-3 hover:border-ink transition-colors">
                             <div class="w-20 sm:w-28 flex-shrink-0 aspect-square relative" style="background: linear-gradient(135deg, {{ ['#114B5F', '#2D5F3F', '#C45626'][$i % 3] }} 0%, #1A1814 100%);">
-                                <div class="absolute inset-0 flex items-center justify-center text-paper/25 font-display text-3xl select-none">
+                                <div class="absolute inset-0 flex items-center justify-center text-paper/25 font-display text-4xl sm:text-3xl select-none">
                                     N°{{ str_pad($item['id'], 2, '0', STR_PAD_LEFT) }}
                                 </div>
                                 <div class="absolute top-1 left-1 font-mono text-[8px] text-paper/70">N°0{{ $i + 2 }}</div>
@@ -329,7 +329,7 @@
             <a href="/place/${p.id}" class="masonry-item group block bg-paper border border-line hover:border-ink transition-colors">
                 <div class="${r} relative overflow-hidden" style="background: linear-gradient(135deg, ${g[0]} 0%, ${g[1]} 100%);">
                     <div class="absolute inset-0 flex items-center justify-center">
-                        <div class="font-display text-[10rem] leading-none text-paper/15 group-hover:text-paper/25 transition-colors select-none">${numStr}</div>
+                        <div class="font-display text-[5rem] sm:text-[10rem] leading-none text-paper/15 group-hover:text-paper/25 transition-colors select-none">${numStr}</div>
                     </div>
                     <div class="absolute top-2 left-2 font-mono text-[9px] uppercase tracking-[0.2em] text-paper/80">${escapeHtml(typeLabel)}</div>
                     ${p.rating_label && p.rating_meta ? `<div class="absolute top-2 right-2 font-mono text-[9px] uppercase tracking-[0.2em] px-1.5 py-0.5 border border-paper/50 text-paper">${escapeHtml(p.rating_meta.label)}</div>` : ''}
@@ -355,7 +355,7 @@
             <a href="/route/${r.id}" class="masonry-item group block bg-paper border border-line hover:border-ink transition-colors">
                 <div class="${r_ratio} relative overflow-hidden" style="background: linear-gradient(135deg, ${color} 0%, #1A1814 100%);">
                     <div class="absolute inset-0 flex items-center justify-center">
-                        <div class="font-display text-[10rem] leading-none text-paper/15 group-hover:text-paper/25 transition-colors select-none">${numStr}</div>
+                        <div class="font-display text-[5rem] sm:text-[10rem] leading-none text-paper/15 group-hover:text-paper/25 transition-colors select-none">${numStr}</div>
                     </div>
                     <div class="absolute top-2 left-2 font-mono text-[9px] uppercase tracking-[0.2em] text-paper/80">${escapeHtml(typeLabel)}</div>
                     ${r.rating_meta ? `<div class="absolute top-2 right-2 font-mono text-[9px] uppercase tracking-[0.2em] px-1.5 py-0.5 border border-paper/50 text-paper">${escapeHtml(r.rating_meta.label)}</div>` : ''}

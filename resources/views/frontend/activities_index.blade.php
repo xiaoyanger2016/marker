@@ -83,15 +83,41 @@
 {{-- 活动列表：杂志式目录，每条 = 一行 + 编号 + 状态 + 城市 --}}
 <div class="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
     @forelse($activities as $i => $a)
-        <a href="/activities/{{ $a->id }}" class="block border-b border-line py-5 sm:py-6 group hover:bg-paper-2 transition-colors -mx-2 px-2">
-            <div class="grid grid-cols-12 gap-3 sm:gap-4 items-baseline">
-                {{-- 编号 --}}
-                <div class="col-span-2 sm:col-span-1 font-mono text-[10px] text-ink-3 uppercase tracking-[0.15em]">
+        <a href="/activities/{{ $a->id }}" class="block border-b border-line py-4 sm:py-6 group hover:bg-paper-2 transition-colors -mx-2 px-2">
+            {{-- Mobile: 单列；sm+: 4 列对照 --}}
+            <div class="flex items-start gap-3 sm:hidden">
+                <span class="font-mono text-[10px] text-ink-3 uppercase tracking-[0.15em] mt-1.5 w-6 flex-shrink-0">
+                    N°{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}
+                </span>
+                <div class="flex-1 min-w-0">
+                    <h3 class="font-display text-base text-ink leading-tight line-clamp-2 group-hover:text-warm transition-colors">
+                        {{ $a->title }}
+                    </h3>
+                    <div class="mt-1.5 flex items-center flex-wrap gap-x-2 gap-y-0.5 font-mono text-[10px] uppercase tracking-[0.15em] text-ink-3">
+                        <span>{{ $a->start_at?->format('m/d H:i') }}</span>
+                        <span class="text-ink-3/50">·</span>
+                        <span>{{ $a->region_name ?: '不限' }}</span>
+                    </div>
+                    <div class="mt-2 flex items-center justify-between">
+                        <span class="font-mono text-[10px] uppercase tracking-[0.15em] text-ink-3">
+                            <svg class="w-3 h-3 inline-block -mt-px mr-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20a6 6 0 0112 0M14 19a5 5 0 0110 0"/></svg>
+                            {{ $a->joined_participants_count }}<span class="text-ink-3/70">/{{ $a->max_participants > 0 ? $a->max_participants : '∞' }}</span>
+                        </span>
+                        @if($a->fee > 0)
+                            <span class="font-display text-lg text-warm">¥{{ number_format($a->fee, 0) }}</span>
+                        @else
+                            <span class="font-display text-base text-grass">免费</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            {{-- sm+ 4 列对照 --}}
+            <div class="hidden sm:grid grid-cols-12 gap-3 sm:gap-4 items-baseline">
+                <div class="col-span-1 font-mono text-[10px] text-ink-3 uppercase tracking-[0.15em]">
                     N°{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}
                 </div>
-
-                {{-- 主信息 --}}
-                <div class="col-span-10 sm:col-span-7">
+                <div class="col-span-7">
                     <h3 class="font-display text-xl sm:text-2xl text-ink leading-tight line-clamp-2 group-hover:text-warm transition-colors">
                         {{ $a->title }}
                     </h3>
@@ -105,17 +131,13 @@
                         @endif
                     </div>
                 </div>
-
-                {{-- 数字 + 状态 --}}
-                <div class="col-span-6 sm:col-span-2 font-mono text-[10px] uppercase tracking-[0.15em] text-ink-3">
+                <div class="col-span-2 font-mono text-[10px] uppercase tracking-[0.15em] text-ink-3">
                     <div class="text-ink text-base sm:text-lg font-display">
                         {{ $a->joined_participants_count }}<span class="text-ink-3 text-xs">/{{ $a->max_participants > 0 ? $a->max_participants : '∞' }}</span>
                     </div>
                     <div>已报名</div>
                 </div>
-
-                {{-- 费用 --}}
-                <div class="col-span-6 sm:col-span-2 text-right">
+                <div class="col-span-2 text-right">
                     @if($a->fee > 0)
                         <div class="font-display text-2xl text-warm">¥{{ number_format($a->fee, 0) }}</div>
                         <div class="font-mono text-[9px] uppercase tracking-[0.2em] text-ink-3">per person</div>
