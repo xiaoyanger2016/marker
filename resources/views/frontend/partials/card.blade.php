@@ -1,93 +1,72 @@
-{{-- 瀑布流卡片 - 单点 / 线路通用 --}}
+{{-- 编辑感卡片：单点 / 线路通用 · v2
+     风格：杂志期刊
+     - 渐变封面 + 巨型 N° 编号（替代 emoji）
+     - mono 标签 + 衬线标题
+     - 4px 圆角 + 细线
+--}}
 @php
-    $isRoute = $item['kind'] === 'route';
+    $isRoute = ($item['kind'] ?? null) === 'route';
+
     // 错开高度（瀑布流效果）
     $ratios = ['aspect-[3/4]', 'aspect-square', 'aspect-[4/5]', 'aspect-[3/4]', 'aspect-[4/3]', 'aspect-[2/3]'];
     $ratio = $ratios[$item['id'] % count($ratios)];
 
-    // 渐变 fallback（无封面图时）
-    $gradients = [
-        ['from' => '#fda4af', 'to' => '#fb923c'],  // 橙红
-        ['from' => '#86efac', 'to' => '#22d3ee'],  // 绿青
-        ['from' => '#a78bfa', 'to' => '#f472b6'],  // 紫粉
-        ['from' => '#fcd34d', 'to' => '#fb7185'],  // 黄粉
-        ['from' => '#5eead4', 'to' => '#818cf8'],  // 青蓝
-        ['from' => '#fca5a5', 'to' => '#a855f7'],  // 红紫
-    ];
-    $gradient = $gradients[$item['id'] % count($gradients)];
+    // 封面用 type 颜色（编辑感低饱和度）
+    $typeColor = $isRoute
+        ? ($item['type_color'] ?? '#114B5F')
+        : (\App\Models\Place::PLACE_TYPES[$item['place_type'] ?? '']['color'] ?? '#4A4640');
+    $typeLabel = $isRoute ? ($item['type_label'] ?? '') : ($item['place_type_label'] ?? '');
+
+    $numStr = str_pad((string) ($item['id'] % 100), 2, '0', STR_PAD_LEFT);
     $hasCover = !empty($item['cover']) && $item['cover'] !== url('/images/placeholder.png');
+
+    // 评分（从 meta 拿，icon 已无 emoji）
+    $rating = $item['rating_meta'] ?? null;
 @endphp
 
-<a href="{{ $item['url'] }}" class="masonry-item group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-    {{-- 封面图 --}}
-    <div class="{{ $ratio }} relative overflow-hidden" style="@if(!$hasCover) background: linear-gradient(135deg, {{ $gradient['from'] }}, {{ $gradient['to'] }}); @else background: #f3f4f6; @endif">
+<a href="{{ $item['url'] }}" class="masonry-item group block bg-paper border border-line hover:border-ink transition-colors">
+
+    {{-- 封面 --}}
+    <div class="{{ $ratio }} relative overflow-hidden" style="@if(!$hasCover) background: linear-gradient(135deg, {{ $typeColor }} 0%, #1A1814 100%); @else background: var(--color-paper-2); @endif">
         @if($hasCover)
             <img src="{{ $item['cover'] }}" alt="{{ $item['name'] }}"
                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                 loading="lazy" onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg, {{ $gradient['from'] }}, {{ $gradient['to'] }})';">
+                 loading="lazy" onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg, {{ $typeColor }} 0%, #1A1814 100%)';">
         @else
-            {{-- Emoji 大封面 --}}
-            <div class="w-full h-full flex items-center justify-center">
-                <div class="text-7xl sm:text-8xl opacity-90 group-hover:scale-110 transition-transform duration-300">
-                    {{ $isRoute ? ($item['type_icon'] ?? '🚗') : ($item['place_type_icon'] ?? '📍') }}
-                </div>
+            {{-- 编辑感大字编号（替代 emoji） --}}
+            <div class="absolute inset-0 flex items-center justify-center">
+                <div class="font-display text-[8rem] sm:text-[10rem] leading-none text-paper/15 group-hover:text-paper/25 transition-colors select-none">{{ $numStr }}</div>
             </div>
         @endif
 
-        {{-- 标签角标 --}}
-        <div class="absolute top-2 left-2 flex flex-col gap-1">
-            @if($isRoute)
-                <span class="px-2 py-0.5 text-[10px] font-semibold text-white rounded-full shadow" style="background: {{ $item['type_color'] }}">
-                    {{ $item['type_icon'] }} {{ $item['type_label'] }}
-                </span>
-                @if(($item['places_count'] ?? 0) > 0)
-                    <span class="px-2 py-0.5 text-[10px] font-medium text-white bg-black/60 rounded-full">
-                        📍 {{ $item['places_count'] }} 个点
-                    </span>
-                @endif
-            @else
-                @if(!empty($item['place_type_icon']))
-                    <span class="px-2 py-0.5 text-[10px] font-medium text-gray-700 bg-white/90 rounded-full">
-                        {{ $item['place_type_icon'] }} {{ $item['place_type_label'] }}
-                    </span>
-                @endif
-                @if(!empty($item['is_wishlist']))
-                    <span class="px-2 py-0.5 text-[10px] font-semibold text-white bg-rose-500 rounded-full">
-                        ❤️ 种草
-                    </span>
-                @endif
-            @endif
-        </div>
+        {{-- 类型角标（mono 大写） --}}
+        @if($typeLabel)
+            <div class="absolute top-2 left-2">
+                <span class="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/85 border border-paper/40 px-1.5 py-0.5">{{ $typeLabel }}</span>
+            </div>
+        @endif
 
         {{-- 评分角标 --}}
-        @if(!empty($item['rating_label_text']))
+        @if($rating && !empty($rating['label']))
             <div class="absolute top-2 right-2">
-                <span class="px-2 py-0.5 text-[10px] font-bold text-white rounded-full shadow"
-                      style="background: {{ \App\Models\Place::RATING_LABELS[$item['rating_label']]['color'] ?? '#6b7280' }}">
-                    {{ \App\Models\Place::RATING_LABELS[$item['rating_label']]['icon'] ?? '' }} {{ $item['rating_label_text'] }}
-                </span>
-            </div>
-        @elseif(!empty($item['rating_meta']))
-            <div class="absolute top-2 right-2">
-                <span class="px-2 py-0.5 text-[10px] font-bold text-white rounded-full shadow"
-                      style="background: {{ $item['rating_meta']['color'] }}">
-                    {{ $item['rating_meta']['icon'] }} {{ $item['rating_meta']['label'] }}
+                <span class="font-mono text-[9px] uppercase tracking-[0.2em] px-1.5 py-0.5 border border-paper/50 text-paper" style="background: rgba(26, 24, 20, 0.4);">
+                    {{ $rating['label'] }}
                 </span>
             </div>
         @endif
 
-        {{-- 底部小信息 --}}
+        {{-- 线路：底部数据条 --}}
         @if($isRoute)
-            <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
-                <div class="flex items-center gap-2 text-white text-[10px]">
-                    @if($item['distance_km'])
-                        <span>🛣️ {{ $item['distance_km'] }}km</span>
+            <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-ink/85 to-transparent">
+                <div class="flex items-center gap-2 text-paper font-mono text-[10px]">
+                    @if(!empty($item['distance_km']))
+                        <span>{{ $item['distance_km'] }}KM</span>
                     @endif
-                    @if($item['duration_hours'])
-                        <span>⏱️ {{ $item['duration_hours'] }}h</span>
+                    @if(!empty($item['duration_hours']))
+                        <span>{{ $item['duration_hours'] }}H</span>
                     @endif
-                    @if($item['view_count'] > 0)
-                        <span>👁️ {{ $item['view_count'] }}</span>
+                    @if(!empty($item['places_count']) && $item['places_count'] > 0)
+                        <span>{{ $item['places_count'] }} STOPS</span>
                     @endif
                 </div>
             </div>
@@ -95,18 +74,22 @@
     </div>
 
     {{-- 文字信息 --}}
-    <div class="p-3">
-        <h3 class="font-semibold text-sm text-gray-900 line-clamp-1">{{ $item['name'] }}</h3>
+    <div class="px-3 py-3 border-t border-line">
+        <h3 class="font-display text-base text-ink leading-tight line-clamp-1">{{ $item['name'] }}</h3>
         @if(!empty($item['subtitle']))
-            <p class="text-xs text-gray-500 mt-0.5 line-clamp-1">{{ $item['subtitle'] }}</p>
+            <p class="font-mono text-[10px] text-ink-3 mt-1 line-clamp-1 italic">{{ $item['subtitle'] }}</p>
         @elseif(!empty($item['summary']))
-            <p class="text-xs text-gray-500 mt-0.5 line-clamp-2">{{ $item['summary'] }}</p>
+            <p class="text-xs text-ink-3 mt-1 line-clamp-2 leading-relaxed">{{ $item['summary'] }}</p>
         @endif
 
-        <div class="mt-2 flex items-center justify-between text-[10px] text-gray-400">
+        <div class="mt-2 flex items-center justify-between font-mono text-[10px] text-ink-3">
             <span>{{ $item['city'] ?? '—' }}</span>
-            @if($isRoute && $item['like_count'] > 0)
-                <span>❤️ {{ $item['like_count'] }}</span>
+            @if($isRoute && ($item['like_count'] ?? 0) > 0)
+                <span>+{{ $item['like_count'] }}</span>
+            @elseif(!$isRoute && !empty($item['is_wishlist']))
+                <span class="text-warm">种草中</span>
+            @else
+                <span class="opacity-0 group-hover:opacity-100 text-warm transition-opacity">→</span>
             @endif
         </div>
     </div>

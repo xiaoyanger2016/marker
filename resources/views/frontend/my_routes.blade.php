@@ -3,51 +3,51 @@
 @section('title', '我的线路 · Marker')
 
 @section('content')
-<section class="px-4 py-3 max-w-2xl mx-auto">
-    <h1 class="text-xl font-bold text-gray-900">🛣️ 我的线路</h1>
-    <p class="text-xs text-gray-500 mt-1">共 {{ $routes->total() }} 条</p>
+
+<section class="border-b border-line-2">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 pt-4 pb-2">
+        <div class="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3">
+            <a href="/me" class="hover:text-ink transition-colors">← PROFILE</a>
+            <span class="w-px h-3 bg-line-2"></span>
+            <span>N°02 · ROUTES</span>
+        </div>
+    </div>
 </section>
 
-<div class="max-w-2xl mx-auto space-y-2 px-4">
-    @forelse($routes as $r)
-        <a href="{{ url('/route/' . $r->id) }}" class="block p-3 bg-white rounded-xl shadow-sm hover:shadow-md">
-            <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-lg flex items-center justify-center text-2xl text-white" style="background: {{ $r->typeMeta()['color'] ?? '#10b981' }}">
-                    {{ $r->typeMeta()['icon'] ?? '🚗' }}
+<section class="border-b border-line">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
+        <h1 class="font-display font-medium text-3xl sm:text-5xl text-ink leading-none">我的线路</h1>
+        <p class="font-display italic text-lg text-ink-2 mt-3">你规划过的每一条公路。</p>
+    </div>
+</section>
+
+<div class="max-w-6xl mx-auto px-5 sm:px-8 py-8">
+    @forelse($routes as $i => $r)
+        <a href="{{ url('/route/' . $r->id) }}" class="block border-b border-line py-5 group hover:bg-paper-2 transition-colors -mx-2 px-2">
+            <div class="grid grid-cols-12 gap-3 items-baseline">
+                <div class="col-span-2 sm:col-span-1 font-mono text-[10px] text-ink-3 uppercase tracking-[0.15em]">
+                    N°{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}
                 </div>
-                <div class="flex-1 min-w-0">
-                    <div class="font-medium text-sm truncate">{{ $r->name }}</div>
-                    <div class="text-xs text-gray-500 mt-0.5">
-                        {{ $r->typeMeta()['label'] ?? '' }}
-                        · {{ $r->places_count }} 个点
-                        @if($r->distance_km) · {{ $r->distance_km }}km @endif
+                <div class="col-span-7 sm:col-span-7">
+                    <h3 class="font-display text-xl text-ink group-hover:text-warm transition-colors leading-tight">{{ $r->name }}</h3>
+                    <div class="font-mono text-[10px] text-ink-3 mt-1.5 uppercase tracking-[0.15em]">
+                        {{ \App\Models\Route::TYPES[$r->type]['label'] ?? $r->type }} · {{ $r->distance_km ?? '—' }}KM · {{ $r->places_count ?? 0 }} stops
                     </div>
                 </div>
-                <div class="flex flex-col items-end gap-1">
-                    @if($r->is_public)
-                        <span class="text-[10px] text-emerald-600">已上架</span>
-                    @else
-                        <span class="text-[10px] text-gray-400">下架</span>
-                    @endif
-                    @if($r->rating_label)
-                        @php $rl = \App\Models\Route::RATING_LABELS[$r->rating_label] ?? null; @endphp
-                        @if($rl)
-                            <span class="px-1.5 py-0.5 text-[10px] font-bold text-white rounded" style="background:{{ $rl['color'] }}">{{ $rl['label'] }}</span>
-                        @endif
-                    @endif
-                </div>
+                <div class="col-span-3 text-right font-mono text-[10px] text-ink-3 group-hover:text-ink">→</div>
             </div>
         </a>
     @empty
-        <div class="py-20 text-center text-gray-400">
-            <div class="text-4xl mb-2">🛣️</div>
-            <p class="text-sm">还没有线路</p>
-            <a href="/admin/routes/create" class="text-emerald-600 text-sm">+ 创建一条</a>
+        <div class="py-20 text-center">
+            <div class="font-display text-2xl text-ink-2 mb-2">还没有线路</div>
+            <p class="text-sm text-ink-3 mb-3">在后台或前端都可以新建线路</p>
         </div>
     @endforelse
 </div>
 
 @if($routes->hasPages())
-    <div class="px-4 py-4 max-w-2xl mx-auto">{{ $routes->links() }}</div>
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-4">
+        {{ $routes->links() }}
+    </div>
 @endif
 @endsection

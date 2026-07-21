@@ -92,28 +92,29 @@ class Place extends Model
     ];
 
     // 地点细类（POI Type）
+    // 编辑感版：去 emoji，用 N°编号。前端不显示 icon，靠编号 + 渐变色 + 大字标签。
     public const PLACE_TYPES = [
-        'camping' => ['label' => '露营点', 'icon' => '🏕️'],
-        'mountain' => ['label' => '山峰', 'icon' => '⛰️'],
-        'village' => ['label' => '村庄', 'icon' => '🏘️'],
-        'scenic' => ['label' => '景区/景点', 'icon' => '🏞️'],
-        'river' => ['label' => '河流/溪流', 'icon' => '🌊'],
-        'lake' => ['label' => '湖泊', 'icon' => '💧'],
-        'beach' => ['label' => '海滩', 'icon' => '🏖️'],
-        'waterfall' => ['label' => '瀑布', 'icon' => '🌊'],
-        'farm' => ['label' => '农场/采摘', 'icon' => '🍓'],
-        'park' => ['label' => '公园', 'icon' => '🌳'],
-        'cafe' => ['label' => '咖啡店', 'icon' => '☕'],
-        'restaurant' => ['label' => '餐厅/美食', 'icon' => '🍔'],
-        'hotel' => ['label' => '民宿/酒店', 'icon' => '🏨'],
-        'gas_station' => ['label' => '加油站', 'icon' => '⛽'],
-        'service_area' => ['label' => '服务区', 'icon' => '🛣️'],
-        'viewpoint' => ['label' => '观景点', 'icon' => '👁️'],
-        'play_water' => ['label' => '玩水点', 'icon' => '🏊'],
-        'ancient_town' => ['label' => '古镇/古村', 'icon' => '🏮'],
-        'temple' => ['label' => '寺庙/古迹', 'icon' => '⛩️'],
-        'museum' => ['label' => '博物馆', 'icon' => '🏛️'],
-        'other' => ['label' => '其他', 'icon' => '📍'],
+        'camping' => ['label' => '露营点', 'icon' => 'N°01', 'color' => '#1A3A3A'],
+        'mountain' => ['label' => '山峰', 'icon' => 'N°02', 'color' => '#1A1814'],
+        'village' => ['label' => '村庄', 'icon' => 'N°03', 'color' => '#847E72'],
+        'scenic' => ['label' => '景区/景点', 'icon' => 'N°04', 'color' => '#2D5F3F'],
+        'river' => ['label' => '河流/溪流', 'icon' => 'N°05', 'color' => '#0D3A4A'],
+        'lake' => ['label' => '湖泊', 'icon' => 'N°06', 'color' => '#114B5F'],
+        'beach' => ['label' => '海滩', 'icon' => 'N°07', 'color' => '#A1461E'],
+        'waterfall' => ['label' => '瀑布', 'icon' => 'N°08', 'color' => '#0D3A4A'],
+        'farm' => ['label' => '农场/采摘', 'icon' => 'N°09', 'color' => '#2D5F3F'],
+        'park' => ['label' => '公园', 'icon' => 'N°10', 'color' => '#2D5F3F'],
+        'cafe' => ['label' => '咖啡店', 'icon' => 'N°11', 'color' => '#847E72'],
+        'restaurant' => ['label' => '餐厅/美食', 'icon' => 'N°12', 'color' => '#C45626'],
+        'hotel' => ['label' => '民宿/酒店', 'icon' => 'N°13', 'color' => '#1A1814'],
+        'gas_station' => ['label' => '加油站', 'icon' => 'N°14', 'color' => '#847E72'],
+        'service_area' => ['label' => '服务区', 'icon' => 'N°15', 'color' => '#847E72'],
+        'viewpoint' => ['label' => '观景点', 'icon' => 'N°16', 'color' => '#A1461E'],
+        'play_water' => ['label' => '玩水点', 'icon' => 'N°17', 'color' => '#0D3A4A'],
+        'ancient_town' => ['label' => '古镇/古村', 'icon' => 'N°18', 'color' => '#1A1814'],
+        'temple' => ['label' => '寺庙/古迹', 'icon' => 'N°19', 'color' => '#847E72'],
+        'museum' => ['label' => '博物馆', 'icon' => 'N°20', 'color' => '#1A1814'],
+        'other' => ['label' => '其他', 'icon' => 'N°21', 'color' => '#4A4640'],
     ];
 
     public const PARKING_FEE_TYPES = [
@@ -139,11 +140,11 @@ class Place extends Model
     ];
 
     public const RATING_LABELS = [
-        'terrible' => ['label' => '拉垮', 'color' => '#7f1d1d', 'icon' => '😩'],
-        'npc' => ['label' => 'NPC', 'color' => '#6b7280', 'icon' => '😐'],
-        'nice' => ['label' => 'NICE', 'color' => '#0ea5e9', 'icon' => '😊'],
-        'great' => ['label' => '超值', 'color' => '#10b981', 'icon' => '🤩'],
-        'amazing' => ['label' => '夯', 'color' => '#dc2626', 'icon' => '🔥'],
+        'terrible' => ['label' => '拉垮', 'color' => '#7f1d1d', 'icon' => ''],
+        'npc' => ['label' => 'NPC', 'color' => '#6b7280', 'icon' => ''],
+        'nice' => ['label' => 'NICE', 'color' => '#0ea5e9', 'icon' => ''],
+        'great' => ['label' => '超值', 'color' => '#10b981', 'icon' => ''],
+        'amazing' => ['label' => '夯', 'color' => '#dc2626', 'icon' => ''],
     ];
 
     protected static function booted(): void

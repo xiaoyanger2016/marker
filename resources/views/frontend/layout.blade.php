@@ -12,21 +12,48 @@
 <body class="min-h-screen bg-gray-50 text-gray-900 antialiased" style="font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;">
     @include('frontend.partials.nav')
 
-    {{-- PC 端：左侧 sidebar 导航（登录/注册页除外，页面简洁优先） --}}
+    {{-- PC 端：左侧 sidebar 导航（编辑感排版：编号 + 衬线标签） --}}
     @if(!($isMobile ?? true) && ! in_array(request()->path(), ['login', 'register', 'profile']))
     <div class="flex max-w-7xl mx-auto">
-        <aside class="hidden md:block w-56 flex-shrink-0 border-r border-gray-100 min-h-screen bg-white">
-            <nav class="sticky top-16 p-3 space-y-1 text-sm">
-                <a href="/" class="block px-3 py-2 rounded {{ request()->path() === '/' ? 'bg-emerald-50 text-emerald-600 font-medium' : 'text-gray-700 hover:bg-gray-50' }}">🏠 首页</a>
-                <a href="/activities" class="block px-3 py-2 rounded {{ request()->path() === 'activities' ? 'bg-emerald-50 text-emerald-600 font-medium' : 'text-gray-700 hover:bg-gray-50' }}">🎒 活动</a>
-                <a href="/radar" class="block px-3 py-2 rounded {{ request()->path() === 'radar' ? 'bg-emerald-50 text-emerald-600 font-medium' : 'text-gray-700 hover:bg-gray-50' }}">📡 雷达</a>
-                <a href="/me" class="block px-3 py-2 rounded {{ request()->is('me*') ? 'bg-emerald-50 text-emerald-600 font-medium' : 'text-gray-700 hover:bg-gray-50' }}">👤 我的</a>
-                <div class="border-t border-gray-100 my-2"></div>
-                @foreach(\App\Http\Controllers\Frontend\HomeController::TYPES as $t)
-                    <a href="/type/{{ $t['key'] }}" class="flex items-center gap-2 px-3 py-1.5 rounded text-gray-600 hover:bg-gray-50">
-                        <span>{{ $t['icon'] }}</span><span>{{ $t['label'] }}</span>
-                    </a>
-                @endforeach
+        <aside class="hidden md:block w-64 flex-shrink-0 border-r border-line min-h-screen bg-paper">
+            <nav class="sticky top-14 p-6 space-y-6">
+                <div>
+                    <span class="eyebrow">导航 · Navigation</span>
+                    <div class="mt-3 space-y-2">
+                        <a href="/" class="block font-display text-lg {{ request()->path() === '/' ? 'text-ink' : 'text-ink-2 hover:text-ink' }} transition-colors">
+                            <span class="font-mono text-[10px] text-ink-3 mr-2">N°01</span>首页
+                        </a>
+                        <a href="/activities" class="block font-display text-lg {{ request()->is('activities*') ? 'text-ink' : 'text-ink-2 hover:text-ink' }} transition-colors">
+                            <span class="font-mono text-[10px] text-ink-3 mr-2">N°02</span>活动
+                        </a>
+                        <a href="/radar" class="block font-display text-lg {{ request()->is('radar') ? 'text-ink' : 'text-ink-2 hover:text-ink' }} transition-colors">
+                            <span class="font-mono text-[10px] text-ink-3 mr-2">N°03</span>雷达
+                        </a>
+                        <a href="/me" class="block font-display text-lg {{ request()->is('me*') ? 'text-ink' : 'text-ink-2 hover:text-ink' }} transition-colors">
+                            <span class="font-mono text-[10px] text-ink-3 mr-2">N°04</span>我的
+                        </a>
+                    </div>
+                </div>
+
+                <div class="border-t border-line pt-6">
+                    <span class="eyebrow">类型 · Types</span>
+                    <div class="mt-3 space-y-2">
+                        @foreach(\App\Http\Controllers\Frontend\HomeController::TYPES as $i => $t)
+                            <a href="/type/{{ $t['key'] }}" class="flex items-baseline gap-3 group">
+                                <span class="font-mono text-[10px] text-ink-3 group-hover:text-warm transition-colors">{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}</span>
+                                <span class="font-display text-sm text-ink-2 group-hover:text-ink transition-colors">{{ $t['label'] }}</span>
+                                <span class="flex-1 border-b border-dotted border-line-2 self-end mb-0.5"></span>
+                                <span class="font-mono text-[9px] text-ink-3">→</span>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="border-t border-line pt-6">
+                    <p class="font-mono text-[10px] uppercase tracking-[0.15em] text-ink-3 leading-relaxed">
+                        Made with hands ·<br>No algorithm
+                    </p>
+                </div>
             </nav>
         </aside>
         <main class="flex-1 @yield('main_class', 'pb-12')">

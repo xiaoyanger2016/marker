@@ -5,15 +5,283 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
+/* =========================================================================
+ * MARKER 设计系统 · v2
+ *
+ * 风格定位：独立公路杂志 editorial
+ * - 纸面感（暖米白底 + 噪点纹理）
+ * - 大衬线标题 + 无衬线正文 + 等宽做编号/坐标/标签
+ * - 主色深青墨（不用蓝紫渐变），点缀土陶橙
+ * - 真实文案 + 不对称布局
+ *
+ * 字体：
+ *   Fraunces     - 标题 / 衬线 / 有手感
+ *   Inter        - 正文 / 数字
+ *   JetBrains Mono - 编号 / 坐标 / 距离 / 标签
+ * ========================================================================= */
+
+/* Google Fonts - 加载 editorial 字体组合 */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
 @theme {
-    --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    /* ---- 色板：暖纸 + 深墨 + 土陶 ---- */
+    --color-paper:        #F2EDE2;   /* 主背景（暖米白纸面） */
+    --color-paper-2:      #EBE4D2;   /* 略深纸面（卡片背景/分层） */
+    --color-ink:          #1A1814;   /* 主文字（深墨，几乎黑） */
+    --color-ink-2:        #4A4640;   /* 次要文字 */
+    --color-ink-3:        #847E72;   /* 三级文字/标签 */
+    --color-line:         #D8D0BE;   /* 分割线/边框 */
+    --color-line-2:       #C4BBAA;   /* 深一档线 */
+
+    --color-accent:       #114B5F;   /* 主品牌色：深青墨 */
+    --color-accent-2:     #0D3A4A;   /* 悬停/深 */
+    --color-warm:         #C45626;   /* 土陶橙：CTA / 提醒 / 数字 */
+    --color-warm-2:       #A1461E;   /* 土陶深 */
+    --color-grass:        #2D5F3F;   /* 草绿：成功 */
+    --color-blood:        #8B2C2C;   /* 砖红：错误 */
+    --color-sun:          #C49B2A;   /* 暗金：装饰/星标 */
+
+    /* ---- 字体 ---- */
+    --font-display: 'Fraunces', 'Source Han Serif SC', 'Songti SC', 'STSong', 'PingFang SC', serif;
+    --font-sans:    'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    --font-mono:    'JetBrains Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
+
+    /* ---- 间距 4px 倍数 ---- */
+    --spacing-unit: 0.25rem;
 }
 
-/* 瀑布流布局 */
+/* =========================================================================
+ * 全局基础
+ * ========================================================================= */
+
+html, body {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: 'cv11', 'ss01', 'ss03';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* 噪点纹理叠加（极淡的纸感） */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    mix-blend-mode: multiply;
+}
+
+/* 让所有内容在噪点之上 */
+body > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* 选区颜色 */
+::selection {
+    background: var(--color-accent);
+    color: var(--color-paper);
+}
+
+/* =========================================================================
+ * 字体 utility
+ * ========================================================================= */
+.font-display { font-family: var(--font-display); font-optical-sizing: auto; }
+.font-sans    { font-family: var(--font-sans); }
+.font-mono    { font-family: var(--font-mono); }
+
+/* 衬线斜体（editorial 常用） */
+.serif-italic {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+}
+
+/* 大写字母 + 字间距（标签用） */
+.eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--color-ink-3);
+}
+
+/* =========================================================================
+ * 颜色 utility（覆盖 tailwind 默认色调）
+ * ========================================================================= */
+.bg-paper { background-color: var(--color-paper); }
+.bg-paper-2 { background-color: var(--color-paper-2); }
+.text-ink { color: var(--color-ink); }
+.text-ink-2 { color: var(--color-ink-2); }
+.text-ink-3 { color: var(--color-ink-3); }
+.text-accent { color: var(--color-accent); }
+.text-warm { color: var(--color-warm); }
+.border-line { border-color: var(--color-line); }
+.border-line-2 { border-color: var(--color-line-2); }
+
+/* =========================================================================
+ * 自定义阴影（带色温的，不用 0 0 0 灰阴影）
+ * ========================================================================= */
+.shadow-paper {
+    box-shadow:
+        0 1px 0 rgba(26, 24, 20, 0.04),
+        0 4px 16px -4px rgba(26, 24, 20, 0.08);
+}
+.shadow-paper-hover {
+    box-shadow:
+        0 1px 0 rgba(26, 24, 20, 0.04),
+        0 12px 32px -8px rgba(26, 24, 20, 0.16);
+}
+.shadow-accent {
+    box-shadow: 0 8px 24px -8px rgba(17, 75, 95, 0.35);
+}
+
+/* =========================================================================
+ * 按钮（不用 boxy，胶囊 + 编辑感）
+ * ========================================================================= */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    font-size: 0.875rem;
+    line-height: 1;
+    padding: 0.75rem 1.25rem;
+    border-radius: 999px;
+    transition: transform 0.2s cubic-bezier(0.2, 0.7, 0.2, 1), background-color 0.2s, color 0.2s;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid transparent;
+}
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-primary {
+    background: var(--color-ink);
+    color: var(--color-paper);
+}
+.btn-primary:hover { background: var(--color-accent); }
+
+.btn-warm {
+    background: var(--color-warm);
+    color: var(--color-paper);
+}
+.btn-warm:hover { background: var(--color-warm-2); }
+
+.btn-ghost {
+    background: transparent;
+    color: var(--color-ink);
+    border-color: var(--color-line-2);
+}
+.btn-ghost:hover {
+    background: var(--color-paper-2);
+    border-color: var(--color-ink);
+}
+
+.btn-sm {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.8125rem;
+}
+
+/* =========================================================================
+ * 卡片
+ * ========================================================================= */
+.card {
+    background: var(--color-paper);
+    border: 1px solid var(--color-line);
+    border-radius: 4px;  /* 编辑感：4px 而非 16px 大圆角 */
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.card:hover {
+    border-color: var(--color-ink);
+}
+
+/* 数字角标（编辑感 + mono 字体） */
+.badge-mono {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    padding: 0.125rem 0.5rem;
+    border: 1px solid var(--color-line-2);
+    border-radius: 2px;
+    color: var(--color-ink-2);
+}
+
+/* 状态徽章（暖色调） */
+.tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.25rem 0.5rem;
+    border-radius: 2px;
+    background: var(--color-paper-2);
+    color: var(--color-ink-2);
+}
+.tag-warm  { background: rgba(196, 86, 38, 0.12);  color: var(--color-warm-2); }
+.tag-grass { background: rgba(45, 95, 63, 0.12);   color: var(--color-grass); }
+.tag-blood { background: rgba(139, 44, 44, 0.12);  color: var(--color-blood); }
+.tag-ink   { background: var(--color-ink);         color: var(--color-paper); }
+
+/* =========================================================================
+ * 表单（编辑感：标签上、输入无圆角、底线）
+ * ========================================================================= */
+.input {
+    width: 100%;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--color-line-2);
+    padding: 0.625rem 0;
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    color: var(--color-ink);
+    transition: border-color 0.2s;
+    outline: none;
+    border-radius: 0;
+}
+.input:focus { border-bottom-color: var(--color-ink); }
+.input::placeholder { color: var(--color-ink-3); }
+.input[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+select.input {
+    background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23847E72' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.25rem center;
+    appearance: none;
+    padding-right: 1.5rem;
+}
+
+.label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-ink-3);
+    margin-bottom: 0.5rem;
+}
+
+/* =========================================================================
+ * 瀑布流（编辑感：不要 column-count 默认间距）
+ * ========================================================================= */
 .masonry {
     column-count: 2;
-    column-gap: 0.75rem;
-    padding: 0.5rem;
+    column-gap: 0;
+    padding: 0;
 }
 @media (min-width: 640px) {
     .masonry { column-count: 3; }
@@ -23,34 +291,94 @@
 }
 .masonry-item {
     break-inside: avoid;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0;
     display: block;
 }
 
-/* 隐藏滚动条但保持可滚动 */
+/* =========================================================================
+ * 分割线（编辑感：细线 + 留白）
+ * ========================================================================= */
+.rule {
+    height: 1px;
+    background: var(--color-line);
+    width: 100%;
+}
+.rule-thick { height: 2px; background: var(--color-ink); }
+.rule-short { width: 3rem; height: 1px; background: var(--color-warm); }
+
+/* =========================================================================
+ * 链接（带下划线 + 偏移，编辑感）
+ * ========================================================================= */
+a.link {
+    color: var(--color-ink);
+    text-decoration: none;
+    background-image: linear-gradient(var(--color-ink), var(--color-ink));
+    background-size: 100% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: color 0.2s;
+}
+a.link:hover { color: var(--color-warm); background-image: linear-gradient(var(--color-warm), var(--color-warm)); }
+
+/* =========================================================================
+ * 工具：滚动条
+ * ========================================================================= */
 .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
-.scrollbar-hide::-webkit-scrollbar {
-    display: none;
-}
+.scrollbar-hide::-webkit-scrollbar { display: none; }
 
-/* 移动端触摸优化 */
+/* =========================================================================
+ * 移动端触摸优化
+ * ========================================================================= */
 * {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* Leaflet 自适应 */
+/* =========================================================================
+ * Leaflet 地图样式
+ * ========================================================================= */
 .leaflet-container {
     font-family: inherit;
+    background: var(--color-paper-2);
 }
 
-/* 自定义滑入动画 */
+/* =========================================================================
+ * 动画：slide up
+ * ========================================================================= */
 @keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0; }
+    from { transform: translateY(16px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
 .animate-slide-up {
-    animation: slideUp 0.3s ease-out;
+    animation: slideUp 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* =========================================================================
+ * 装饰：编号圆形（坐标 / 顺序）
+ * ========================================================================= */
+.num-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    border: 1px solid var(--color-ink);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-ink);
+    background: var(--color-paper);
+}
+
+/* 列表项前的红色实心方块（Brutus 风格） */
+.bullet-warm {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    background: var(--color-warm);
+    vertical-align: middle;
+    margin-right: 0.5rem;
 }

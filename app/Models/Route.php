@@ -64,16 +64,16 @@ class Route extends Model
     ];
 
     public const TYPES = [
-        'self_drive' => ['label' => '自驾线路', 'icon' => '🚗', 'color' => '#ef4444'],
-        'hiking' => ['label' => '徒步线路', 'icon' => '🥾', 'color' => '#10b981'],
+        'self_drive' => ['label' => '自驾线路', 'icon' => 'N°01', 'color' => '#114B5F'],
+        'hiking' => ['label' => '徒步线路', 'icon' => 'N°02', 'color' => '#2D5F3F'],
     ];
 
     public const RATING_LABELS = [
-        'terrible' => ['label' => '拉垮', 'color' => '#7f1d1d', 'icon' => '😩'],
-        'npc' => ['label' => 'NPC', 'color' => '#6b7280', 'icon' => '😐'],
-        'nice' => ['label' => 'NICE', 'color' => '#0ea5e9', 'icon' => '😊'],
-        'great' => ['label' => '超值', 'color' => '#10b981', 'icon' => '🤩'],
-        'amazing' => ['label' => '夯', 'color' => '#dc2626', 'icon' => '🔥'],
+        'terrible' => ['label' => '拉垮', 'color' => '#7f1d1d', 'icon' => ''],
+        'npc' => ['label' => 'NPC', 'color' => '#6b7280', 'icon' => ''],
+        'nice' => ['label' => 'NICE', 'color' => '#0ea5e9', 'icon' => ''],
+        'great' => ['label' => '超值', 'color' => '#10b981', 'icon' => ''],
+        'amazing' => ['label' => '夯', 'color' => '#dc2626', 'icon' => ''],
     ];
 
     protected static function booted(): void
@@ -148,7 +148,7 @@ class Route extends Model
 
     public function typeMeta(): array
     {
-        return self::TYPES[$this->type] ?? ['label' => $this->type, 'icon' => '📍', 'color' => '#6b7280'];
+        return self::TYPES[$this->type] ?? ['label' => $this->type, 'icon' => 'N°00', 'color' => '#4A4640'];
     }
 
     public function ratingMeta(): array

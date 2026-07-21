@@ -3,54 +3,71 @@
 @section('title', '注册 · Marker')
 
 @section('content')
-<section class="px-4 py-10">
-    <div class="max-w-sm mx-auto">
-        <div class="text-center mb-6">
-            <div class="text-5xl mb-2">📍</div>
-            <h1 class="text-2xl font-bold text-gray-900">加入 Marker</h1>
-            <p class="text-sm text-gray-500 mt-1">一起收藏自驾宝藏</p>
+<section class="border-b border-line-2 bg-paper-2">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-4">
+        <div class="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3">
+            <a href="/" class="hover:text-ink transition-colors">← BACK</a>
+            <span class="w-px h-3 bg-line-2"></span>
+            <span>ACCOUNT</span>
         </div>
+    </div>
+</section>
 
-        @if($errors->any())
-            <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
-                {{ $errors->first() }}
-            </div>
-        @endif
+<section class="border-b border-line">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-12 sm:py-20">
+        <div class="grid grid-cols-12 gap-6 sm:gap-12">
+            <div class="col-span-12 sm:col-span-7">
+                <span class="eyebrow">N°02 · SIGN UP</span>
+                <h1 class="font-display font-medium text-5xl sm:text-7xl leading-[1.0] text-ink mt-3">
+                    加入<br>读者群
+                </h1>
+                <p class="font-display italic text-xl text-ink-2 mt-4">成为这本公路杂志的共同编辑者。</p>
 
-        <form method="POST" action="/register" class="space-y-3">
-            @csrf
-            <div>
-                <label class="block text-xs text-gray-600 mb-1">昵称</label>
-                <input name="name" type="text" required value="{{ old('name') }}"
-                       class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                       placeholder="怎么称呼你">
+                @if($errors->any())
+                    <div class="mt-8 p-4 border-l-2 border-blood bg-paper-2 max-w-md">
+                        <div class="eyebrow text-blood mb-1">ERROR</div>
+                        <p class="text-sm text-ink">{{ $errors->first() }}</p>
+                    </div>
+                @endif
             </div>
-            <div>
-                <label class="block text-xs text-gray-600 mb-1">邮箱</label>
-                <input name="email" type="email" required value="{{ old('email') }}"
-                       class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                       placeholder="you@example.com">
-            </div>
-            <div>
-                <label class="block text-xs text-gray-600 mb-1">密码（至少 6 位）</label>
-                <input name="password" type="password" required
-                       class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                       placeholder="••••••••">
-            </div>
-            <div>
-                <label class="block text-xs text-gray-600 mb-1">确认密码</label>
-                <input name="password_confirmation" type="password" required
-                       class="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
-                       placeholder="再输入一次">
-            </div>
-            <button type="submit"
-                    class="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg text-sm">
-                注册并登录
-            </button>
-        </form>
 
-        <div class="mt-5 text-center text-sm text-gray-600">
-            已有账号？<a href="/login" class="text-emerald-600 font-medium">直接登录</a>
+            <div class="col-span-12 sm:col-span-5 sm:pt-12">
+                <form method="POST" action="/register" class="space-y-6">
+                    @csrf
+                    <div>
+                        <label for="name" class="label">昵称 · NAME</label>
+                        <input id="name" name="name" type="text" required value="{{ old('name') }}"
+                               class="input" placeholder="怎么称呼你">
+                    </div>
+                    <div>
+                        <label for="email" class="label">邮箱 · EMAIL</label>
+                        <input id="email" name="email" type="email" required value="{{ old('email') }}"
+                               class="input" placeholder="you@example.com">
+                    </div>
+                    <div>
+                        <label for="password" class="label">密码 · PASSWORD（6 位以上）</label>
+                        <input id="password" name="password" type="password" required minlength="6"
+                               class="input" placeholder="••••••••">
+                    </div>
+                    <div>
+                        <label for="password_confirmation" class="label">确认密码 · CONFIRM</label>
+                        <input id="password_confirmation" name="password_confirmation" type="password" required minlength="6"
+                               class="input" placeholder="再输入一次">
+                    </div>
+
+                    <div class="pt-2">
+                        <button type="submit" class="btn btn-primary w-full">
+                            注册并登录
+                            <span class="font-mono text-[10px] opacity-70">→</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="mt-6 pt-6 border-t border-line font-mono text-[11px] text-ink-2">
+                    已有账号？
+                    <a href="/login" class="link">直接登录</a>
+                </div>
+            </div>
         </div>
     </div>
 </section>

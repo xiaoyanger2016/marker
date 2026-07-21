@@ -1,179 +1,126 @@
 @extends('frontend.layout')
 
-@section('title', '我的 · Marker')
+@section('title', '我的 · Marker 公路杂志')
 
 @section('content')
-{{-- 用户头部 --}}
-<section class="px-4 py-5 bg-gradient-to-br from-emerald-500 to-teal-500 text-white">
-    <div class="max-w-2xl mx-auto flex items-center gap-4">
-        <div class="w-16 h-16 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-2xl font-bold">
-            {{ mb_substr($user->name, 0, 1) }}
+
+{{-- 杂志式 profile 头部 --}}
+<section class="border-b border-line-2">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-12 sm:py-16">
+        <div class="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3 mb-6">
+            <span>PROFILE</span>
+            <span class="w-px h-3 bg-line-2"></span>
+            <span>N°01 · 读者档案</span>
         </div>
-        <div class="flex-1 min-w-0">
-            <h1 class="text-xl font-bold">{{ $user->name }}</h1>
-            <p class="text-sm text-white/80">{{ $user->email }}</p>
+
+        <div class="grid grid-cols-12 gap-6 sm:gap-12">
+            <div class="col-span-12 sm:col-span-7 flex items-start gap-5">
+                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-ink text-paper font-display text-3xl sm:text-4xl flex items-center justify-center flex-shrink-0">
+                    {{ mb_substr($user->name, 0, 1) }}
+                </div>
+                <div>
+                    <h1 class="font-display font-medium text-4xl sm:text-5xl text-ink leading-none">{{ $user->name }}</h1>
+                    <p class="font-mono text-xs text-ink-3 mt-2 tracking-wider">{{ $user->email }}</p>
+                    <p class="font-display italic text-ink-2 mt-4">Joined {{ $user->created_at->format('M Y') }}</p>
+                </div>
+            </div>
+
+            <div class="col-span-12 sm:col-span-5 sm:pt-2">
+                <div class="eyebrow mb-3">CONTRIBUTIONS</div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="border border-line p-3">
+                        <div class="font-display text-3xl text-ink">{{ $stats['places_total'] }}</div>
+                        <div class="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3 mt-1">地点</div>
+                    </div>
+                    <div class="border border-line p-3">
+                        <div class="font-display text-3xl text-ink">{{ $stats['routes_total'] }}</div>
+                        <div class="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3 mt-1">线路</div>
+                    </div>
+                    <div class="border border-line p-3">
+                        <div class="font-display text-3xl text-ink">{{ $stats['collections_total'] }}</div>
+                        <div class="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3 mt-1">收藏集</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
-{{-- 统计 --}}
-<section class="px-4 py-4 bg-white border-b border-gray-100">
-    <div class="max-w-2xl mx-auto grid grid-cols-3 gap-2 text-center">
-        <a href="/me/places" class="p-3 bg-emerald-50 rounded-lg">
-            <div class="text-2xl font-bold text-emerald-600">{{ $stats['places_total'] }}</div>
-            <div class="text-xs text-gray-600 mt-1">📍 收藏地点</div>
-            <div class="text-[10px] text-gray-400 mt-0.5">种草 {{ $stats['places_wishlist'] }} · 去过 {{ $stats['places_visited'] }}</div>
-        </a>
-        <a href="/me/routes" class="p-3 bg-orange-50 rounded-lg">
-            <div class="text-2xl font-bold text-orange-600">{{ $stats['routes_total'] }}</div>
-            <div class="text-xs text-gray-600 mt-1">🛣️ 线路</div>
-        </a>
-        <a href="/me/collections" class="p-3 bg-pink-50 rounded-lg">
-            <div class="text-2xl font-bold text-pink-600">{{ $stats['collections_total'] }}</div>
-            <div class="text-xs text-gray-600 mt-1">📂 收藏集</div>
-        </a>
+{{-- 索引 --}}
+<section class="border-b border-line">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-8">
+        <div class="eyebrow mb-4">SECTIONS</div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-0 border-t border-b border-line">
+            <a href="/me/places" class="p-5 border-r border-line hover:bg-paper-2 transition-colors">
+                <div class="font-mono text-[10px] text-ink-3">N°01</div>
+                <div class="font-display text-lg text-ink mt-1">我的地点</div>
+                <div class="font-mono text-[10px] text-ink-3 mt-1">{{ $stats['places_total'] }} items</div>
+            </a>
+            <a href="/me/routes" class="p-5 border-r border-line hover:bg-paper-2 transition-colors">
+                <div class="font-mono text-[10px] text-ink-3">N°02</div>
+                <div class="font-display text-lg text-ink mt-1">我的线路</div>
+                <div class="font-mono text-[10px] text-ink-3 mt-1">{{ $stats['routes_total'] }} items</div>
+            </a>
+            <a href="/me/collections" class="p-5 border-r border-line hover:bg-paper-2 transition-colors">
+                <div class="font-mono text-[10px] text-ink-3">N°03</div>
+                <div class="font-display text-lg text-ink mt-1">收藏集</div>
+                <div class="font-mono text-[10px] text-ink-3 mt-1">{{ $stats['collections_total'] }} items</div>
+            </a>
+            <a href="/me/activities" class="p-5 hover:bg-paper-2 transition-colors">
+                <div class="font-mono text-[10px] text-ink-3">N°04</div>
+                <div class="font-display text-lg text-ink mt-1">我的活动</div>
+                <div class="font-mono text-[10px] text-ink-3 mt-1">—</div>
+            </a>
+        </div>
     </div>
 </section>
 
-{{-- 我的功能 --}}
-<section class="px-4 py-3 bg-white border-b border-gray-100">
-    <div class="max-w-2xl mx-auto grid grid-cols-4 gap-2 text-center text-xs">
-        <a href="/me/places" class="p-2 hover:bg-gray-50 rounded">
-            <div class="text-2xl">📍</div>
-            <div class="mt-1 text-gray-700">我的地点</div>
-        </a>
-        <a href="/me/routes" class="p-2 hover:bg-gray-50 rounded">
-            <div class="text-2xl">🛣️</div>
-            <div class="mt-1 text-gray-700">我的线路</div>
-        </a>
-        <a href="/me/collections" class="p-2 hover:bg-gray-50 rounded">
-            <div class="text-2xl">📂</div>
-            <div class="mt-1 text-gray-700">收藏集</div>
-        </a>
-        <a href="/me/activities" class="p-2 hover:bg-gray-50 rounded">
-            <div class="text-2xl">🎒</div>
-            <div class="mt-1 text-gray-700">我的活动</div>
-        </a>
-    </div>
-</section>
-
-{{-- 最近收藏 --}}
+{{-- 最近地点 --}}
 @if($recentPlaces->isNotEmpty())
-    <section class="py-3">
-        <div class="px-4 max-w-2xl mx-auto flex items-baseline justify-between mb-2">
-            <h2 class="text-base font-bold text-gray-900">最近收藏</h2>
-            <a href="/me/places" class="text-xs text-emerald-600">查看全部 →</a>
+<section class="border-b border-line">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-8">
+        <div class="flex items-baseline justify-between mb-4">
+            <div class="eyebrow">§ RECENT PLACES</div>
+            <a href="/me/places" class="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-2 hover:text-ink">查看全部 →</a>
         </div>
-        <div class="masonry max-w-2xl mx-auto">
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
             @foreach($recentPlaces as $p)
-                @php
-                    $ratios = ['aspect-[3/4]','aspect-square','aspect-[4/5]','aspect-[3/4]','aspect-[4/3]','aspect-[2/3]'];
-                    $ratio = $ratios[$p->id % count($ratios)];
-                    $gradients = [['#fda4af','#fb923c'],['#86efac','#22d3ee'],['#a78bfa','#f472b6'],['#fcd34d','#fb7185'],['#5eead4','#818cf8'],['#fca5a5','#a855f7']];
-                    $gradient = $gradients[$p->id % count($gradients)];
-                    $icon = \App\Models\Place::PLACE_TYPES[$p->place_type]['icon'] ?? '📍';
-                @endphp
-                <a href="{{ url('/place/' . $p->id) }}" class="masonry-item group block bg-white rounded-2xl overflow-hidden shadow-sm">
-                    <div class="{{ $ratio }} relative" style="background: linear-gradient(135deg, {{ $gradient[0] }}, {{ $gradient[1] }});">
-                        <div class="w-full h-full flex items-center justify-center text-7xl opacity-90 group-hover:scale-110 transition-transform duration-300">{{ $icon }}</div>
-                        @if($p->rating_label)
-                            @php $rl = \App\Models\Place::RATING_LABELS[$p->rating_label] ?? null; @endphp
-                            @if($rl)
-                                <div class="absolute top-2 right-2">
-                                    <span class="px-2 py-0.5 text-[10px] font-bold text-white rounded-full" style="background:{{ $rl['color'] }}">{{ $rl['icon'] }} {{ $rl['label'] }}</span>
-                                </div>
-                            @endif
-                        @endif
-                    </div>
-                    <div class="p-3">
-                        <h3 class="font-semibold text-sm line-clamp-1">{{ $p->name }}</h3>
-                        <div class="mt-1 text-[10px] text-gray-400">{{ $p->city ?? '—' }} · {{ $p->created_at->diffForHumans() }}</div>
-                    </div>
+                <a href="/place/{{ $p->id }}" class="block border border-line p-3 hover:border-ink transition-colors">
+                    <div class="font-mono text-[10px] text-ink-3 uppercase tracking-[0.2em]">{{ \App\Models\Place::PLACE_TYPES[$p->place_type]['label'] ?? '' }}</div>
+                    <div class="font-display text-base text-ink mt-1 line-clamp-1">{{ $p->name }}</div>
+                    <div class="font-mono text-[10px] text-ink-3 mt-1">{{ $p->city ?? '—' }} · {{ $p->created_at->diffForHumans() }}</div>
                 </a>
             @endforeach
         </div>
-    </section>
-@endif
-
-{{-- 最近线路 --}}
-@if($recentRoutes->isNotEmpty())
-    <section class="py-3">
-        <div class="px-4 max-w-2xl mx-auto flex items-baseline justify-between mb-2">
-            <h2 class="text-base font-bold text-gray-900">我的线路</h2>
-            <a href="/me/routes" class="text-xs text-emerald-600">查看全部 →</a>
-        </div>
-        <div class="max-w-2xl mx-auto space-y-2 px-4">
-            @foreach($recentRoutes as $r)
-                <a href="{{ url('/route/' . $r->id) }}" class="block p-3 bg-white rounded-xl shadow-sm hover:shadow-md">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-lg flex items-center justify-center text-xl text-white" style="background: {{ $r->typeMeta()['color'] ?? '#10b981' }}">
-                            {{ $r->typeMeta()['icon'] ?? '🚗' }}
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="font-medium text-sm truncate">{{ $r->name }}</div>
-                            <div class="text-[10px] text-gray-400">{{ $r->typeMeta()['label'] ?? '' }} · {{ $r->places_count }} 个点</div>
-                        </div>
-                        @if($r->rating_label)
-                            @php $rl = \App\Models\Route::RATING_LABELS[$r->rating_label] ?? null; @endphp
-                            @if($rl)
-                                <span class="px-2 py-0.5 text-[10px] font-bold text-white rounded-full" style="background:{{ $rl['color'] }}">{{ $rl['icon'] }} {{ $rl['label'] }}</span>
-                            @endif
-                        @endif
-                    </div>
-                </a>
-            @endforeach
-        </div>
-    </section>
-@endif
-
-{{-- 收藏集 --}}
-@if($collections->isNotEmpty())
-    <section class="py-3">
-        <div class="px-4 max-w-2xl mx-auto flex items-baseline justify-between mb-2">
-            <h2 class="text-base font-bold text-gray-900">我的收藏集</h2>
-            <a href="/me/collections" class="text-xs text-emerald-600">查看全部 →</a>
-        </div>
-        <div class="max-w-2xl mx-auto grid grid-cols-2 gap-2 px-4">
-            @foreach($collections as $c)
-                <a href="{{ url('/me/collections') }}" class="block p-3 bg-white rounded-xl shadow-sm">
-                    <div class="flex items-center gap-2">
-                        <div class="text-2xl">📂</div>
-                        <div class="flex-1 min-w-0">
-                            <div class="font-medium text-sm truncate">{{ $c->name }}</div>
-                            <div class="text-[10px] text-gray-400">{{ $c->places_count }} 个地点</div>
-                        </div>
-                        @if($c->is_public)
-                            <span class="text-[10px] text-emerald-600">🔗</span>
-                        @endif
-                    </div>
-                </a>
-            @endforeach
-        </div>
-    </section>
+    </div>
+</section>
 @endif
 
 {{-- 设置 --}}
-<section class="px-4 py-4 bg-white mt-3">
-    <div class="max-w-2xl mx-auto space-y-1">
-        <a href="/me/activities" class="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg">
-            <span class="text-xl">🎒</span>
-            <span class="flex-1 text-sm">我的活动</span>
-            <span class="text-gray-400 text-xs">→</span>
-        </a>
-        <a href="/admin" class="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg">
-            <span class="text-xl">⚙️</span>
-            <span class="flex-1 text-sm">后台管理（需登录）</span>
-            <span class="text-gray-400 text-xs">→</span>
-        </a>
-        @auth
-            <form action="/logout" method="POST" class="block">
-                @csrf
-                <button type="submit" class="w-full text-left flex items-center gap-3 p-3 hover:bg-red-50 rounded-lg text-red-500">
-                    <span class="text-xl">🚪</span>
-                    <span class="flex-1 text-sm">退出登录</span>
-                </button>
-            </form>
-        @endauth
+<section class="border-b border-line">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-8">
+        <div class="eyebrow mb-4">SETTINGS</div>
+        <div class="space-y-px">
+            <a href="/admin" class="flex items-center justify-between p-4 border border-line hover:bg-paper-2 transition-colors">
+                <div>
+                    <div class="font-display text-base text-ink">后台管理</div>
+                    <div class="font-mono text-[10px] text-ink-3 mt-0.5">Data console</div>
+                </div>
+                <span class="font-mono text-xs text-ink-3">→</span>
+            </a>
+            @auth
+                <form action="/logout" method="POST">
+                    @csrf
+                    <button type="submit" class="w-full flex items-center justify-between p-4 border border-line hover:bg-paper-2 transition-colors text-left">
+                        <div>
+                            <div class="font-display text-base text-blood">退出登录</div>
+                            <div class="font-mono text-[10px] text-ink-3 mt-0.5">Sign out</div>
+                        </div>
+                        <span class="font-mono text-xs text-ink-3">→</span>
+                    </button>
+                </form>
+            @endauth
+        </div>
     </div>
 </section>
 

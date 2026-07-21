@@ -1,20 +1,41 @@
-<nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-100 pb-safe">
+{{-- 编辑感底部导航：图标 + 编号 + 标签（无 emoji） --}}
+<nav class="fixed bottom-0 left-0 right-0 z-50 bg-paper/95 backdrop-blur-sm border-t border-line">
     <div class="grid grid-cols-4 max-w-2xl mx-auto">
-        <a href="{{ url('/') }}" class="flex flex-col items-center gap-0.5 py-2.5 {{ request()->is('/') || (request()->path() === '/' ) ? 'text-emerald-600' : 'text-gray-500' }} cursor-pointer">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-            <span class="text-[10px]">{{ __('ui.tab_home') }}</span>
+        <a href="{{ url('/') }}" class="flex flex-col items-center gap-1 py-2.5 {{ request()->is('/') || request()->path() === '/' ? 'text-ink' : 'text-ink-3' }} hover:text-ink transition-colors">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M3 12l9-9 9 9"/>
+                <path d="M5 10v10a1 1 0 001 1h4v-7h4v7h4a1 1 0 001-1V10"/>
+            </svg>
+            <span class="font-mono text-[9px] uppercase tracking-[0.15em]">{{ __('ui.tab_home') }}</span>
         </a>
-        <a href="{{ url('/activities') }}" class="flex flex-col items-center gap-0.5 py-2.5 {{ request()->is('activities*') ? 'text-emerald-600' : 'text-gray-500' }} cursor-pointer">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-            <span class="text-[10px]">{{ __('ui.tab_activity') }}</span>
+
+        <a href="{{ url('/activities') }}" class="flex flex-col items-center gap-1 py-2.5 {{ request()->is('activities*') ? 'text-ink' : 'text-ink-3' }} hover:text-ink transition-colors">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="5" width="18" height="16" rx="1"/>
+                <path d="M3 9h18M8 3v4M16 3v4"/>
+                <circle cx="8" cy="14" r="0.5" fill="currentColor"/>
+                <circle cx="12" cy="14" r="0.5" fill="currentColor"/>
+                <circle cx="16" cy="14" r="0.5" fill="currentColor"/>
+            </svg>
+            <span class="font-mono text-[9px] uppercase tracking-[0.15em]">{{ __('ui.tab_activity') }}</span>
         </a>
-        <a href="{{ url('/radar') }}" class="flex flex-col items-center gap-0.5 py-2.5 {{ request()->is('radar') ? 'text-emerald-600' : 'text-gray-500' }} cursor-pointer">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"/><circle cx="12" cy="12" r="5" stroke-width="2"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>
-            <span class="text-[10px]">{{ __('ui.tab_radar') }}</span>
+
+        <a href="{{ url('/radar') }}" class="flex flex-col items-center gap-1 py-2.5 {{ request()->is('radar') ? 'text-ink' : 'text-ink-3' }} hover:text-ink transition-colors">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="9"/>
+                <circle cx="12" cy="12" r="5"/>
+                <circle cx="12" cy="12" r="1" fill="currentColor"/>
+                <path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>
+            </svg>
+            <span class="font-mono text-[9px] uppercase tracking-[0.15em]">{{ __('ui.tab_radar') }}</span>
         </a>
-        <a href="{{ url('/me') }}" class="flex flex-col items-center gap-0.5 py-2.5 {{ request()->is('me*') ? 'text-emerald-600' : 'text-gray-500' }} cursor-pointer">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-            <span class="text-[10px]">{{ __('ui.tab_me') }}</span>
+
+        <a href="{{ url('/me') }}" class="flex flex-col items-center gap-1 py-2.5 {{ request()->is('me*') ? 'text-ink' : 'text-ink-3' }} hover:text-ink transition-colors">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="8" r="4"/>
+                <path d="M4 21a8 8 0 0116 0"/>
+            </svg>
+            <span class="font-mono text-[9px] uppercase tracking-[0.15em]">{{ __('ui.tab_me') }}</span>
         </a>
     </div>
 </nav>

@@ -1,55 +1,48 @@
-{{-- 单点卡片（与线路卡片区别：显示 place_type icon + 城市）--}}
+{{-- 单点卡片 v2 · 编辑感：渐变 + 巨型 N° 编号（替代 emoji） --}}
 @php
     $ratios = ['aspect-[3/4]', 'aspect-square', 'aspect-[4/5]', 'aspect-[3/4]', 'aspect-[4/3]', 'aspect-[2/3]'];
     $ratio = $ratios[$place->id % count($ratios)];
 
-    $gradients = [
-        ['#fda4af', '#fb923c'], ['#86efac', '#22d3ee'], ['#a78bfa', '#f472b6'],
-        ['#fcd34d', '#fb7185'], ['#5eead4', '#818cf8'], ['#fca5a5', '#a855f7'],
-    ];
-    $gradient = $gradients[$place->id % count($gradients)];
-    $hasCover = false; // 这里默认 false 让 emoji 显示
-    $icon = \App\Models\Place::PLACE_TYPES[$place->place_type]['icon'] ?? '📍';
-    $typeLabel = \App\Models\Place::PLACE_TYPES[$place->place_type]['label'] ?? '';
+    $typeMeta = \App\Models\Place::PLACE_TYPES[$place->place_type] ?? null;
+    $typeColor = $typeMeta['color'] ?? '#4A4640';
+    $typeLabel = $typeMeta['label'] ?? '';
+    $numStr = str_pad((string) ($place->id % 100), 2, '0', STR_PAD_LEFT);
+
+    $rl = $place->rating_label ? (\App\Models\Place::RATING_LABELS[$place->rating_label] ?? null) : null;
 @endphp
 
-<a href="{{ url('/place/' . $place->id) }}" class="masonry-item group block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-    <div class="{{ $ratio }} relative overflow-hidden" style="background: linear-gradient(135deg, {{ $gradient[0] }}, {{ $gradient[1] }});">
-        <div class="w-full h-full flex items-center justify-center">
-            <div class="text-7xl sm:text-8xl opacity-90 group-hover:scale-110 transition-transform duration-300">
-                {{ $icon }}
-            </div>
+<a href="{{ url('/place/' . $place->id) }}" class="masonry-item group block bg-paper border border-line hover:border-ink transition-colors">
+    <div class="{{ $ratio }} relative overflow-hidden" style="background: linear-gradient(135deg, {{ $typeColor }} 0%, #1A1814 100%);">
+        {{-- 编辑感大字编号 --}}
+        <div class="absolute inset-0 flex items-center justify-center">
+            <div class="font-display text-[8rem] sm:text-[10rem] leading-none text-paper/15 group-hover:text-paper/25 transition-colors select-none">{{ $numStr }}</div>
         </div>
 
         {{-- 类型角标 --}}
         @if($typeLabel)
             <div class="absolute top-2 left-2">
-                <span class="px-2 py-0.5 text-[10px] font-medium text-gray-700 bg-white/90 rounded-full">
-                    {{ $typeLabel }}
-                </span>
+                <span class="font-mono text-[9px] uppercase tracking-[0.2em] text-paper/85 border border-paper/40 px-1.5 py-0.5">{{ $typeLabel }}</span>
             </div>
         @endif
 
-        {{-- 评分 --}}
-        @if($place->rating_label)
-            @php $rl = \App\Models\Place::RATING_LABELS[$place->rating_label] ?? null; @endphp
-            @if($rl)
-                <div class="absolute top-2 right-2">
-                    <span class="px-2 py-0.5 text-[10px] font-bold text-white rounded-full shadow" style="background: {{ $rl['color'] }}">
-                        {{ $rl['icon'] }} {{ $rl['label'] }}
-                    </span>
-                </div>
-            @endif
+        {{-- 评分角标 --}}
+        @if($rl && !empty($rl['label']))
+            <div class="absolute top-2 right-2">
+                <span class="font-mono text-[9px] uppercase tracking-[0.2em] px-1.5 py-0.5 border border-paper/50 text-paper" style="background: rgba(26, 24, 20, 0.4);">
+                    {{ $rl['label'] }}
+                </span>
+            </div>
         @endif
     </div>
 
-    <div class="p-3">
-        <h3 class="font-semibold text-sm text-gray-900 line-clamp-1">{{ $place->name }}</h3>
+    <div class="px-3 py-3 border-t border-line">
+        <h3 class="font-display text-base text-ink leading-tight line-clamp-1">{{ $place->name }}</h3>
         @if($place->description)
-            <p class="text-xs text-gray-500 mt-0.5 line-clamp-2">{{ mb_substr(strip_tags($place->description), 0, 60) }}</p>
+            <p class="text-xs text-ink-3 mt-1 line-clamp-2 leading-relaxed">{{ mb_substr(strip_tags($place->description), 0, 60) }}</p>
         @endif
-        <div class="mt-2 flex items-center justify-between text-[10px] text-gray-400">
+        <div class="mt-2 flex items-center justify-between font-mono text-[10px] text-ink-3">
             <span>{{ $place->city ?? '—' }}</span>
+            <span class="opacity-0 group-hover:opacity-100 text-warm transition-opacity">→</span>
         </div>
     </div>
 </a>
