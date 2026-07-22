@@ -1,18 +1,27 @@
-{{-- 浮动 dock：mobile 用 pill 样式（带圆角+阴影+留边），desktop 用全宽底栏 --}}
+{{-- 浮动 dock 底栏：pill 样式，明确"浮在内容上"
+   - pointer-events: none 包外层，不挡内容点击
+   - 圆角 + 强阴影 + 边缘大量留白：一眼能看出是浮层
+   - 顶部拖拽条 (drag handle) 暗示悬浮感（iOS bottom sheet 范式）
+   - safe-bottom：iPhone home indicator 不压字
+--}}
 <div class="fixed bottom-0 left-0 right-0 z-50 pointer-events-none safe-bottom">
-    <div class="px-2 sm:px-0 pb-2 sm:pb-0 pointer-events-auto">
-        <nav class="mx-auto sm:mx-0 max-w-sm sm:max-w-none bg-paper/95 backdrop-blur-md border border-line-2 sm:border-line-2 sm:border-x-0 sm:border-b sm:border-t-0 shadow-dock sm:shadow-none rounded-2xl sm:rounded-none">
-            <div class="grid grid-cols-4 sm:max-w-2xl sm:mx-auto">
-                <a href="{{ url('/') }}" class="flex flex-col items-center gap-1 py-2.5 sm:py-2.5 rounded-l-2xl sm:rounded-none {{ request()->is('/') || request()->path() === '/' ? 'text-ink' : 'text-ink-3' }} hover:text-ink transition-colors">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+    <div class="px-4 sm:px-8 pb-3 sm:pb-5 pointer-events-auto">
+        <nav class="relative mx-auto max-w-[280px] sm:max-w-sm bg-paper/95 backdrop-blur-xl border border-ink/15 shadow-dock rounded-2xl">
+            {{-- 顶部拖拽条（视觉提示：这是浮起来的 sheet） --}}
+            <div class="flex justify-center pt-1.5 pb-0.5 sm:hidden">
+                <span class="block w-8 h-[3px] rounded-full bg-ink/15"></span>
+            </div>
+            <div class="grid grid-cols-4 px-1 sm:px-2 py-1.5 sm:py-2">
+                <a href="{{ url('/') }}" class="flex flex-col items-center gap-1 py-1.5 sm:py-2 rounded-xl {{ request()->is('/') || request()->path() === '/' ? 'text-ink bg-paper-2' : 'text-ink-3' }} hover:text-ink hover:bg-paper-2 transition-colors">
+                    <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                         <path d="M3 12l9-9 9 9"/>
                         <path d="M5 10v10a1 1 0 001 1h4v-7h4v7h4a1 1 0 001-1V10"/>
                     </svg>
                     <span class="font-mono text-[9px] uppercase tracking-[0.15em]">{{ __('ui.tab_home') }}</span>
                 </a>
 
-                <a href="{{ url('/activities') }}" class="flex flex-col items-center gap-1 py-2.5 {{ request()->is('activities*') ? 'text-ink' : 'text-ink-3' }} hover:text-ink transition-colors">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <a href="{{ url('/activities') }}" class="flex flex-col items-center gap-1 py-1.5 sm:py-2 rounded-xl {{ request()->is('activities*') ? 'text-ink bg-paper-2' : 'text-ink-3' }} hover:text-ink hover:bg-paper-2 transition-colors">
+                    <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                         <rect x="3" y="5" width="18" height="16" rx="1"/>
                         <path d="M3 9h18M8 3v4M16 3v4"/>
                         <circle cx="8" cy="14" r="0.5" fill="currentColor"/>
@@ -22,8 +31,8 @@
                     <span class="font-mono text-[9px] uppercase tracking-[0.15em]">{{ __('ui.tab_activity') }}</span>
                 </a>
 
-                <a href="{{ url('/radar') }}" class="flex flex-col items-center gap-1 py-2.5 {{ request()->is('radar') ? 'text-ink' : 'text-ink-3' }} hover:text-ink transition-colors">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <a href="{{ url('/radar') }}" class="flex flex-col items-center gap-1 py-1.5 sm:py-2 rounded-xl {{ request()->is('radar') ? 'text-ink bg-paper-2' : 'text-ink-3' }} hover:text-ink hover:bg-paper-2 transition-colors">
+                    <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                         <circle cx="12" cy="12" r="9"/>
                         <circle cx="12" cy="12" r="5"/>
                         <circle cx="12" cy="12" r="1" fill="currentColor"/>
@@ -32,8 +41,8 @@
                     <span class="font-mono text-[9px] uppercase tracking-[0.15em]">{{ __('ui.tab_radar') }}</span>
                 </a>
 
-                <a href="{{ url('/me') }}" class="flex flex-col items-center gap-1 py-2.5 rounded-r-2xl sm:rounded-none {{ request()->is('me*') ? 'text-ink' : 'text-ink-3' }} hover:text-ink transition-colors">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <a href="{{ url('/me') }}" class="flex flex-col items-center gap-1 py-1.5 sm:py-2 rounded-xl {{ request()->is('me*') ? 'text-ink bg-paper-2' : 'text-ink-3' }} hover:text-ink hover:bg-paper-2 transition-colors">
+                    <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                         <circle cx="12" cy="8" r="4"/>
                         <path d="M4 21a8 8 0 0116 0"/>
                     </svg>

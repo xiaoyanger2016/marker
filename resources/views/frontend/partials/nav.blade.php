@@ -18,30 +18,34 @@
 
         {{-- 主题切换（编辑感：纯文字 + 点选面板） --}}
         <div class="relative">
-            <button onclick="this.nextElementSibling.classList.toggle('hidden'); event.stopPropagation();"
+            <button type="button" data-toggle="theme-panel"
                     class="font-mono text-[10px] uppercase tracking-[0.15em] text-ink-2 hover:text-ink transition-colors px-1.5 py-1 border border-transparent hover:border-line-2"
                     title="切换主题">
                 <span id="theme-label">{{ strtoupper(($theme ?? 'paper')) }}</span>
             </button>
-            <div class="hidden absolute right-0 mt-2 bg-paper border border-line min-w-[160px] z-50 shadow-paper">
+            <div id="theme-panel" data-panel class="hidden absolute right-0 mt-2 bg-paper border border-line min-w-[220px] z-50 shadow-paper">
                 <div class="px-3 py-2 border-b border-line">
                     <span class="eyebrow">THEME</span>
                 </div>
                 @php
                     $themes = [
                         'paper'  => ['label' => '纸刊',     'en' => 'Paper',  'desc' => '暖米白 · 杂志感'],
+                        'sand'   => ['label' => '沙黄',     'en' => 'Sand',   'desc' => '傍晚沙漠 · 暖沉'],
                         'ink'    => ['label' => '夜读',     'en' => 'Ink',    'desc' => '深夜墨 · 沉浸'],
                         'mono'   => ['label' => '高对比',   'en' => 'Mono',   'desc' => '纯黑白 · 极简'],
+                        'auto'   => ['label' => '跟随系统', 'en' => 'Auto',   'desc' => '跟随系统 · 自动切'],
                     ];
                 @endphp
                 @foreach($themes as $code => $t)
                     <button type="button" data-theme-set="{{ $code }}"
-                            class="w-full text-left block px-3 py-2.5 font-mono text-[11px] uppercase tracking-wider hover:bg-paper-2 {{ ($theme ?? 'paper') === $code ? 'bg-ink text-paper' : 'text-ink-2' }}">
+                            data-panel-close
+                            class="w-full text-left block px-3 py-2 hover:bg-paper-2 transition-colors
+                                   {{ ($theme ?? 'paper') === $code ? 'bg-ink text-paper' : 'text-ink-2' }}">
                         <div class="flex items-baseline gap-2">
-                            <span class="text-[12px] font-display not-italic tracking-tight">{{ $t['label'] }}</span>
-                            <span class="opacity-70">{{ $t['en'] }}</span>
+                            <span class="text-[12px] font-display not-italic tracking-tight font-semibold">{{ $t['label'] }}</span>
+                            <span class="font-mono text-[10px] uppercase tracking-wider opacity-70">{{ $t['en'] }}</span>
                         </div>
-                        <div class="font-sans text-[10px] mt-0.5 opacity-70 normal-case tracking-normal">{{ $t['desc'] }}</div>
+                        <div class="font-sans text-[10px] mt-0.5 normal-case tracking-normal opacity-80">{{ $t['desc'] }}</div>
                     </button>
                 @endforeach
             </div>
@@ -49,13 +53,14 @@
 
         {{-- 语种切换 --}}
         <div class="relative">
-            <button onclick="this.nextElementSibling.classList.toggle('hidden'); event.stopPropagation();"
+            <button type="button" data-toggle="lang-panel"
                     class="font-mono text-[10px] uppercase tracking-[0.15em] text-ink-2 hover:text-ink transition-colors px-1.5 py-1">
                 {{ strtoupper(str_replace('-', '_', $locale ?? 'zh-CN')) }}
             </button>
-            <div class="hidden absolute right-0 mt-2 bg-paper border border-line min-w-[140px] z-50">
+            <div id="lang-panel" data-panel class="hidden absolute right-0 mt-2 bg-paper border border-line min-w-[140px] z-50 shadow-paper">
                 @foreach(['zh-CN' => '简体中文', 'zh-TW' => '繁體中文', 'en' => 'English', 'ja' => '日本語', 'ko' => '한국어'] as $code => $label)
-                    <a href="?lang={{ $code }}" class="block px-3 py-2 font-mono text-[11px] uppercase tracking-wider {{ ($locale ?? '') === $code ? 'bg-ink text-paper' : 'text-ink-2 hover:bg-paper-2' }}">
+                    <a href="?lang={{ $code }}" data-panel-close
+                       class="block px-3 py-2 font-mono text-[11px] uppercase tracking-wider hover:bg-paper-2 {{ ($locale ?? '') === $code ? 'bg-ink text-paper' : 'text-ink-2' }}">
                         {{ $label }}
                     </a>
                 @endforeach
@@ -78,12 +83,22 @@
 <script>
 (function() {
     const STORAGE_KEY = 'marker.theme';
+    const VALID = ['paper', 'sand', 'ink', 'mono', 'auto'];
+
+    function applyTheme(name) {
+        const html = document.documentElement;
+        if (!VALID.includes(name)) name = 'paper';
+        html.setAttribute('data-theme', name);
+        // meta theme-color 跟随（适配移动浏览器顶栏）
+        const m = document.querySelector('meta[name="theme-color"]:not([media])');
+        if (m) {
+            const map = { paper: '#F2EDE2', sand: '#E8DCC4', ink: '#0E0D0B', mono: '#FFFFFF', auto: '#F2EDE2' };
+            m.setAttribute('content', map[name] || map.paper);
+        }
+    }
 
     function setTheme(name) {
-        const html = document.documentElement;
-        const valid = ['paper', 'ink', 'mono'];
-        if (!valid.includes(name)) name = 'paper';
-        html.setAttribute('data-theme', name);
+        applyTheme(name);
         try { localStorage.setItem(STORAGE_KEY, name); } catch (e) {}
         // 更新下拉激活态 + 按钮 label
         const lbl = document.getElementById('theme-label');
@@ -94,7 +109,7 @@
             btn.classList.toggle('text-paper', isActive);
             btn.classList.toggle('text-ink-2', !isActive);
         });
-        // 同步到 server session（避免下次刷新掉）
+        // 同步到 server session
         const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
         fetch('/theme', {
             method: 'POST',
@@ -103,7 +118,6 @@
         }).catch(() => {});
     }
 
-    // 暴露到全局
     window.MarkerSetTheme = setTheme;
 
     // 初始化按钮 label
@@ -111,21 +125,43 @@
     const initLbl = document.getElementById('theme-label');
     if (initLbl) initLbl.textContent = init.toUpperCase();
 
-    // 绑定点击外部关闭（统一处理所有下拉）
+    // 系统主题变化时，auto 模式自动跟随
+    if (window.matchMedia) {
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        const onSysChange = () => {
+            const cur = document.documentElement.getAttribute('data-theme');
+            if (cur === 'auto') applyTheme('auto');
+        };
+        if (mq.addEventListener) mq.addEventListener('change', onSysChange);
+        else if (mq.addListener) mq.addListener(onSysChange);
+    }
+
+    // 通用下拉切换：data-toggle 按钮 → 兄弟面板 data-panel
     document.addEventListener('click', (e) => {
-        document.querySelectorAll('.relative > .hidden').forEach(panel => {
-            if (!panel.classList.contains('hidden') && !panel.contains(e.target) && !panel.previousElementSibling.contains(e.target)) {
+        const toggle = e.target.closest('[data-toggle]');
+        if (toggle) {
+            e.stopPropagation();
+            const panelId = toggle.getAttribute('data-toggle');
+            const panel = document.getElementById(panelId) || toggle.nextElementSibling;
+            if (panel) {
+                panel.classList.toggle('hidden');
+            }
+            return;
+        }
+        // 点击主题按钮（在下拉里）
+        const themeBtn = e.target.closest('[data-theme-set]');
+        if (themeBtn) {
+            e.stopPropagation();
+            setTheme(themeBtn.dataset.themeSet);
+            // 关闭所有 data-panel 下拉
+            document.querySelectorAll('[data-panel]:not(.hidden)').forEach(p => p.classList.add('hidden'));
+            return;
+        }
+        // 点击外部关闭
+        document.querySelectorAll('[data-panel]:not(.hidden)').forEach(panel => {
+            if (!panel.contains(e.target)) {
                 panel.classList.add('hidden');
             }
-        });
-    });
-
-    // 绑定主题按钮
-    document.querySelectorAll('[data-theme-set]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            setTheme(btn.dataset.themeSet);
-            btn.closest('.hidden')?.classList.add('hidden');
         });
     });
 })();

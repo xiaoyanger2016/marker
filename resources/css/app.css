@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import 'tailwindcss';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -18,16 +19,14 @@
  *   Fraunces     - 标题 / 衬线 / 有手感
  *   Inter        - 正文 / 数字
  *   JetBrains Mono - 编号 / 坐标 / 距离 / 标签
+ *
+ * 注意：WeChat 内嵌浏览器对 Google Fonts 不友好
+ * → 系统字体优先 fallback，不阻塞渲染
  * ========================================================================= */
-
-/* Google Fonts - 加载 editorial 字体组合
- * 重要：WeChat 内嵌浏览器对 Google Fonts 不友好
- * → 系统字体优先 fallback，不阻塞渲染 */
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 /* =========================================================================
  * MARKER 设计系统 · v3
- * 3 种主题：paper（暖纸） / ink（夜读） / mono（高对比）
+ * 5 种主题：paper（暖纸） / sand（沙黄） / ink（夜读） / mono（高对比） / auto（跟随系统）
  * 通过 <html data-theme="..."> 切换
  * ========================================================================= */
 
@@ -53,8 +52,34 @@
     --noise-opacity: 0.5;
     --shadow-card: 0 1px 0 rgba(26, 24, 20, 0.04), 0 4px 16px -4px rgba(26, 24, 20, 0.08);
     --shadow-card-hover: 0 1px 0 rgba(26, 24, 20, 0.04), 0 12px 32px -8px rgba(26, 24, 20, 0.16);
-    --shadow-dock: 0 -4px 16px -4px rgba(26, 24, 20, 0.1);
+    --shadow-dock: 0 -6px 24px -6px rgba(26, 24, 20, 0.18), 0 -1px 0 rgba(26, 24, 20, 0.04);
     --selection-text: var(--color-paper);
+}
+
+/* sand: 沙黄（傍晚沙漠感，比 paper 暖） */
+[data-theme="sand"] {
+    --color-paper:        #E8DCC4;   /* 沙黄主背景 */
+    --color-paper-2:      #DDD0B5;   /* 沙黄深一档 */
+    --color-ink:          #2A1F0F;   /* 棕墨 */
+    --color-ink-2:        #5A4A30;
+    --color-ink-3:        #8A7858;
+    --color-line:         #C9B891;
+    --color-line-2:       #B5A07A;
+
+    --color-accent:       #7A4A1F;   /* 棕橙（驼色） */
+    --color-accent-2:     #5F3814;
+    --color-warm:         #B8451E;   /* 焦土 */
+    --color-warm-2:       #8F3215;
+    --color-grass:        #556B2F;
+    --color-blood:        #8B3A1E;
+    --color-sun:          #B8861A;
+
+    --noise-mode: multiply;
+    --noise-opacity: 0.6;
+    --shadow-card: 0 1px 0 rgba(42, 31, 15, 0.04), 0 4px 16px -4px rgba(42, 31, 15, 0.1);
+    --shadow-card-hover: 0 1px 0 rgba(42, 31, 15, 0.04), 0 12px 32px -8px rgba(42, 31, 15, 0.18);
+    --shadow-dock: 0 -6px 24px -6px rgba(42, 31, 15, 0.22), 0 -1px 0 rgba(42, 31, 15, 0.04);
+    --selection-text: #E8DCC4;
 }
 
 [data-theme="ink"] {
@@ -78,7 +103,7 @@
     --noise-opacity: 0.15;
     --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04), 0 4px 16px -4px rgba(0, 0, 0, 0.5);
     --shadow-card-hover: 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 32px -8px rgba(0, 0, 0, 0.7);
-    --shadow-dock: 0 -4px 24px -4px rgba(0, 0, 0, 0.6);
+    --shadow-dock: 0 -6px 28px -6px rgba(0, 0, 0, 0.7), 0 -1px 0 rgba(255, 255, 255, 0.04);
     --selection-text: #0E0D0B;
 }
 
@@ -103,8 +128,36 @@
     --noise-opacity: 0;
     --shadow-card: 0 0 0 1px rgba(0, 0, 0, 0.1);
     --shadow-card-hover: 0 0 0 1px rgba(0, 0, 0, 0.2), 0 4px 12px -2px rgba(0, 0, 0, 0.08);
-    --shadow-dock: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-dock: 0 -4px 12px rgba(0, 0, 0, 0.14);
     --selection-text: #FFFFFF;
+}
+
+/* auto: 跟随系统 prefers-color-scheme
+   没有显式 data-theme 时，浏览器按系统模式渲染
+   用户手动选了具体主题（paper/ink/mono/sand）后，data-theme 锁住 */
+@media (prefers-color-scheme: dark) {
+    [data-theme="auto"] {
+        --color-paper:        #0E0D0B;
+        --color-paper-2:      #181612;
+        --color-ink:          #E8E2D4;
+        --color-ink-2:        #B4ADA0;
+        --color-ink-3:        #7A746A;
+        --color-line:         #2A2722;
+        --color-line-2:       #3A3631;
+        --color-accent:       #6FA8B5;
+        --color-accent-2:     #8FBFC9;
+        --color-warm:         #D87A4A;
+        --color-warm-2:       #E89970;
+        --color-grass:        #6B9F7A;
+        --color-blood:        #C97070;
+        --color-sun:          #D9B265;
+        --noise-mode: screen;
+        --noise-opacity: 0.15;
+        --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.04), 0 4px 16px -4px rgba(0, 0, 0, 0.5);
+        --shadow-card-hover: 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 32px -8px rgba(0, 0, 0, 0.7);
+        --shadow-dock: 0 -6px 28px -6px rgba(0, 0, 0, 0.7), 0 -1px 0 rgba(255, 255, 255, 0.04);
+        --selection-text: #0E0D0B;
+    }
 }
 
 @theme {
@@ -158,8 +211,12 @@ body::before {
     transition: opacity 0.3s, mix-blend-mode 0.3s;
 }
 
-/* 让所有内容在噪点之上 */
-body > * {
+/* 让内容浮在噪点纹理之上（仅 layout 主元素，避免覆盖 .fixed/.sticky） */
+body > nav,
+body > main,
+body > footer,
+body > aside,
+body > div.body-wrapper {
     position: relative;
     z-index: 1;
 }
@@ -196,18 +253,64 @@ body > * {
 
 /* =========================================================================
  * 颜色 utility（覆盖 tailwind 默认色调）
+ * 命名对齐 CSS 变量名：--color-{name}
+ * 缺失的组合是历史 bug 源（text-paper 一直没定义 → 下拉激活态文字不可见）
  * ========================================================================= */
 .bg-paper { background-color: var(--color-paper); }
 .bg-paper-2 { background-color: var(--color-paper-2); }
+.text-paper { color: var(--color-paper); }
+.text-paper-2 { color: var(--color-paper-2); }
+.bg-ink { background-color: var(--color-ink); }
 .text-ink { color: var(--color-ink); }
 .text-ink-2 { color: var(--color-ink-2); }
 .text-ink-3 { color: var(--color-ink-3); }
+.bg-accent { background-color: var(--color-accent); }
+.bg-accent-2 { background-color: var(--color-accent-2); }
 .text-accent { color: var(--color-accent); }
+.text-accent-2 { color: var(--color-accent-2); }
+.bg-warm { background-color: var(--color-warm); }
+.bg-warm-2 { background-color: var(--color-warm-2); }
 .text-warm { color: var(--color-warm); }
+.text-warm-2 { color: var(--color-warm-2); }
+.bg-grass { background-color: var(--color-grass); }
+.text-grass { color: var(--color-grass); }
+.bg-blood { background-color: var(--color-blood); }
+.text-blood { color: var(--color-blood); }
+.bg-sun { background-color: var(--color-sun); }
+.text-sun { color: var(--color-sun); }
+.border-paper { border-color: var(--color-paper); }
+.border-paper-2 { border-color: var(--color-paper-2); }
+.border-ink { border-color: var(--color-ink); }
 .border-line { border-color: var(--color-line); }
 .border-line-2 { border-color: var(--color-line-2); }
-.bg-accent { background-color: var(--color-accent); }
-.bg-ink { background-color: var(--color-ink); }
+.border-accent { border-color: var(--color-accent); }
+.border-warm { border-color: var(--color-warm); }
+
+/* =========================================================================
+ * 透明度变体（color-mix 动态计算，主题切换时透明度跟随）
+ * Tailwind v4 不会为非 @theme 颜色生成 /90 /95 变体，这里手动补全
+ * ========================================================================= */
+.bg-paper\/30 { background-color: color-mix(in srgb, var(--color-paper) 30%, transparent); }
+.bg-paper\/50 { background-color: color-mix(in srgb, var(--color-paper) 50%, transparent); }
+.bg-paper\/80 { background-color: color-mix(in srgb, var(--color-paper) 80%, transparent); }
+.bg-paper\/90 { background-color: color-mix(in srgb, var(--color-paper) 90%, transparent); }
+.bg-paper\/95 { background-color: color-mix(in srgb, var(--color-paper) 95%, transparent); }
+.bg-ink\/5   { background-color: color-mix(in srgb, var(--color-ink) 5%, transparent); }
+.bg-ink\/10  { background-color: color-mix(in srgb, var(--color-ink) 10%, transparent); }
+.bg-ink\/15  { background-color: color-mix(in srgb, var(--color-ink) 15%, transparent); }
+.bg-ink\/30  { background-color: color-mix(in srgb, var(--color-ink) 30%, transparent); }
+.bg-ink\/80  { background-color: color-mix(in srgb, var(--color-ink) 80%, transparent); }
+.bg-ink\/90  { background-color: color-mix(in srgb, var(--color-ink) 90%, transparent); }
+.bg-warm\/20 { background-color: color-mix(in srgb, var(--color-warm) 20%, transparent); }
+.text-paper\/80 { color: color-mix(in srgb, var(--color-paper) 80%, transparent); }
+.text-ink\/80   { color: color-mix(in srgb, var(--color-ink) 80%, transparent); }
+.text-ink\/70   { color: color-mix(in srgb, var(--color-ink) 70%, transparent); }
+.text-ink\/60   { color: color-mix(in srgb, var(--color-ink) 60%, transparent); }
+.text-warm\/80  { color: color-mix(in srgb, var(--color-warm) 80%, transparent); }
+.text-paper\/70 { color: color-mix(in srgb, var(--color-paper) 70%, transparent); }
+.text-paper\/60 { color: color-mix(in srgb, var(--color-paper) 60%, transparent); }
+.border-ink\/15 { border-color: color-mix(in srgb, var(--color-ink) 15%, transparent); }
+.border-ink\/20 { border-color: color-mix(in srgb, var(--color-ink) 20%, transparent); }
 
 /* =========================================================================
  * 自定义阴影（主题相关）

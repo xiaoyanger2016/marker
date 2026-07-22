@@ -83,7 +83,7 @@
             <span class="eyebrow">§ 01 — 类型索引</span>
             <span class="font-mono text-[10px] text-ink-3">8 types</span>
         </div>
-        <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-8 gap-px bg-line border border-line">
+        <div class="grid grid-cols-4 lg:grid-cols-8 gap-px bg-line border border-line">
             @php
                 $typeIndex = [
                     ['01', 'self_drive',     '自驾线路',     'self-driving route', '#114B5F'],
@@ -98,10 +98,10 @@
             @endphp
             @foreach($typeIndex as $i => [$no, $key, $label, $en, $color])
                 <a href="{{ url('/type/' . $key) }}"
-                   class="group bg-paper hover:bg-paper-2 transition-colors px-3 sm:px-4 py-4 sm:py-5 flex flex-col">
-                    <span class="font-mono text-[10px] tracking-wider text-ink-3 mb-2">N°{{ $no }}</span>
-                    <span class="font-display text-base sm:text-lg text-ink group-hover:text-warm transition-colors leading-tight">{{ $label }}</span>
-                    <span class="font-mono text-[9px] sm:text-[10px] text-ink-3 mt-1.5 italic truncate">{{ $en }}</span>
+                   class="group min-w-0 bg-paper hover:bg-paper-2 transition-colors px-2 sm:px-4 py-3 sm:py-5 flex flex-col">
+                    <span class="font-mono text-[9px] sm:text-[10px] tracking-wider text-ink-3 mb-1.5 sm:mb-2">N°{{ $no }}</span>
+                    <span class="font-display text-[13px] sm:text-lg text-ink group-hover:text-warm transition-colors leading-tight truncate">{{ $label }}</span>
+                    <span class="font-mono text-[8px] sm:text-[10px] text-ink-3 mt-1 sm:mt-1.5 italic truncate hidden sm:block">{{ $en }}</span>
                 </a>
             @endforeach
         </div>
