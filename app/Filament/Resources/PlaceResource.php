@@ -332,21 +332,21 @@ class PlaceResource extends Resource
 
     public static function table(Table $table): Table
     {
-        // 编辑感表格：no IconColumn, no badge colors, status 用文字 + mono 标签
+        // Linear 紧凑表格：mono ID + sans body
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id')
-                    ->label('N°')
+                    ->label('#')
                     ->formatStateUsing(fn ($state) => str_pad($state, 2, '0', STR_PAD_LEFT))
                     ->fontFamily('mono')
-                    ->width('60px')
+                    ->width('50px')
                     ->color('gray'),
 
                 Tables\Columns\TextColumn::make('name')
                     ->label('名称')
                     ->searchable(['name', 'address', 'city'])
                     ->sortable()
-                    ->fontFamily('serif')
+                    ->weight('medium')
                     ->weight('medium')
                     ->size('lg')
                     ->wrap(),
@@ -386,7 +386,7 @@ class PlaceResource extends Resource
                         $r = $labels[$state] ?? null;
                         return $r ? $r['label'] : (string) $state;
                     })
-                    ->fontFamily('serif')
+                    ->fontFamily('sans')
                     ->size('sm')
                     ->alignCenter(),
 

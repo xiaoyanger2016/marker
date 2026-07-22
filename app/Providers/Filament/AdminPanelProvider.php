@@ -26,12 +26,10 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->brandName('MARKER')
-            // brandLogo 不传（Filament 会找 svg 文件），用 brandName 即可
-            // 副标"VOL.01 · 公路杂志"通过 renderHook 注入到 topbar 右侧
+            // Linear 紫 #5E6AD2 (商务严谨风 — 不再是 editorial 深青)
             ->colors([
-                'primary' => Color::rgb('rgb(17, 75, 95)'),  // #114B5F
+                'primary' => Color::rgb('rgb(94, 106, 210)'),
             ])
-            ->sidebarCollapsibleOnDesktop()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
@@ -41,21 +39,28 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 // AccountWidget / FilamentInfoWidget 都不要（AI 味）
             ])
-            // 注入 editorial 主题 CSS（必须比 Filament 自身 CSS 后加载）
+            // 注入 Linear 主题 CSS（必须比 Filament 自身 CSS 后加载）
             ->renderHook(
                 'panels::body.end',
                 fn (): string => '<link rel="stylesheet" href="' . asset('css/filament-admin.css') . '?v=' . filemtime(public_path('css/filament-admin.css')) . '">',
             )
             ->renderHook(
                 'panels::head.end',
-                fn (): string => '<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">',
+                fn (): string => '<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">',
             )
-            // 在 topbar 头部注入副标 + 主题切换器
+            // 注入 5 主题 SSR 脚本 + .dark class (Linear 商务风：sidebar 永远深色，但 content 主题切换)
+            // 必须放在 <head> 渲染前，避免主题闪烁
             ->renderHook(
-                'panels::topbar.start',
-                fn (): string => '<span class="hidden sm:inline font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500 ml-3 border-l border-line pl-3">VOL.01 · 公路杂志</span>',
+                'panels::head.end',
+                fn (): string => '<script>(function(){try{var t=localStorage.getItem("marker.theme");var ok=["paper","sand","ink","mono","auto"];if(!t||ok.indexOf(t)===-1)t=document.documentElement.getAttribute("data-theme")||"paper";if(ok.indexOf(t)===-1)t="paper";document.documentElement.setAttribute("data-theme",t);var d=t==="ink"||(t==="auto"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);if(d)document.documentElement.classList.add("dark");else document.documentElement.classList.remove("dark");}catch(e){}})();</script>',
             )
-            // 注入主题切换器（用户菜单之前）
+            // 关键: Filament 的 loadDarkMode() 会在我们的脚本之后再次覆盖 .dark class。
+            // 用 panels::body.end 注入一个延迟脚本，等 Filament 处理完再重新设一次 .dark class。
+            ->renderHook(
+                'panels::body.end',
+                fn (): string => '<script>(function(){function fixDark(){try{var t=localStorage.getItem("marker.theme")||document.documentElement.getAttribute("data-theme")||"paper";var d=t==="ink"||(t==="auto"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);if(d)document.documentElement.classList.add("dark");else document.documentElement.classList.remove("dark");}catch(e){}}fixDark();document.addEventListener("livewire:navigated",fixDark);})();</script>',
+            )
+            // Linear 风格 topbar 副标 (无) - 顶部只保留主题切换器 + 用户菜单
             ->renderHook(
                 'panels::user-menu.before',
                 fn (): string => view('filament.hooks.theme-switcher')->render(),

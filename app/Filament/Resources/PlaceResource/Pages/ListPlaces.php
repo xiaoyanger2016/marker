@@ -13,27 +13,27 @@ class ListPlaces extends ListRecords
 
     public function getTabs(): array
     {
-        // 编辑感 tab：N°编号 + 中文，去掉所有 emoji
+        // Linear 商务风：紧凑 tab，去 N° 编号前缀
         return [
-            'all' => Tab::make('N°00 · 全部')
+            'all' => Tab::make('全部')
                 ->modifyQueryUsing(fn ($query) => $query),
 
-            'camping' => Tab::make('N°01 · 露营')
+            'camping' => Tab::make('露营')
                 ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'camping')),
 
-            'play_water' => Tab::make('N°02 · 玩水')
+            'play_water' => Tab::make('玩水')
                 ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'play_water')),
 
-            'cafe' => Tab::make('N°03 · 咖啡')
+            'cafe' => Tab::make('咖啡')
                 ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'cafe')),
 
-            'restaurant' => Tab::make('N°04 · 美食')
+            'restaurant' => Tab::make('美食')
                 ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'restaurant')),
 
-            'viewpoint' => Tab::make('N°05 · 拍照')
+            'viewpoint' => Tab::make('拍照')
                 ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'viewpoint')),
 
-            'mountain' => Tab::make('N°06 · 山峰')
+            'mountain' => Tab::make('山峰')
                 ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'mountain')),
 
             'wishlist' => Tab::make('种草中')
@@ -54,7 +54,7 @@ class ListPlaces extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()->label('+ 添加地点'),
+            Actions\CreateAction::make()->label('添加地点'),
         ];
     }
 }

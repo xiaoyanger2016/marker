@@ -1,87 +1,84 @@
-{{-- Admin 主题切换器 — 复用前端 theme 系统，但只暴露 light/dark 两档 --}}
+{{-- Admin 主题切换器 — Linear 商务风 (5 主题统一同步) --}}
 @once
 @push('styles')
 <style>
     .marker-admin-theme {
         position: relative;
     }
+    /* Linear: 紧凑 mono 按钮 + hairline border */
     .marker-admin-theme-btn {
         font-family: var(--font-family-mono, 'JetBrains Mono', monospace);
-        font-size: 10px;
-        text-transform: uppercase;
-        letter-spacing: 0.18em;
-        padding: 6px 12px;
-        border: 1px solid rgba(0,0,0,0.12);
+        font-size: 11px;
+        text-transform: none;
+        letter-spacing: 0;
+        padding: 5px 10px;
+        border: 1px solid var(--line, #E4E4E7);
         background: transparent;
         cursor: pointer;
-        color: inherit;
+        color: var(--ink, #0A0A0A);
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        transition: all 0.2s;
-    }
-    .dark .marker-admin-theme-btn {
-        border-color: rgba(255,255,255,0.18);
+        gap: 6px;
+        transition: border-color 0.1s, color 0.1s;
+        border-radius: 0;
+        line-height: 1;
     }
     .marker-admin-theme-btn:hover {
-        border-color: currentColor;
+        border-color: var(--ink, #0A0A0A);
     }
+    /* Linear: panel 固定到 viewport 右上角 (不依赖父容器宽度) */
     .marker-admin-theme-panel {
-        position: absolute;
-        right: 0;
-        top: calc(100% + 8px);
-        min-width: 200px;
-        background: var(--paper, #F2EDE2);
-        border: 1px solid rgba(0,0,0,0.12);
+        position: fixed;
+        right: 12px;
+        top: 60px;
+        width: 240px;
+        max-width: calc(100vw - 24px);
+        background: var(--paper, #FFFFFF);
+        border: 1px solid var(--line, #E4E4E7);
         z-index: 9999;
-        box-shadow: 0 8px 24px -8px rgba(0,0,0,0.18);
-    }
-    .dark .marker-admin-theme-panel {
-        background: var(--paper, #0E0D0B);
-        border-color: rgba(255,255,255,0.18);
-        box-shadow: 0 8px 24px -8px rgba(0,0,0,0.6);
+        box-shadow: 0 10px 30px -10px rgba(0,0,0,0.2);
+        border-radius: 0;
     }
     .marker-admin-theme-opt {
         display: block;
         width: 100%;
         text-align: left;
-        padding: 10px 14px;
-        font-family: inherit;
-        font-size: 11px;
+        padding: 8px 12px;
+        font-family: var(--font-family, 'Inter', sans-serif);
+        font-size: 12px;
         background: transparent;
         border: 0;
         cursor: pointer;
-        color: inherit;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
+        color: var(--ink, #0A0A0A);
+        text-transform: none;
+        letter-spacing: 0;
+        line-height: 1.3;
+        transition: background 0.1s;
     }
     .marker-admin-theme-opt:hover {
-        background: rgba(0,0,0,0.04);
-    }
-    .dark .marker-admin-theme-opt:hover {
-        background: rgba(255,255,255,0.05);
+        background: var(--paper-2, #FAFAFA);
     }
     .marker-admin-theme-opt.active {
-        background: rgba(0,0,0,0.88);
-        color: var(--paper, #F2EDE2);
-    }
-    .dark .marker-admin-theme-opt.active {
-        background: rgba(255,255,255,0.95);
-        color: var(--ink, #1A1814);
+        background: var(--ink, #0A0A0A);
+        color: var(--paper, #FFFFFF);
     }
     .marker-admin-theme-opt-label {
         display: block;
-        font-family: var(--font-family-serif, serif);
-        font-size: 13px;
+        font-family: var(--font-family, 'Inter', sans-serif);
+        font-size: 12px;
+        font-weight: 500;
         text-transform: none;
         letter-spacing: 0;
     }
     .marker-admin-theme-opt-desc {
         display: block;
-        font-family: var(--font-family-mono, monospace);
-        font-size: 9px;
+        font-family: var(--font-family-mono, 'JetBrains Mono', monospace);
+        font-size: 10px;
         opacity: 0.7;
         margin-top: 2px;
+    }
+    .marker-admin-theme-opt.active .marker-admin-theme-opt-desc {
+        opacity: 0.7;
     }
 </style>
 @endpush
@@ -89,22 +86,23 @@
 
 <div class="marker-admin-theme" x-data="{ open: false }">
     <button type="button" class="marker-admin-theme-btn" @click="open = !open" data-toggle="admin-theme">
-        <span>主题</span>
-        <span x-text="(localStorage.getItem('marker.theme') || '{{ $theme ?? 'paper' }}').toUpperCase()"></span>
+        <span class="text-ink-3">主题</span>
+        <span class="font-medium" x-text="(localStorage.getItem('marker.theme') || document.documentElement.getAttribute('data-theme') || 'paper').toUpperCase()"></span>
     </button>
     <div class="marker-admin-theme-panel" x-show="open" @click.outside="open = false" x-cloak style="display:none">
         @php
             $opts = [
-                'paper'  => ['label' => '纸刊',  'en' => 'Paper', 'desc' => '暖米白 · 杂志感'],
-                'sand'   => ['label' => '沙黄',  'en' => 'Sand',  'desc' => '傍晚沙漠 · 暖沉'],
-                'ink'    => ['label' => '夜读',  'en' => 'Ink',   'desc' => '深夜墨 · 沉浸'],
-                'mono'   => ['label' => '高对比','en' => 'Mono',  'desc' => '纯黑白 · 极简'],
-                'auto'   => ['label' => '跟随系统','en' => 'Auto','desc' => '跟随系统 · 自动切'],
+                'paper'  => ['label' => 'Paper',   'en' => '纸刊',   'desc' => 'Light · 默认'],
+                'sand'   => ['label' => 'Sand',    'en' => '沙黄',   'desc' => 'Light · 暖沉'],
+                'ink'    => ['label' => 'Ink',     'en' => '夜读',   'desc' => 'Dark · 沉浸'],
+                'mono'   => ['label' => 'Mono',    'en' => '高对比', 'desc' => 'Light · 极简'],
+                'auto'   => ['label' => 'Auto',    'en' => '跟随系统', 'desc' => '跟随系统'],
             ];
+            $cur = $theme ?? 'paper';
         @endphp
         @foreach($opts as $code => $t)
             <button type="button" data-admin-theme-set="{{ $code }}"
-                    class="marker-admin-theme-opt {{ ($theme ?? 'paper') === $code ? 'active' : '' }}">
+                    class="marker-admin-theme-opt {{ $cur === $code ? 'active' : '' }}">
                 <span class="marker-admin-theme-opt-label">{{ $t['label'] }} · {{ $t['en'] }}</span>
                 <span class="marker-admin-theme-opt-desc">{{ $t['desc'] }}</span>
             </button>
@@ -151,7 +149,7 @@
         }
     });
 
-    // 启动时应用 localStorage 主题
+    // 启动时应用 localStorage 主题 (page reload 时从 localStorage 重新设置)
     try {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved && VALID.includes(saved)) applyTheme(saved);
