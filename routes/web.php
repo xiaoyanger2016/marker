@@ -41,6 +41,9 @@ Route::get('/', [HomeController::class, 'home'])->name('home');
 // 8 大类列表
 Route::get('/type/{key}', [HomeController::class, 'type'])->name('frontend.type');
 
+// Phase 18.3: 全文搜索
+Route::get('/search', [HomeController::class, 'search'])->name('frontend.search');
+
 // Phase 18 · Bug 1: 全部精选 (admin 手动 pinned 列表)
 Route::get('/picks', [HomeController::class, 'picks'])->name('frontend.picks');
 
@@ -55,6 +58,7 @@ Route::get('/place/{id}', [HomeController::class, 'place'])->name('frontend.plac
 // 地图 / 雷达
 Route::get('/map', [HomeController::class, 'map'])->name('frontend.map');
 Route::get('/radar', [HomeController::class, 'radar'])->name('frontend.radar');
+Route::get('/api/radar/nearby', [HomeController::class, 'radarNearby'])->name('frontend.radar.nearby');
 
 // 「我的」中心
 Route::prefix('me')->group(function () {

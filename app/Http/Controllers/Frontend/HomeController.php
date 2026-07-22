@@ -212,19 +212,176 @@ class HomeController extends Controller
         ]);
     }
 
-    public function map()
+    public function map(Request $request)
     {
-        $places = Place::query()
-            ->select(['id', 'name', 'latitude', 'longitude', 'city', 'view_count'])
-            ->with(['media' => fn ($q) => $q->where('is_cover', true)])
-            ->get();
+        $filterType = $request->query('type');
 
-        return view('frontend.map', ['places' => $places]);
+        // 内容贴 markers (取每个 content 的第一个 place 的坐标)
+        $contents = Content::public()
+            ->with(['places', 'coverMedia', 'user'])
+            ->whereHas('places', function ($q) {
+                $q->whereNotNull('latitude')->whereNotNull('longitude');
+            })
+            ->when($filterType && in_array($filterType, array_keys(Content::TYPES), true), fn ($q) => $q->where('type', $filterType))
+            ->latest('published_at')
+            ->limit(200)
+            ->get()
+            ->map(function ($c) {
+                $place = $c->places->firstWhere(fn ($p) => $p->latitude && $p->longitude);
+                if (! $place) return null;
+                $cover = $c->coverMedia ?: $c->gallery->first();
+                return [
+                    'id'         => $c->id,
+                    'title'      => $c->title,
+                    'type'       => $c->type,
+                    'type_label' => __('ui.type_' . $c->type),
+                    'type_icon'  => $c->typeMeta()['icon'],
+                    'type_color' => $c->typeMeta()['color'],
+                    'rating'     => $c->rating_label,
+                    'city'       => $place->city,
+                    'lat'        => (float) $place->latitude,
+                    'lng'        => (float) $place->longitude,
+                    'cover'      => $cover?->url,
+                    'url'        => url('/content/' . $c->id),
+                    'user'       => $c->user?->name,
+                ];
+            })->filter()->values();
+
+        // 单独 places (没有 content 的孤儿 place)
+        $placeIds = Content::public()->with('places')->get()->pluck('places.*.id')->flatten()->unique();
+        $standalonePlaces = Place::query()
+            ->whereNotIn('id', $placeIds)
+            ->whereNotNull('latitude')->whereNotNull('longitude')
+            ->select(['id', 'name', 'latitude', 'longitude', 'city'])
+            ->limit(200)
+            ->get()
+            ->map(fn ($p) => [
+                'id'    => $p->id,
+                'title' => $p->name,
+                'type'  => 'place',
+                'lat'   => (float) $p->latitude,
+                'lng'   => (float) $p->longitude,
+                'city'  => $p->city,
+                'url'   => url('/place/' . $p->id),
+            ]);
+
+        $types = collect(self::TYPES)->map(function ($t) {
+            $t['label'] = __($t['label_key']);
+            return $t;
+        })->all();
+
+        return view('frontend.map', [
+            'contents' => $contents,
+            'places'   => $standalonePlaces,
+            'types'    => $types,
+            'filterType' => $filterType,
+        ]);
     }
 
     public function radar(Request $request)
     {
-        return view('frontend.radar');
+        $defaultCity = $request->query('city');
+        return view('frontend.radar', compact('defaultCity'));
+    }
+
+    /**
+     * Phase 18.3: 全文搜索 (Postgres FTS)
+     *  - 搜 contents + places
+     *  - 用 websearch_to_tsquery 支持 "千岛湖 自驾" 语法
+     *  - 返回 results 分组 (内容/地点)
+     */
+    public function search(Request $request)
+    {
+        $q = trim((string) $request->query('q', ''));
+        $type = $request->query('type'); // content / place / null=both
+        $results = ['contents' => collect(), 'places' => collect()];
+
+        if (mb_strlen($q) >= 1) {
+            $tsQuery = \DB::raw("plainto_tsquery('simple', ?)");
+
+            if (! $type || $type === 'content') {
+                $contents = Content::public()
+                    ->with(['user', 'coverMedia', 'places'])
+                    ->whereRaw("search_vector @@ plainto_tsquery('simple', ?)", [$q])
+                    ->orderByRaw("ts_rank(search_vector, plainto_tsquery('simple', ?)) DESC", [$q])
+                    ->limit(20)
+                    ->get();
+                $results['contents'] = $contents->map(fn ($c) => $this->presentContent($c));
+            }
+            if (! $type || $type === 'place') {
+                $places = Place::query()
+                    ->whereRaw("search_vector @@ plainto_tsquery('simple', ?)", [$q])
+                    ->orderByRaw("ts_rank(search_vector, plainto_tsquery('simple', ?)) DESC", [$q])
+                    ->limit(20)
+                    ->get();
+                $results['places'] = $places->map(fn ($p) => $this->presentPlace($p));
+            }
+        }
+
+        $types = collect(self::TYPES)->map(function ($t) {
+            $t['label'] = __($t['label_key']);
+            return $t;
+        })->all();
+
+        return view('frontend.search', [
+            'q' => $q,
+            'type' => $type,
+            'results' => $results,
+            'types' => $types,
+        ]);
+    }
+
+    /**
+     * Phase 18.2: Radar 附近内容 (用 PostGIS 计算距离)
+     *  - lat/lng/radius (m) 必填
+     *  - 不用 PostGIS 时: 用 Haversine 公式在 PHP 算 (fallback)
+     */
+    public function radarNearby(Request $request)
+    {
+        $lat = (float) $request->query('lat', 0);
+        $lng = (float) $request->query('lng', 0);
+        $radius = (int) $request->query('radius', 5000); // 米
+        $limit = min(50, (int) $request->query('limit', 20));
+
+        if (! $lat || ! $lng) {
+            return response()->json(['data' => [], 'error' => 'lat/lng required'], 400);
+        }
+
+        // Haversine (PHP) - 不依赖 PostGIS extension
+        // 包成子查询，因为 PostgreSQL 不允许在 HAVING 里直接引用 SELECT 别名
+        $haversine = "(6371000 * acos(
+            least(1.0, cos(radians(?)) * cos(radians(places.latitude)) *
+            cos(radians(places.longitude) - radians(?)) +
+            sin(radians(?)) * sin(radians(places.latitude))
+        )))";
+
+        $places = Place::from(\DB::raw('places'))
+            ->select('places.*')
+            ->selectRaw("$haversine AS distance_meters", [$lat, $lng, $lat])
+            ->whereNotNull('places.latitude')
+            ->whereNotNull('places.longitude')
+            ->whereRaw("$haversine <= ?", [$lat, $lng, $lat, $radius])
+            ->orderBy('distance_meters')
+            ->limit($limit)
+            ->get();
+
+        return response()->json([
+            'data' => $places->map(fn ($p) => [
+                'id' => $p->id,
+                'name' => $p->name,
+                'address' => $p->address,
+                'city' => $p->city,
+                'latitude' => (float) $p->latitude,
+                'longitude' => (float) $p->longitude,
+                'distance_meters' => (int) $p->distance_meters,
+                'url' => url('/place/' . $p->id),
+            ]),
+            'meta' => [
+                'center' => ['lat' => $lat, 'lng' => $lng],
+                'radius' => $radius,
+                'count' => $places->count(),
+            ],
+        ]);
     }
 
     public function me(Request $request)

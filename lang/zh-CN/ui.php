@@ -1,6 +1,21 @@
 <?php
 
 return [
+    // ===== Radar 雷达 =====
+    'radar_title' => '雷达',
+    'radar_idle' => '点击定位开始',
+    'radar_locate' => '定位',
+    'radar_radius' => '半径',
+    'radar_nearby' => '附近',
+    'radar_you_here' => '你在这里',
+    'radar_locating' => '定位中...',
+    'radar_no_geo' => '浏览器不支持定位',
+    'radar_located' => '已定位',
+    'radar_denied' => '已拒绝定位权限',
+    'radar_permission_title' => '需要位置权限',
+    'radar_permission_desc' => '用浏览器原生定位，推荐你所在位置附近的内容。也可以手动输入城市。',
+    'radar_permission_cta' => '立即开启',
+
     // ===== 通用 =====
     'app_name'        => 'Marker',
     'tagline'         => '收藏你的自驾宝藏',
