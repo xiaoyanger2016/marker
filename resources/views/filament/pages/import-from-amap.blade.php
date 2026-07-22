@@ -1,4 +1,28 @@
 <x-filament-panels::page>
+    {{-- 未配置高德 API Key 时给个友好提示 + 申请指引 --}}
+    @php
+        $amapKey = config('services.amap.key');
+        $amapKeyMissing = empty($amapKey) || $amapKey === 'your_amap_web_key_here';
+    @endphp
+    @if($amapKeyMissing)
+        <div class="mb-6 border border-warm bg-warm/5 p-5">
+            <div class="flex items-baseline gap-2 mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-warm">
+                <span>⚠</span>
+                <span>API KEY NOT CONFIGURED</span>
+            </div>
+            <h3 class="font-display text-lg text-ink mb-2">先申请高德 Web 服务 Key（个人可用，5 分钟）</h3>
+            <ol class="text-sm text-ink-2 leading-relaxed space-y-1.5 list-decimal pl-5">
+                <li>打开 <a href="https://lbs.amap.com/" target="_blank" class="underline underline-offset-2 hover:text-warm">lbs.amap.com</a> → 右上角「注册」→ 用支付宝扫码实名认证（个人账户即可，配额 2000 次/日）</li>
+                <li>控制台 → 应用管理 → 我的应用 → 「创建新应用」→ 类型选「其它」</li>
+                <li>点进新应用 → 「添加 Key」→ 服务平台选「Web 服务」→ 白名单填 <code class="font-mono text-xs bg-paper-2 px-1.5 py-0.5">localhost, 127.0.0.1</code> + 你的域名</li>
+                <li>复制生成的 Key → 写到项目 <code class="font-mono text-xs bg-paper-2 px-1.5 py-0.5">.env</code> 的 <code class="font-mono text-xs bg-paper-2 px-1.5 py-0.5">AMAP_WEB_KEY=...</code> → <code class="font-mono text-xs bg-paper-2 px-1.5 py-0.5">php artisan config:clear</code> → 刷新本页</li>
+            </ol>
+            <p class="mt-3 text-xs text-ink-3 font-mono">
+                详细图文：<a href="https://lbs.amap.com/api/webservice/create-project-and-key" target="_blank" class="underline">lbs.amap.com/api/webservice/create-project-and-key</a>
+            </p>
+        </div>
+    @endif
+
     {{-- 头版：编辑感标题 + 步骤编号 --}}
     <div class="mb-8 pb-6 border-b border-ink/15">
         <div class="flex items-baseline gap-3 mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3">

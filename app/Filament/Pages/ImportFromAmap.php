@@ -62,7 +62,15 @@ class ImportFromAmap extends Page implements HasForms
 
         $key = config('services.amap.key');
         if (! $key || $key === 'your_amap_web_key_here') {
-            $this->error = '高德 API Key 未配置，请在 .env 设置 AMAP_WEB_KEY';
+            $this->error = "高德 API Key 未配置\n\n"
+                . "个人开发者 5 分钟就能申请（支付宝实名认证）：\n"
+                . "  1. https://lbs.amap.com/ 注册 + 支付宝扫码实名\n"
+                . "  2. 控制台 → 应用管理 → 创建新应用\n"
+                . "  3. 添加 Key → 服务平台选「Web 服务」\n"
+                . "  4. 复制 Key 写到 .env 的 AMAP_WEB_KEY=...\n"
+                . "  5. 跑 php artisan config:clear\n"
+                . "  6. 刷新本页\n\n"
+                . "个人账户配额 2000 次/日，够用。";
             return;
         }
 
