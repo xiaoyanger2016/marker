@@ -34,13 +34,18 @@ class SetLocale
         view()->share('locale', $locale);
         view()->share('availableLocales', self::SUPPORTED);
 
-        // 主题（从 session 读，让切换结果跨页面保留）
-        $theme = $request->session()->get('theme');
-        if (! in_array($theme, ['paper', 'ink', 'mono'], true)) {
+        // 主题（从 session / query 读，让切换结果跨页面保留；支持 ?theme=paper/sand/ink/mono/auto）
+        $theme = $request->query('theme')
+            ?? $request->session()->get('theme')
+            ?? 'paper';
+        if (! in_array($theme, ['paper', 'sand', 'ink', 'mono', 'auto'], true)) {
             $theme = 'paper';
         }
+        if ($request->query('theme')) {
+            $request->session()->put('theme', $theme);
+        }
         view()->share('theme', $theme);
-        view()->share('availableThemes', ['paper', 'ink', 'mono']);
+        view()->share('availableThemes', ['paper', 'sand', 'ink', 'mono', 'auto']);
 
         return $next($request);
     }

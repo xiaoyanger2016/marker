@@ -14,10 +14,10 @@ Route::get('/register', [WebAuthController::class, 'showRegister'])->name('regis
 Route::post('/register', [WebAuthController::class, 'register']);
 Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
 
-// 主题切换（写到 session + localStorage）
+// 主题切换（写到 session + localStorage；5 主题）
 Route::post('/theme', function (\Illuminate\Http\Request $request) {
     $t = $request->input('theme', 'paper');
-    if (! in_array($t, ['paper', 'ink', 'mono'], true)) {
+    if (! in_array($t, ['paper', 'sand', 'ink', 'mono', 'auto'], true)) {
         $t = 'paper';
     }
     $request->session()->put('theme', $t);

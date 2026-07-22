@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    {{-- 强制每次重新请求，避免开发期改完用户看到的还是旧 CSS/HTML --}}
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta name="theme-color" content="#F2EDE2" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#0E0D0B" media="(prefers-color-scheme: dark)">
     <meta name="format-detection" content="telephone=no">
@@ -14,7 +18,8 @@
         (function() {
             try {
                 var t = localStorage.getItem('marker.theme') || '{{ $theme ?? "paper" }}';
-                if (['paper', 'ink', 'mono'].indexOf(t) === -1) t = 'paper';
+                // 5 主题：paper / sand / ink / mono / auto
+                if (['paper', 'sand', 'ink', 'mono', 'auto'].indexOf(t) === -1) t = 'paper';
                 document.documentElement.setAttribute('data-theme', t);
             } catch (e) {}
         })();

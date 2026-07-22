@@ -20,6 +20,7 @@ class CategoryResource extends Resource
     protected static ?string $navigationLabel = '分类';
 
     protected static ?string $modelLabel = '分类';
+    protected static ?string $pluralModelLabel = '分类';
 
     protected static ?int $navigationSort = 20;
 

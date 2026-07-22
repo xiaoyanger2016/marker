@@ -20,13 +20,16 @@
              注意：不用 bg-ink text-paper 反色（在 ink 主题下两者都是亮色，看不见）
              改用：左 3px 黑边 + 加粗 + bg-paper-2 高亮
         --}}
+        {{-- 主题切换：用 fixed 定位，避开父容器宽度问题（父容器只 51px 宽） --}}
         <div class="relative">
             <button type="button" data-toggle="theme-panel"
                     class="font-mono text-[10px] uppercase tracking-[0.15em] text-ink-2 hover:text-ink transition-colors px-1.5 py-1 border border-transparent hover:border-line-2"
                     title="切换主题">
                 <span id="theme-label">{{ strtoupper(($theme ?? 'paper')) }}</span>
             </button>
-            <div id="theme-panel" data-panel class="hidden absolute right-0 mt-2 bg-paper-2/95 backdrop-blur-md border border-ink/20 min-w-[260px] z-50 shadow-dock">
+            <div id="theme-panel" data-panel
+                 class="hidden fixed right-3 top-[60px] sm:right-8 sm:top-[60px] bg-paper-2/95 backdrop-blur-md border border-ink/20 w-[280px] z-[60] shadow-dock"
+                 style="max-width: calc(100vw - 24px);">
                 <div class="px-3 py-2 border-b border-line flex items-baseline justify-between">
                     <span class="eyebrow">THEME</span>
                     <span class="font-mono text-[9px] text-ink-3">5 / 5</span>
@@ -52,21 +55,24 @@
                             </div>
                             <div class="font-sans text-[10px] mt-0.5 text-ink-3 tracking-normal">{{ $t['desc'] }}</div>
                         </div>
+                        {{-- SSR 渲染时也加 theme-opt-dot class，JS 才能 remove --}}
                         @if(($theme ?? 'paper') === $code)
-                            <span class="font-mono text-[9px] text-ink">●</span>
+                            <span class="font-mono text-[9px] text-ink theme-opt-dot">●</span>
                         @endif
                     </button>
                 @endforeach
             </div>
         </div>
 
-        {{-- 语种切换 --}}
+        {{-- 语种切换：同样 fixed 定位 --}}
         <div class="relative">
             <button type="button" data-toggle="lang-panel"
                     class="font-mono text-[10px] uppercase tracking-[0.15em] text-ink-2 hover:text-ink transition-colors px-1.5 py-1">
                 {{ strtoupper(str_replace('-', '_', $locale ?? 'zh-CN')) }}
             </button>
-            <div id="lang-panel" data-panel class="hidden absolute right-0 mt-2 bg-paper border border-line min-w-[140px] z-50 shadow-paper">
+            <div id="lang-panel" data-panel
+                 class="hidden fixed right-3 top-[60px] sm:right-8 sm:top-[60px] bg-paper border border-ink/20 w-[180px] z-[60] shadow-dock"
+                 style="max-width: calc(100vw - 24px);">
                 @foreach(['zh-CN' => '简体中文', 'zh-TW' => '繁體中文', 'en' => 'English', 'ja' => '日本語', 'ko' => '한국어'] as $code => $label)
                     <a href="?lang={{ $code }}" data-panel-close
                        class="block px-3 py-2 font-mono text-[11px] uppercase tracking-wider hover:bg-paper-2 {{ ($locale ?? '') === $code ? 'bg-ink text-paper' : 'text-ink-2' }}">
