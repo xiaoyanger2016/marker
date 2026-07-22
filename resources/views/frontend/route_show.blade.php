@@ -157,7 +157,7 @@
 
 @endsection
 
-@section('main_class', 'pb-40 sm:pb-32')
+@section('main_class', 'pb-40 sm:pb-36')
 
 @push('scripts')
 <script>
@@ -177,7 +177,7 @@ async function likeRoute(id) {
 @endpush
 
 {{-- 发起约伴按钮（编辑感） --}}
-<div class="fixed bottom-[72px] sm:bottom-[64px] left-0 right-0 z-40 px-2 sm:px-4 pb-2 sm:pb-3 safe-bottom bg-gradient-to-t from-paper via-paper to-transparent pt-4">
+<div class="fixed bottom-[88px] sm:bottom-[88px] left-0 right-0 z-40 px-3 sm:px-6 pb-2 sm:pb-3 safe-bottom bg-gradient-to-t from-paper via-paper to-transparent pt-4">
     <div class="max-w-5xl mx-auto">
         <a href="/activities/create?route_id={{ $route->id }}" class="btn btn-warm w-full">
             发起约伴

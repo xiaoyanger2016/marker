@@ -2,6 +2,10 @@
 
 @section('title', '我的 · Marker 公路杂志')
 
+@section('main_class')
+pb-48 sm:pb-36
+@endsection
+
 @section('content')
 
 {{-- 杂志式 profile 头部 --}}

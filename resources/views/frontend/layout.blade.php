@@ -74,7 +74,7 @@
     </div>
     @include('frontend.partials.tabbar_hidden')
     @else
-    <main class="@yield('main_class', 'pb-28 sm:pb-20')">
+    <main class="@yield('main_class', 'pb-36 sm:pb-28')">
         @yield('content')
     </main>
     @include('frontend.partials.tabbar')
