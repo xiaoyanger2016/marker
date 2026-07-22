@@ -38,6 +38,12 @@ class Dashboard extends Page
 
     public function getViewData(): array
     {
+        // 8 大类分别统计
+        $byType = [];
+        foreach (\App\Models\Place::PLACE_TYPES as $key => $meta) {
+            $byType[$key] = Place::where('place_type', $key)->count();
+        }
+
         return [
             'stats' => [
                 // 主 metric cards
@@ -57,6 +63,9 @@ class Dashboard extends Page
                 // sidebar 快捷入口计数
                 'categories'         => Category::count(),
                 'regions'            => Region::count(),
+
+                // 8 大类分布 (按 N°01-08 顺序)
+                'by_type'            => $byType,
             ],
             'recent_places' => Place::orderBy('created_at', 'desc')->limit(8)->get(['id', 'name', 'city', 'place_type', 'created_at']),
         ];

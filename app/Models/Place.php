@@ -91,30 +91,111 @@ class Place extends Model
         'safety_notes' => 'array',
     ];
 
-    // 地点细类（POI Type）
-    // 编辑感版：去 emoji，用 N°编号。前端不显示 icon，靠编号 + 渐变色 + 大字标签。
+    // 8 大类 (前端 8 个类型菜单 + 搜索筛选 + admin tabs 全部用这套)
+    // N°编号 1-8 与用户档案的 8 content types 一一对应
     public const PLACE_TYPES = [
-        'camping' => ['label' => '露营点', 'icon' => 'N°01', 'color' => '#1A3A3A'],
-        'mountain' => ['label' => '山峰', 'icon' => 'N°02', 'color' => '#1A1814'],
-        'village' => ['label' => '村庄', 'icon' => 'N°03', 'color' => '#847E72'],
-        'scenic' => ['label' => '景区/景点', 'icon' => 'N°04', 'color' => '#2D5F3F'],
-        'river' => ['label' => '河流/溪流', 'icon' => 'N°05', 'color' => '#0D3A4A'],
-        'lake' => ['label' => '湖泊', 'icon' => 'N°06', 'color' => '#114B5F'],
-        'beach' => ['label' => '海滩', 'icon' => 'N°07', 'color' => '#A1461E'],
-        'waterfall' => ['label' => '瀑布', 'icon' => 'N°08', 'color' => '#0D3A4A'],
-        'farm' => ['label' => '农场/采摘', 'icon' => 'N°09', 'color' => '#2D5F3F'],
-        'park' => ['label' => '公园', 'icon' => 'N°10', 'color' => '#2D5F3F'],
-        'cafe' => ['label' => '咖啡店', 'icon' => 'N°11', 'color' => '#847E72'],
-        'restaurant' => ['label' => '餐厅/美食', 'icon' => 'N°12', 'color' => '#C45626'],
-        'hotel' => ['label' => '民宿/酒店', 'icon' => 'N°13', 'color' => '#1A1814'],
-        'gas_station' => ['label' => '加油站', 'icon' => 'N°14', 'color' => '#847E72'],
-        'service_area' => ['label' => '服务区', 'icon' => 'N°15', 'color' => '#847E72'],
-        'viewpoint' => ['label' => '观景点', 'icon' => 'N°16', 'color' => '#A1461E'],
-        'play_water' => ['label' => '玩水点', 'icon' => 'N°17', 'color' => '#0D3A4A'],
-        'ancient_town' => ['label' => '古镇/古村', 'icon' => 'N°18', 'color' => '#1A1814'],
-        'temple' => ['label' => '寺庙/古迹', 'icon' => 'N°19', 'color' => '#847E72'],
-        'museum' => ['label' => '博物馆', 'icon' => 'N°20', 'color' => '#1A1814'],
-        'other' => ['label' => '其他', 'icon' => 'N°21', 'color' => '#4A4640'],
+        'self_drive'     => ['label' => '自驾线路', 'icon' => 'N°01', 'color' => '#114B5F', 'desc' => '公路旅行的路径和途经点'],
+        'play_water'     => ['label' => '玩水点',   'icon' => 'N°02', 'color' => '#0D3A4A', 'desc' => '可下水游泳戏水的地点'],
+        'hiking'         => ['label' => '徒步线路', 'icon' => 'N°03', 'color' => '#2D5F3F', 'desc' => '行走探索的路径'],
+        'paddle'         => ['label' => '桨板点',   'icon' => 'N°04', 'color' => '#0D5C5C', 'desc' => '桨板 / SUP 适合的水域'],
+        'photo'          => ['label' => '拍照点',   'icon' => 'N°05', 'color' => '#A1461E', 'desc' => '值得出片的取景地'],
+        'food'           => ['label' => '美食探店', 'icon' => 'N°06', 'color' => '#C45626', 'desc' => '值得专程去吃的店'],
+        'camping'        => ['label' => '露营点',   'icon' => 'N°07', 'color' => '#1A3A3A', 'desc' => '可以过夜的营地'],
+        'sunrise_sunset' => ['label' => '日出日落', 'icon' => 'N°08', 'color' => '#7A4A1A', 'desc' => '专门看日出日落的位置'],
+    ];
+
+    /**
+     * 每个 type 的可用 attribute 字段定义 (admin form 动态生成用)
+     * key/label/group/type/unit/options 决定渲染哪个 Filament input
+     */
+    public const TYPE_ATTRIBUTES = [
+        'self_drive' => [
+            ['key' => 'distance_km',         'label' => '距离',         'group' => '基本信息', 'type' => 'number',  'unit' => 'km'],
+            ['key' => 'duration_minutes',    'label' => '预计时长',     'group' => '基本信息', 'type' => 'number',  'unit' => '分钟'],
+            ['key' => 'altitude_meters',     'label' => '最高海拔',     'group' => '基本信息', 'type' => 'number',  'unit' => 'm'],
+            ['key' => 'difficulty',          'label' => '难度',         'group' => '基本信息', 'type' => 'select',  'options' => ['easy' => '轻松', 'moderate' => '中等', 'hard' => '困难']],
+            ['key' => 'road_condition',      'label' => '路况',         'group' => '基本信息', 'type' => 'select',  'options' => ['paved' => '全程铺装', 'mostly_paved' => '大部分铺装', 'mixed' => '混合', 'offroad' => '越野']],
+            ['key' => 'best_season',         'label' => '最佳季节',     'group' => '时间',     'type' => 'checkbox-list', 'options' => ['spring' => '春', 'summer' => '夏', 'autumn' => '秋', 'winter' => '冬']],
+            ['key' => 'gas_stations',        'label' => '加油站',       'group' => '沿途',     'type' => 'repeater', 'placeholder' => '加油站名 + km 标记'],
+            ['key' => 'waypoints',           'label' => '途经点',       'group' => '沿途',     'type' => 'repeater', 'placeholder' => '途经点名称 + 经纬度'],
+            ['key' => 'gear_checklist',      'label' => '装备清单',     'group' => '装备',     'type' => 'repeater'],
+            ['key' => 'safety_notes',        'label' => '安全提示',     'group' => '安全',     'type' => 'repeater'],
+        ],
+        'play_water' => [
+            ['key' => 'water_type',          'label' => '水域',         'group' => '基本信息', 'type' => 'select',  'options' => ['lake' => '湖', 'river' => '河', 'sea' => '海', 'pool' => '潭', 'reservoir' => '水库']],
+            ['key' => 'water_depth',         'label' => '水深',         'group' => '基本信息', 'type' => 'text',    'unit' => 'm'],
+            ['key' => 'is_swimmable',        'label' => '可游泳',       'group' => '基本信息', 'type' => 'toggle'],
+            ['key' => 'is_free',             'label' => '免费',         'group' => '基本信息', 'type' => 'toggle'],
+            ['key' => 'parking',             'label' => '停车',         'group' => '基本信息', 'type' => 'select',  'options' => ['free' => '免费停车', 'paid' => '收费停车', 'limited' => '停车位有限', 'no' => '无停车']],
+            ['key' => 'ticket',              'label' => '门票',         'group' => '基本信息', 'type' => 'text',    'unit' => '元/人'],
+            ['key' => 'has_lifeguard',       'label' => '有救生员',     'group' => '安全',     'type' => 'toggle'],
+            ['key' => 'best_season',         'label' => '最佳季节',     'group' => '时间',     'type' => 'checkbox-list'],
+            ['key' => 'gear_checklist',      'label' => '装备清单',     'group' => '装备',     'type' => 'repeater'],
+            ['key' => 'safety_notes',        'label' => '安全提示',     'group' => '安全',     'type' => 'repeater'],
+        ],
+        'hiking' => [
+            ['key' => 'distance_km',         'label' => '距离',         'group' => '基本信息', 'type' => 'number',  'unit' => 'km'],
+            ['key' => 'duration_minutes',    'label' => '预计时长',     'group' => '基本信息', 'type' => 'number',  'unit' => '分钟'],
+            ['key' => 'altitude_meters',     'label' => '最高海拔',     'group' => '基本信息', 'type' => 'number',  'unit' => 'm'],
+            ['key' => 'elevation_gain',      'label' => '累计爬升',     'group' => '基本信息', 'type' => 'number',  'unit' => 'm'],
+            ['key' => 'difficulty',          'label' => '难度',         'group' => '基本信息', 'type' => 'select',  'options' => ['easy' => '轻松', 'moderate' => '中等', 'hard' => '困难', 'expert' => '专业']],
+            ['key' => 'route_type',          'label' => '线路类型',     'group' => '基本信息', 'type' => 'select',  'options' => ['loop' => '环形', 'out_back' => '往返', 'one_way' => '单程']],
+            ['key' => 'best_season',         'label' => '最佳季节',     'group' => '时间',     'type' => 'checkbox-list'],
+            ['key' => 'waypoints',           'label' => '途经点',       'group' => '沿途',     'type' => 'repeater'],
+            ['key' => 'gear_checklist',      'label' => '装备清单',     'group' => '装备',     'type' => 'repeater'],
+            ['key' => 'safety_notes',        'label' => '安全提示',     'group' => '安全',     'type' => 'repeater'],
+        ],
+        'paddle' => [
+            ['key' => 'water_depth',         'label' => '水深',         'group' => '基本信息', 'type' => 'text',    'unit' => 'm'],
+            ['key' => 'water_current',       'label' => '水流情况',     'group' => '基本信息', 'type' => 'select',  'options' => ['calm' => '平静', 'mild' => '缓流', 'moderate' => '中流', 'strong' => '急流']],
+            ['key' => 'difficulty',          'label' => '难度',         'group' => '基本信息', 'type' => 'select'],
+            ['key' => 'rental_available',    'label' => '装备租赁',     'group' => '基本信息', 'type' => 'toggle'],
+            ['key' => 'best_time',           'label' => '最佳时间',     'group' => '时间',     'type' => 'text',    'placeholder' => '上午 / 下午 / 黄昏'],
+            ['key' => 'gear_checklist',      'label' => '装备清单',     'group' => '装备',     'type' => 'repeater'],
+            ['key' => 'safety_notes',        'label' => '安全提示',     'group' => '安全',     'type' => 'repeater'],
+        ],
+        'photo' => [
+            ['key' => 'best_time',           'label' => '最佳时间',     'group' => '时间',     'type' => 'text',    'placeholder' => '上午 / 黄昏 / 夜晚'],
+            ['key' => 'best_light',          'label' => '最佳光影',     'group' => '时间',     'type' => 'text',    'placeholder' => '顺光 / 逆光 / 黄金时刻'],
+            ['key' => 'viewpoint_count',     'label' => '机位数量',     'group' => '基本信息', 'type' => 'number'],
+            ['key' => 'is_drone_allowed',    'label' => '可飞无人机',   'group' => '基本信息', 'type' => 'toggle'],
+            ['key' => 'permit_required',     'label' => '需要许可',     'group' => '基本信息', 'type' => 'toggle'],
+            ['key' => 'parking',             'label' => '停车',         'group' => '基本信息', 'type' => 'select'],
+            ['key' => 'best_season',         'label' => '最佳季节',     'group' => '时间',     'type' => 'checkbox-list'],
+            ['key' => 'gear_checklist',      'label' => '装备',         'group' => '装备',     'type' => 'repeater'],
+        ],
+        'food' => [
+            ['key' => 'price_per_person',    'label' => '人均',         'group' => '基本信息', 'type' => 'number',  'unit' => '元'],
+            ['key' => 'cuisine_type',        'label' => '菜系',         'group' => '基本信息', 'type' => 'text',    'placeholder' => '川菜 / 西餐 / 咖啡'],
+            ['key' => 'business_hours',      'label' => '营业时间',     'group' => '时间',     'type' => 'text',    'placeholder' => '09:00-22:00'],
+            ['key' => 'signature_dishes',    'label' => '招牌菜',       'group' => '菜品',     'type' => 'repeater'],
+            ['key' => 'reservation',         'label' => '预订方式',     'group' => '服务',     'type' => 'text',    'placeholder' => '电话 / 微信 / 大众点评'],
+            ['key' => 'parking',             'label' => '停车',         'group' => '基本信息', 'type' => 'select'],
+            ['key' => 'contact',             'label' => '联系方式',     'group' => '服务',     'type' => 'text'],
+        ],
+        'camping' => [
+            ['key' => 'altitude_meters',     'label' => '海拔',         'group' => '基本信息', 'type' => 'number',  'unit' => 'm'],
+            ['key' => 'is_free',             'label' => '免费',         'group' => '基本信息', 'type' => 'toggle'],
+            ['key' => 'has_water',           'label' => '有水源',       'group' => '设施',     'type' => 'toggle'],
+            ['key' => 'has_toilet',          'label' => '有厕所',       'group' => '设施',     'type' => 'toggle'],
+            ['key' => 'fire_allowed',        'label' => '可明火',       'group' => '设施',     'type' => 'toggle'],
+            ['key' => 'has_signal',          'label' => '有信号',       'group' => '设施',     'type' => 'toggle'],
+            ['key' => 'parking',             'label' => '停车',         'group' => '设施',     'type' => 'select'],
+            ['key' => 'best_season',         'label' => '最佳季节',     'group' => '时间',     'type' => 'checkbox-list'],
+            ['key' => 'gear_checklist',      'label' => '装备清单',     'group' => '装备',     'type' => 'repeater'],
+            ['key' => 'safety_notes',        'label' => '安全提示',     'group' => '安全',     'type' => 'repeater'],
+        ],
+        'sunrise_sunset' => [
+            ['key' => 'direction',           'label' => '方位',         'group' => '基本信息', 'type' => 'select',  'options' => ['east' => '东 (日出)', 'west' => '西 (日落)', 'both' => '都能看']],
+            ['key' => 'best_time',           'label' => '最佳时间',     'group' => '时间',     'type' => 'text',    'placeholder' => '比日落早 30 分钟'],
+            ['key' => 'viewpoint_count',     'label' => '机位数量',     'group' => '基本信息', 'type' => 'number'],
+            ['key' => 'difficulty',          'label' => '抵达难度',     'group' => '基本信息', 'type' => 'select'],
+            ['key' => 'is_drone_allowed',    'label' => '可飞无人机',   'group' => '基本信息', 'type' => 'toggle'],
+            ['key' => 'parking',             'label' => '停车',         'group' => '基本信息', 'type' => 'select'],
+            ['key' => 'best_season',         'label' => '最佳季节',     'group' => '时间',     'type' => 'checkbox-list'],
+            ['key' => 'gear_checklist',      'label' => '装备',         'group' => '装备',     'type' => 'repeater'],
+            ['key' => 'safety_notes',        'label' => '安全提示',     'group' => '安全',     'type' => 'repeater'],
+        ],
     ];
 
     public const PARKING_FEE_TYPES = [
@@ -251,8 +332,7 @@ class Place extends Model
               ->orWhere('description', 'ilike', $like)
               ->orWhere('city', 'ilike', $like)
               ->orWhere('poi_type', 'ilike', $like)
-              ->orWhere('parking_notes', 'ilike', $like)
-              ->orWhere('ticket_notes', 'ilike', $like);
+              ->orWhereHas('attributes', fn ($a) => $a->where('attribute_value', 'ilike', $like));
         });
     }
 
@@ -263,12 +343,63 @@ class Place extends Model
 
     public function scopeWithParking(Builder $query): Builder
     {
-        return $query->where('has_parking', true);
+        return $query->whereHas('attributes', fn ($q) => $q->where('attribute_key', 'parking')
+            ->where(function ($q) {
+                $q->where('attribute_value', 'not like', '%无停车%');
+            }));
     }
 
     public function scopeFree(Builder $query): Builder
     {
-        return $query->where('has_ticket', false);
+        return $query->where(function ($q) {
+            $q->whereDoesntHave('attributes', fn ($a) => $a->where('attribute_key', 'ticket')
+                ->where('attribute_value', 'not like', '%免费%'))
+              ->orWhereDoesntHave('attributes');
+        });
+    }
+
+    /**
+     * type-specific 属性 (一对多关联到 place_attributes)
+     */
+    public function attributes(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(PlaceAttribute::class)->orderBy('sort');
+    }
+
+    /**
+     * 取某个属性的值 (无则 null)
+     */
+    public function attr(string $key, mixed $default = null): mixed
+    {
+        $attr = $this->attributes->firstWhere('attribute_key', $key);
+        if (! $attr) return $default;
+        return match ($attr->value_type) {
+            'int'     => (int) $attr->attribute_value,
+            'float'   => (float) $attr->attribute_value,
+            'bool'    => (bool) $attr->attribute_value,
+            'json', 'array' => json_decode($attr->attribute_value, true),
+            default   => $attr->attribute_value,
+        };
+    }
+
+    /**
+     * 按 group 分组的属性 (admin 详情页 / 前端详情页用)
+     * 返回: ['基本信息' => [['key'=>'distance_km','label'=>'距离','value'=>120,'unit'=>'km'], ...], ...]
+     */
+    public function attributesByGroup(): array
+    {
+        $groups = [];
+        foreach ($this->attributes as $a) {
+            $group = $a->display_group ?? '其他';
+            $groups[$group][] = [
+                'key'   => $a->attribute_key,
+                'label' => $a->display_label ?? $a->attribute_key,
+                'value' => $this->attr($a->attribute_key),
+                'unit'  => $a->unit,
+                'raw'   => $a->attribute_value,
+            ];
+        }
+        return $groups;
     }
 
     public function getDistanceTo(float $lat, float $lng): ?float

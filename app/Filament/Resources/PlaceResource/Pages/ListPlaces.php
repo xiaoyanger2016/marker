@@ -13,28 +13,34 @@ class ListPlaces extends ListRecords
 
     public function getTabs(): array
     {
-        // Linear 商务风：紧凑 tab，去 N° 编号前缀
+        // 8 大类 tabs + 状态 tabs
         return [
             'all' => Tab::make('全部')
                 ->modifyQueryUsing(fn ($query) => $query),
 
-            'camping' => Tab::make('露营')
-                ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'camping')),
+            'self_drive' => Tab::make('自驾')
+                ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'self_drive')),
 
             'play_water' => Tab::make('玩水')
                 ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'play_water')),
 
-            'cafe' => Tab::make('咖啡')
-                ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'cafe')),
+            'hiking' => Tab::make('徒步')
+                ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'hiking')),
 
-            'restaurant' => Tab::make('美食')
-                ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'restaurant')),
+            'paddle' => Tab::make('桨板')
+                ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'paddle')),
 
-            'viewpoint' => Tab::make('拍照')
-                ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'viewpoint')),
+            'photo' => Tab::make('拍照')
+                ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'photo')),
 
-            'mountain' => Tab::make('山峰')
-                ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'mountain')),
+            'food' => Tab::make('美食')
+                ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'food')),
+
+            'camping' => Tab::make('露营')
+                ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'camping')),
+
+            'sunrise_sunset' => Tab::make('日出日落')
+                ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'sunrise_sunset')),
 
             'wishlist' => Tab::make('种草中')
                 ->modifyQueryUsing(fn ($query) => $query->where('is_wishlist', true))

@@ -157,109 +157,123 @@ class PlaceResource extends Resource
                     Forms\Components\Tabs\Tab::make('详细信息')
                         ->icon('heroicon-o-document-text')
                         ->schema([
-                            Forms\Components\Section::make('类型与游玩')
+                            // ====== 类型选择 (8 大类) ======
+                            Forms\Components\Section::make('类型')
                                 ->schema([
                                     Forms\Components\Select::make('place_type')
-                                        ->label('细分类（POI 类型）')
-                                        ->options(collect(\App\Models\Place::PLACE_TYPES)->mapWithKeys(fn ($v, $k) => [$k => $v['icon'] . ' ' . $v['label']])->toArray())
+                                        ->label('类型（8 大类）')
+                                        ->options(collect(\App\Models\Place::PLACE_TYPES)
+                                            ->mapWithKeys(fn ($v, $k) => [$k => ($v['icon'] ?? '') . ' ' . $v['label']])->toArray())
+                                        ->required()
+                                        ->live()
+                                        ->afterStateUpdated(fn (Forms\Set $set) => $set('attributes', []))
+                                        ->helperText(fn (Forms\Get $get) => \App\Models\Place::PLACE_TYPES[$get('place_type')]['desc'] ?? '选择类型后下方出现对应字段'),
+
+                                    Forms\Components\Select::make('category_id')
+                                        ->label('分类（组织维度）')
+                                        ->relationship('category', 'name', fn ($query) => $query->where(fn ($q) =>
+                                            $q->whereNull('user_id')->orWhere('user_id', auth()->id())))
                                         ->searchable()
-                                        ->placeholder('选择更具体的类型'),
+                                        ->preload()
+                                        ->helperText('系统预设 8 大类 + 你的私人分类'),
+                                ]),
+
+                            // ====== type-specific 动态属性 ======
+                            Forms\Components\Section::make('类型专属信息')
+                                ->description(fn (Forms\Get $get) => \App\Models\Place::PLACE_TYPES[$get('place_type')]['label'] ?? '')
+                                ->schema(function (Forms\Get $get) {
+                                    $type = $get('place_type');
+                                    $defs = \App\Models\Place::TYPE_ATTRIBUTES[$type] ?? [];
+                                    if (! $defs) {
+                                        return [
+                                            Forms\Components\Placeholder::make('no_type')
+                                                ->label('')
+                                                ->content('先选择类型'),
+                                        ];
+                                    }
+
+                                    // 按 group 分组
+                                    $byGroup = [];
+                                    foreach ($defs as $i => $d) {
+                                        $byGroup[$d['group']][$d['key']] = $d + ['_idx' => $i];
+                                    }
+
+                                    $fields = [];
+                                    foreach ($byGroup as $group => $items) {
+                                        $groupFields = [];
+                                        foreach ($items as $key => $d) {
+                                            $path = "attributes.{$key}";
+
+                                            $field = match ($d['type']) {
+                                                'number' => Forms\Components\TextInput::make($path)
+                                                    ->label($d['label'])
+                                                    ->numeric()
+                                                    ->suffix($d['unit'] ?? null),
+                                                'select' => Forms\Components\Select::make($path)
+                                                    ->label($d['label'])
+                                                    ->options($d['options'] ?? []),
+                                                'checkbox-list' => Forms\Components\CheckboxList::make($path)
+                                                    ->label($d['label'])
+                                                    ->options($d['options'] ?? []),
+                                                'toggle' => Forms\Components\Toggle::make($path)
+                                                    ->label($d['label'])
+                                                    ->inline(false),
+                                                'repeater' => Forms\Components\TagsInput::make($path)
+                                                    ->label($d['label'])
+                                                    ->placeholder($d['placeholder'] ?? '回车添加')
+                                                    ->columnSpanFull(),
+                                                'textarea' => Forms\Components\Textarea::make($path)
+                                                    ->label($d['label'])
+                                                    ->rows(2)
+                                                    ->columnSpanFull(),
+                                                default => Forms\Components\TextInput::make($path)
+                                                    ->label($d['label'])
+                                                    ->placeholder($d['placeholder'] ?? null)
+                                                    ->maxLength(255),
+                                            };
+
+                                            $groupFields[] = $field;
+                                        }
+
+                                        // 同一 group 放 1 行 (3 列网格)
+                                        $fields[] = Forms\Components\Grid::make(3)->schema($groupFields);
+                                    }
+
+                                    return $fields;
+                                })
+                                ->visible(fn (Forms\Get $get) => filled($get('place_type'))),
+
+                            // ====== 通用：评分 / 去过 / 状态 ======
+                            Forms\Components\Section::make('状态')
+                                ->collapsible()
+                                ->schema([
+                                    Forms\Components\Grid::make(3)->schema([
+                                        Forms\Components\Select::make('rating')
+                                            ->label('评分（5 档）')
+                                            ->options(\App\Models\Place::RATING_LABELS)
+                                            ->placeholder('未评'),
+
+                                        Forms\Components\Toggle::make('is_visited')
+                                            ->label('已去过')
+                                            ->inline(false),
+
+                                        Forms\Components\Toggle::make('is_wishlist')
+                                            ->label('种草/想去')
+                                            ->inline(false),
+                                    ]),
 
                                     Forms\Components\Grid::make(3)->schema([
-                                        Forms\Components\Select::make('difficulty')
-                                            ->label('难度')
-                                            ->options(collect(\App\Models\Place::DIFFICULTY_LEVELS)->mapWithKeys(fn ($v, $k) => [$k => $v['label']])->toArray()),
-
-                                        Forms\Components\TextInput::make('altitude_meters')
-                                            ->label('海拔(米)')
-                                            ->numeric(),
-
-                                        Forms\Components\TextInput::make('recommended_duration_minutes')
-                                            ->label('建议游玩时长(分钟)')
-                                            ->numeric(),
-                                    ]),
-
-                                    Forms\Components\Select::make('best_season')
-                                        ->label('最佳季节')
-                                        ->options(\App\Models\Place::SEASONS)
-                                        ->multiple(),
-
-                                    Forms\Components\TextInput::make('suitable_for')
-                                        ->label('适合人群')
-                                        ->placeholder('亲子,情侣,朋友,独自'),
-                                ]),
-
-                            Forms\Components\Section::make('停车信息')
-                                ->collapsible()
-                                ->schema([
-                                    Forms\Components\Toggle::make('has_parking')
-                                        ->label('可停车')
-                                        ->default(false)
-                                        ->live(),
-
-                                    Forms\Components\Grid::make(3)->schema([
-                                        Forms\Components\Select::make('parking_fee_type')
-                                            ->label('收费类型')
-                                            ->options(\App\Models\Place::PARKING_FEE_TYPES)
-                                            ->visible(fn (Forms\Get $get) => $get('has_parking')),
-
-                                        Forms\Components\TextInput::make('parking_fee')
-                                            ->label('费用')
+                                        Forms\Components\DatePicker::make('visited_at')
+                                            ->label('上次去过时间'),
+                                        Forms\Components\TextInput::make('visit_count')
+                                            ->label('去过次数')
                                             ->numeric()
-                                            ->prefix('¥')
-                                            ->visible(fn (Forms\Get $get) => $get('has_parking') && in_array($get('parking_fee_type'), ['per_time', 'per_hour', 'per_day'])),
-
-                                        Forms\Components\TextInput::make('parking_capacity')
-                                            ->label('大约车位数')
-                                            ->numeric()
-                                            ->visible(fn (Forms\Get $get) => $get('has_parking')),
+                                            ->default(0),
+                                        Forms\Components\Toggle::make('is_public')
+                                            ->label('公开（可分享）')
+                                            ->default(true)
+                                            ->inline(false),
                                     ]),
-
-                                    Forms\Components\Textarea::make('parking_notes')
-                                        ->label('停车备注')
-                                        ->rows(2)
-                                        ->visible(fn (Forms\Get $get) => $get('has_parking')),
-                                ]),
-
-                            Forms\Components\Section::make('门票信息')
-                                ->collapsible()
-                                ->schema([
-                                    Forms\Components\Toggle::make('has_ticket')
-                                        ->label('需门票')
-                                        ->default(false)
-                                        ->live(),
-
-                                    Forms\Components\Grid::make(2)->schema([
-                                        Forms\Components\TextInput::make('ticket_price')
-                                            ->label('门票价格')
-                                            ->numeric()
-                                            ->prefix('¥')
-                                            ->visible(fn (Forms\Get $get) => $get('has_ticket')),
-
-                                        Forms\Components\TextInput::make('ticket_unit')
-                                            ->label('单位')
-                                            ->default('人')
-                                            ->visible(fn (Forms\Get $get) => $get('has_ticket')),
-                                    ]),
-
-                                    Forms\Components\Textarea::make('ticket_notes')
-                                        ->label('门票备注')
-                                        ->rows(2)
-                                        ->visible(fn (Forms\Get $get) => $get('has_ticket')),
-                                ]),
-
-                            Forms\Components\Section::make('装备与安全')
-                                ->collapsible()
-                                ->schema([
-                                    Forms\Components\TagsInput::make('gear_checklist')
-                                        ->label('装备清单')
-                                        ->placeholder('回车添加')
-                                        ->columnSpanFull(),
-
-                                    Forms\Components\TagsInput::make('safety_notes')
-                                        ->label('安全提示')
-                                        ->placeholder('回车添加')
-                                        ->columnSpanFull(),
                                 ]),
 
                             Forms\Components\Section::make('预订/联系')
@@ -330,6 +344,110 @@ class PlaceResource extends Resource
             ]);
     }
 
+    /**
+     * 编辑时把 place_attributes 加载到 form 的 attributes.* 字段
+     */
+    public static function mutateFormDataBeforeFill(array $data): array
+    {
+        if (! isset($data['id'])) return $data;
+
+        $attrs = \App\Models\PlaceAttribute::where('place_id', $data['id'])
+            ->orderBy('sort')
+            ->get();
+
+        $data['attributes'] = [];
+        foreach ($attrs as $a) {
+            $value = match ($a->value_type) {
+                'json','array' => json_decode((string) $a->attribute_value, true) ?? [],
+                'bool' => (bool) $a->attribute_value,
+                default => $a->attribute_value,
+            };
+            $data['attributes'][$a->attribute_key] = $value;
+        }
+        return $data;
+    }
+
+    /**
+     * 保存前从 form data 里移除 attributes (不写入 places 表)
+     */
+    public static function mutateFormDataBeforeSave(array $data): array
+    {
+        unset($data['attributes']);
+        return $data;
+    }
+
+    /**
+     * 保存后写入 place_attributes 关联表
+     */
+    public static function afterSave(\Illuminate\Database\Eloquent\Model $record, array $data): void
+    {
+        static::syncAttributes($record, request()->input('attributes', []));
+    }
+
+    public static function afterCreate(\Illuminate\Database\Eloquent\Model $record, array $data): void
+    {
+        static::syncAttributes($record, request()->input('attributes', []));
+    }
+
+    /**
+     * 把 form attributes.* 同步到 place_attributes 表
+     * - 删掉不再填的
+     * - 新增新的
+     * - 更新已有的
+     */
+    protected static function syncAttributes(\App\Models\Place $place, array $attrs): void
+    {
+        $type = $place->place_type;
+        $defs = collect(\App\Models\Place::TYPE_ATTRIBUTES[$type] ?? []);
+        $validKeys = $defs->pluck('key')->all();
+
+        // 1. 删掉这个 place 已有但本次没填的 (避免脏数据)
+        $existing = \App\Models\PlaceAttribute::where('place_id', $place->id)->get();
+        $incomingKeys = array_keys($attrs);
+        foreach ($existing as $e) {
+            if (! in_array($e->attribute_key, $incomingKeys, true)) {
+                $e->delete();
+            }
+        }
+
+        // 2. upsert 每个 attribute
+        $sort = 0;
+        foreach ($attrs as $key => $value) {
+            if (! in_array($key, $validKeys, true)) continue; // 跳过非法 key
+            if ($value === null || $value === '' || $value === [] ) continue; // 跳过空
+
+            $def = $defs->firstWhere('key', $key);
+            $valueType = match ($def['type'] ?? 'text') {
+                'number' => is_int($value + 0) || $value === (string)(int)$value ? 'int' : 'float',
+                'toggle' => 'bool',
+                'repeater','checkbox-list' => 'array',
+                default => 'string',
+            };
+            $storedValue = match ($valueType) {
+                'int'   => (string)(int) $value,
+                'float' => (string)(float) $value,
+                'bool'  => $value ? '1' : '0',
+                'array' => is_array($value) ? json_encode($value, JSON_UNESCAPED_UNICODE) : (string) $value,
+                default => (string) $value,
+            };
+
+            \App\Models\PlaceAttribute::updateOrCreate(
+                ['place_id' => $place->id, 'attribute_key' => $key],
+                [
+                    'attribute_value' => $storedValue,
+                    'value_type'      => $valueType,
+                    'is_system'       => true,
+                    'display_label'   => $def['label'] ?? null,
+                    'display_group'   => $def['group'] ?? null,
+                    'input_type'      => $def['type'] ?? 'text',
+                    'unit'            => $def['unit'] ?? null,
+                    'sort'            => $sort * 10,
+                ],
+            );
+            $sort++;
+        }
+    }
+
     public static function table(Table $table): Table
     {
         // Linear 紧凑表格：mono ID + sans body
@@ -360,16 +478,27 @@ class PlaceResource extends Resource
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('place_type')
-                    ->label('细类')
+                    ->label('类型')
+                    ->badge()
+                    ->color(fn ($state) => match($state) {
+                        'self_drive' => 'primary',
+                        'camping' => 'success',
+                        'play_water' => 'info',
+                        'food' => 'warning',
+                        'photo' => 'gray',
+                        'hiking' => 'success',
+                        'paddle' => 'info',
+                        'sunrise_sunset' => 'warning',
+                        default => 'gray',
+                    })
                     ->formatStateUsing(function ($state) {
                         if (! $state) return '—';
                         $types = \App\Models\Place::PLACE_TYPES;
                         $t = $types[$state] ?? null;
-                        return $t ? $t['label'] : $state;
+                        return $t ? ($t['icon'] . ' ' . $t['label']) : $state;
                     })
-                    ->fontFamily('mono')
-                    ->size('xs')
-                    ->toggleable(),
+                    ->size('sm')
+                    ->alignCenter(),
 
                 Tables\Columns\TextColumn::make('city')
                     ->label('城市')
@@ -444,18 +573,20 @@ class PlaceResource extends Resource
                     ->multiple(),
 
                 Tables\Filters\SelectFilter::make('place_type')
-                    ->label('细类')
-                    ->options(collect(\App\Models\Place::PLACE_TYPES)->mapWithKeys(fn ($v, $k) => [$k => ($v['icon'] ?? 'N°') . ' ' . $v['label']])->toArray())
+                    ->label('类型 (8 大类)')
+                    ->options(collect(\App\Models\Place::PLACE_TYPES)->mapWithKeys(fn ($v, $k) => [$k => ($v['icon'] ?? '') . ' ' . $v['label']])->toArray())
                     ->multiple(),
 
                 Tables\Filters\Filter::make('has_parking')
                     ->label('可停车')
-                    ->query(fn (Builder $query) => $query->where('has_parking', true))
+                    ->query(fn (Builder $query) => $query->whereHas('attributes', fn ($a) => $a->where('attribute_key', 'parking')
+                        ->where('attribute_value', 'not like', '%无停车%')))
                     ->toggle(),
 
                 Tables\Filters\Filter::make('free_entry')
                     ->label('免门票')
-                    ->query(fn (Builder $query) => $query->where('has_ticket', false))
+                    ->query(fn (Builder $query) => $query->whereHas('attributes', fn ($a) => $a->where('attribute_key', 'ticket')
+                        ->where('attribute_value', 'like', '%免费%')))
                     ->toggle(),
 
                 Tables\Filters\Filter::make('wishlist')

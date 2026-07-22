@@ -63,9 +63,17 @@ class Route extends Model
         'safety_notes' => 'array',
     ];
 
+    // Route.type 直接复用 Place::PLACE_TYPES (8 大类)
+    // 现实中 Route 主要用 self_drive / hiking，其他 6 类是 Place 的子集
     public const TYPES = [
-        'self_drive' => ['label' => '自驾线路', 'icon' => 'N°01', 'color' => '#114B5F'],
-        'hiking' => ['label' => '徒步线路', 'icon' => 'N°02', 'color' => '#2D5F3F'],
+        'self_drive'     => ['label' => '自驾线路', 'icon' => 'N°01', 'color' => '#114B5F'],
+        'play_water'     => ['label' => '玩水点',   'icon' => 'N°02', 'color' => '#0D3A4A'],
+        'hiking'         => ['label' => '徒步线路', 'icon' => 'N°03', 'color' => '#2D5F3F'],
+        'paddle'         => ['label' => '桨板点',   'icon' => 'N°04', 'color' => '#0D5C5C'],
+        'photo'          => ['label' => '拍照点',   'icon' => 'N°05', 'color' => '#A1461E'],
+        'food'           => ['label' => '美食探店', 'icon' => 'N°06', 'color' => '#C45626'],
+        'camping'        => ['label' => '露营点',   'icon' => 'N°07', 'color' => '#1A3A3A'],
+        'sunrise_sunset' => ['label' => '日出日落', 'icon' => 'N°08', 'color' => '#7A4A1A'],
     ];
 
     public const RATING_LABELS = [

@@ -127,7 +127,22 @@
                 </div>
             </div>
 
-            {{-- Status distribution --}}
+            {{-- 8 大类分布 --}}
+            <div>
+                <h2 class="text-[12px] font-medium uppercase tracking-[0.08em] text-ink-3 mb-3">8 types</h2>
+                <div class="border border-ink/10 divide-y divide-ink/10">
+                    @foreach(\App\Models\Place::PLACE_TYPES as $key => $meta)
+                        <a href="/admin/places?tableFilters[place_type][values][0]={{ $key }}&tableFilters[place_type][value]={{ $key }}" class="flex items-center gap-3 px-3 py-2 hover:bg-paper-2 transition-colors">
+                            <span class="font-mono text-[10px] text-ink-3 w-6">{{ $meta['icon'] }}</span>
+                            <span class="w-2 h-2 inline-block" style="background: {{ $meta['color'] }}"></span>
+                            <span class="text-[12px] text-ink flex-1">{{ $meta['label'] }}</span>
+                            <span class="font-mono text-[10px] text-ink-3">{{ $stats['by_type'][$key] ?? 0 }}</span>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- Status (活动状态 + 想去/去过) --}}
             <div>
                 <h2 class="text-[12px] font-medium uppercase tracking-[0.08em] text-ink-3 mb-3">Status</h2>
                 <div class="border border-ink/10 divide-y divide-ink/10">
