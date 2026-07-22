@@ -43,4 +43,13 @@ class Tag extends Model
         return $this->belongsToMany(Place::class, 'place_tag')
             ->withTimestamps();
     }
+
+    /**
+     * Phase 18.6: Tag 关联内容 (content_tags pivot)
+     */
+    public function contents(): BelongsToMany
+    {
+        return $this->belongsToMany(Content::class, 'content_tags')
+            ->withTimestamps();
+    }
 }

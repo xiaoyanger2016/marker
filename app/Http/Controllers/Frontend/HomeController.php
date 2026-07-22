@@ -7,6 +7,7 @@ use App\Models\Activity;
 use App\Models\Comment;
 use App\Models\Content;
 use App\Models\Place;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
