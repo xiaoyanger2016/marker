@@ -60,7 +60,7 @@ class AdminPanelProvider extends PanelProvider
             )
             // 注入主题切换器（用户菜单之前）
             ->renderHook(
-                'panels::user.menu.before',
+                'panels::user-menu.before',
                 fn (): string => view('filament.hooks.theme-switcher')->render(),
             )
             ->middleware([

@@ -16,36 +16,45 @@
 
         <div class="flex-1"></div>
 
-        {{-- 主题切换（编辑感：纯文字 + 点选面板） --}}
+        {{-- 主题切换（编辑感：色卡 + 文字 + 点选面板）
+             注意：不用 bg-ink text-paper 反色（在 ink 主题下两者都是亮色，看不见）
+             改用：左 3px 黑边 + 加粗 + bg-paper-2 高亮
+        --}}
         <div class="relative">
             <button type="button" data-toggle="theme-panel"
                     class="font-mono text-[10px] uppercase tracking-[0.15em] text-ink-2 hover:text-ink transition-colors px-1.5 py-1 border border-transparent hover:border-line-2"
                     title="切换主题">
                 <span id="theme-label">{{ strtoupper(($theme ?? 'paper')) }}</span>
             </button>
-            <div id="theme-panel" data-panel class="hidden absolute right-0 mt-2 bg-paper border border-line min-w-[220px] z-50 shadow-paper">
-                <div class="px-3 py-2 border-b border-line">
+            <div id="theme-panel" data-panel class="hidden absolute right-0 mt-2 bg-paper-2/95 backdrop-blur-md border border-ink/20 min-w-[260px] z-50 shadow-dock">
+                <div class="px-3 py-2 border-b border-line flex items-baseline justify-between">
                     <span class="eyebrow">THEME</span>
+                    <span class="font-mono text-[9px] text-ink-3">5 / 5</span>
                 </div>
                 @php
                     $themes = [
-                        'paper'  => ['label' => '纸刊',     'en' => 'Paper',  'desc' => '暖米白 · 杂志感'],
-                        'sand'   => ['label' => '沙黄',     'en' => 'Sand',   'desc' => '傍晚沙漠 · 暖沉'],
-                        'ink'    => ['label' => '夜读',     'en' => 'Ink',    'desc' => '深夜墨 · 沉浸'],
-                        'mono'   => ['label' => '高对比',   'en' => 'Mono',   'desc' => '纯黑白 · 极简'],
-                        'auto'   => ['label' => '跟随系统', 'en' => 'Auto',   'desc' => '跟随系统 · 自动切'],
+                        'paper'  => ['label' => '纸刊',     'en' => 'Paper',  'desc' => '暖米白 · 杂志感',     'bg' => '#F2EDE2', 'fg' => '#1A1814', 'swatch' => '#F2EDE2'],
+                        'sand'   => ['label' => '沙黄',     'en' => 'Sand',   'desc' => '傍晚沙漠 · 暖沉',     'bg' => '#E8DCC4', 'fg' => '#2A1F0F', 'swatch' => '#E8DCC4'],
+                        'ink'    => ['label' => '夜读',     'en' => 'Ink',    'desc' => '深夜墨 · 沉浸阅读',   'bg' => '#0E0D0B', 'fg' => '#E8E2D4', 'swatch' => '#0E0D0B'],
+                        'mono'   => ['label' => '高对比',   'en' => 'Mono',   'desc' => '纯黑白 · 极简',       'bg' => '#FFFFFF', 'fg' => '#000000', 'swatch' => '#FFFFFF'],
+                        'auto'   => ['label' => '跟随系统', 'en' => 'Auto',   'desc' => '跟随系统 · 自动切',   'bg' => 'linear-gradient(135deg, #F2EDE2 50%, #0E0D0B 50%)', 'fg' => '#1A1814', 'swatch' => 'linear-gradient(135deg, #F2EDE2 50%, #0E0D0B 50%)'],
                     ];
                 @endphp
                 @foreach($themes as $code => $t)
                     <button type="button" data-theme-set="{{ $code }}"
                             data-panel-close
-                            class="w-full text-left block px-3 py-2 hover:bg-paper-2 transition-colors
-                                   {{ ($theme ?? 'paper') === $code ? 'bg-ink text-paper' : 'text-ink-2' }}">
-                        <div class="flex items-baseline gap-2">
-                            <span class="text-[12px] font-display not-italic tracking-tight font-semibold">{{ $t['label'] }}</span>
-                            <span class="font-mono text-[10px] uppercase tracking-wider opacity-70">{{ $t['en'] }}</span>
+                            class="theme-opt w-full text-left flex items-center gap-3 px-3 py-2.5 hover:bg-paper-2 transition-colors border-l-[3px] {{ ($theme ?? 'paper') === $code ? 'border-ink bg-paper-2' : 'border-transparent' }}">
+                        <span class="block w-5 h-5 border border-ink/30 flex-shrink-0" style="background: {{ $t['swatch'] }}"></span>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-[12px] font-display not-italic tracking-tight {{ ($theme ?? 'paper') === $code ? 'font-bold text-ink' : 'font-medium text-ink-2' }}">{{ $t['label'] }}</span>
+                                <span class="font-mono text-[10px] uppercase tracking-wider text-ink-3">{{ $t['en'] }}</span>
+                            </div>
+                            <div class="font-sans text-[10px] mt-0.5 text-ink-3 tracking-normal">{{ $t['desc'] }}</div>
                         </div>
-                        <div class="font-sans text-[10px] mt-0.5 normal-case tracking-normal opacity-80">{{ $t['desc'] }}</div>
+                        @if(($theme ?? 'paper') === $code)
+                            <span class="font-mono text-[9px] text-ink">●</span>
+                        @endif
                     </button>
                 @endforeach
             </div>
@@ -103,11 +112,30 @@
         // 更新下拉激活态 + 按钮 label
         const lbl = document.getElementById('theme-label');
         if (lbl) lbl.textContent = name.toUpperCase();
+        // 新主题面板：active 状态用 border-l-[3px] border-ink + bg-paper-2 + 右侧 ●
         document.querySelectorAll('[data-theme-set]').forEach(btn => {
             const isActive = btn.dataset.themeSet === name;
-            btn.classList.toggle('bg-ink', isActive);
-            btn.classList.toggle('text-paper', isActive);
-            btn.classList.toggle('text-ink-2', !isActive);
+            btn.classList.toggle('border-ink', isActive);
+            btn.classList.toggle('border-transparent', !isActive);
+            btn.classList.toggle('bg-paper-2', isActive);
+            // 内部 label 字体加粗
+            const label = btn.querySelector('.font-display');
+            if (label) {
+                label.classList.toggle('font-bold', isActive);
+                label.classList.toggle('text-ink', isActive);
+                label.classList.toggle('font-medium', !isActive);
+                label.classList.toggle('text-ink-2', !isActive);
+            }
+            // 右侧激活圆点
+            let dot = btn.querySelector('.theme-opt-dot');
+            if (isActive && !dot) {
+                dot = document.createElement('span');
+                dot.className = 'font-mono text-[9px] text-ink theme-opt-dot';
+                dot.textContent = '●';
+                btn.appendChild(dot);
+            } else if (!isActive && dot) {
+                dot.remove();
+            }
         });
         // 同步到 server session
         const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
