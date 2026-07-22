@@ -35,32 +35,48 @@
         <aside class="hidden md:block w-64 flex-shrink-0 border-r border-line min-h-screen bg-paper">
             <nav class="sticky top-14 p-6 space-y-6">
                 <div>
-                    <span class="eyebrow">导航 · Navigation</span>
+                    <span class="eyebrow">{{ __('ui.nav_navigation') }}</span>
                     <div class="mt-3 space-y-2">
                         <a href="/" class="block font-display text-lg {{ request()->path() === '/' ? 'text-ink' : 'text-ink-2 hover:text-ink' }} transition-colors">
-                            <span class="font-mono text-[10px] text-ink-3 mr-2">N°01</span>首页
+                            <span class="font-mono text-[10px] text-ink-3 mr-2">N°01</span>{{ __('ui.nav_home') }}
                         </a>
                         <a href="/activities" class="block font-display text-lg {{ request()->is('activities*') ? 'text-ink' : 'text-ink-2 hover:text-ink' }} transition-colors">
-                            <span class="font-mono text-[10px] text-ink-3 mr-2">N°02</span>活动
+                            <span class="font-mono text-[10px] text-ink-3 mr-2">N°02</span>{{ __('ui.nav_activity') }}
                         </a>
                         <a href="/radar" class="block font-display text-lg {{ request()->is('radar') ? 'text-ink' : 'text-ink-2 hover:text-ink' }} transition-colors">
-                            <span class="font-mono text-[10px] text-ink-3 mr-2">N°03</span>雷达
+                            <span class="font-mono text-[10px] text-ink-3 mr-2">N°03</span>{{ __('ui.nav_radar') }}
                         </a>
                         <a href="/me" class="block font-display text-lg {{ request()->is('me*') ? 'text-ink' : 'text-ink-2 hover:text-ink' }} transition-colors">
-                            <span class="font-mono text-[10px] text-ink-3 mr-2">N°04</span>我的
+                            <span class="font-mono text-[10px] text-ink-3 mr-2">N°04</span>{{ __('ui.nav_me') }}
                         </a>
                     </div>
                 </div>
 
                 <div class="border-t border-line pt-6">
-                    <span class="eyebrow">类型 · Types</span>
+                    <span class="eyebrow">{{ __('ui.nav_types') }}</span>
                     <div class="mt-3 space-y-2">
                         @foreach(\App\Http\Controllers\Frontend\HomeController::TYPES as $i => $t)
                             <a href="/type/{{ $t['key'] }}" class="flex items-baseline gap-3 group">
                                 <span class="font-mono text-[10px] text-ink-3 group-hover:text-warm transition-colors">{{ str_pad($i + 1, 2, '0', STR_PAD_LEFT) }}</span>
-                                <span class="font-display text-sm text-ink-2 group-hover:text-ink transition-colors">{{ $t['label'] }}</span>
+                                <span class="font-display text-sm text-ink-2 group-hover:text-ink transition-colors">{{ __($t['label_key']) }}</span>
                                 <span class="flex-1 border-b border-dotted border-line-2 self-end mb-0.5"></span>
                                 <span class="font-mono text-[9px] text-ink-3">→</span>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- 语言切换 --}}
+                <div class="border-t border-line pt-6">
+                    <span class="eyebrow">{{ __('ui.nav_language') }}</span>
+                    <div class="mt-3 grid grid-cols-5 gap-1">
+                        @php
+                            $langs = ['zh-CN' => '简', 'zh-TW' => '繁', 'en' => 'EN', 'ja' => '日', 'ko' => '한'];
+                        @endphp
+                        @foreach($langs as $code => $short)
+                            <a href="{{ url('/lang/' . $code) }}"
+                               class="text-center font-mono text-[11px] py-1 border {{ ($locale ?? 'zh-CN') === $code ? 'border-ink bg-ink text-paper' : 'border-line text-ink-2 hover:border-ink hover:text-ink' }}">
+                                {{ $short }}
                             </a>
                         @endforeach
                     </div>

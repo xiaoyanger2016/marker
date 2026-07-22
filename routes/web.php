@@ -25,6 +25,17 @@ Route::post('/theme', function (\Illuminate\Http\Request $request) {
     return response()->json(['theme' => $t]);
 })->name('theme.set');
 
+// 语言切换（写到 session + ?lang 跳转回去）
+Route::get('/lang/{locale}', function (\Illuminate\Http\Request $request, string $locale) {
+    if (! in_array($locale, ['zh-CN', 'zh-TW', 'en', 'ja', 'ko'], true)) {
+        $locale = 'zh-CN';
+    }
+    $request->session()->put('locale', $locale);
+    $back = $request->headers->get('referer') ?: '/';
+    $sep = str_contains($back, '?') ? '&' : '?';
+    return redirect($back . $sep . 'lang=' . $locale);
+})->name('lang.set');
+
 Route::get('/', [HomeController::class, 'home'])->name('home');
 
 // 8 大类列表
@@ -51,10 +62,14 @@ Route::prefix('me')->group(function () {
     Route::get('/activities', [HomeController::class, 'myActivities'])->name('frontend.my.activities');
 });
 
-// 评论 (多态)
+// 评论 (多态) + Phase 17：评论支持图片/视频
 Route::post('/{type}/{id}/comments', [HomeController::class, 'commentStore'])
     ->where('type', 'content|place|activity')
     ->name('frontend.comment.store');
+
+// Phase 17：内容评分投票 (一人一票，updateOrCreate)
+Route::post('/content/{id}/vote', [HomeController::class, 'vote'])
+    ->name('frontend.content.vote');
 
 // 活动
 Route::get('/activities', [HomeController::class, 'activities'])->name('frontend.activities');

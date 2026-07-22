@@ -672,6 +672,15 @@ class ContentResource extends Resource
                     ->size('sm')
                     ->alignCenter(),
 
+                Tables\Columns\TextColumn::make('votes_count')
+                    ->label('投票')
+                    ->counts('votes')
+                    ->badge()
+                    ->color('warning')
+                    ->alignCenter()
+                    ->formatStateUsing(fn ($state, $record) => $state . ($state > 0 ? ' · ' . ($record->vote_avg ?? 0) : ''))
+                    ->toggleable(),
+
                 Tables\Columns\TextColumn::make('places_count')
                     ->label('地点')
                     ->counts('places')

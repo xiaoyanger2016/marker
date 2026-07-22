@@ -24,14 +24,18 @@
                 </h1>
                 <p class="font-display italic text-base sm:text-xl text-ink-2 mt-4">填好时间地点，剩下的交给感兴趣的人。</p>
 
-                @if($place || $route)
+                @if($place || $content)
                     <div class="mt-6 p-4 border-l-2 border-warm bg-paper-2 max-w-md">
                         <div class="eyebrow mb-1">LINKED</div>
                         @if($place)
                             <div class="font-display text-base text-ink">PLACE: {{ $place->name }}</div>
                         @endif
-                        @if($route)
-                            <div class="font-display text-base text-ink">ROUTE: {{ $route->name }}</div>
+                        @if($content)
+                            <div class="font-display text-base text-ink">
+                                CONTENT:
+                                {{ \App\Models\Content::TYPES[$content->type]['icon'] ?? '' }}
+                                {{ $content->title }}
+                            </div>
                         @endif
                     </div>
                 @endif
@@ -50,7 +54,7 @@
 <form method="POST" action="/activities" class="max-w-3xl mx-auto px-5 sm:px-8 py-8 sm:py-12 space-y-10">
     @csrf
     @if($place)<input type="hidden" name="place_id" value="{{ $place->id }}">@endif
-    @if($route)<input type="hidden" name="route_id" value="{{ $route->id }}">@endif
+    @if($content)<input type="hidden" name="content_id" value="{{ $content->id }}">@endif
 
     @if($errors->any())
         <div class="p-4 border-l-2 border-blood bg-paper-2">
@@ -103,6 +107,28 @@
                        class="input">
                 <input name="region_code" type="hidden" value="{{ old('region_code') }}">
             </div>
+            @auth
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="label">关联地点 / PLACE <span class="text-ink-3 text-[10px]">（可选）</span></label>
+                        <select name="place_id" class="input">
+                            <option value="">不关联</option>
+                            @foreach(\App\Models\Place::query()->where('user_id', auth()->id())->orWhere('is_public', true)->orderBy('id', 'desc')->limit(200)->get() as $p)
+                                <option value="{{ $p->id }}" {{ old('place_id', $place->id ?? null) == $p->id ? 'selected' : '' }}>#{{ $p->id }} · {{ $p->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="label">关联内容 / CONTENT <span class="text-ink-3 text-[10px]">（可选）</span></label>
+                        <select name="content_id" class="input">
+                            <option value="">不关联</option>
+                            @foreach(\App\Models\Content::query()->where('user_id', auth()->id())->orderBy('id', 'desc')->limit(200)->get() as $c)
+                                <option value="{{ $c->id }}" {{ old('content_id', $content->id ?? null) == $c->id ? 'selected' : '' }}>{{ \App\Models\Content::TYPES[$c->type]['icon'] ?? '' }} · {{ $c->title }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            @endauth
         </div>
     </section>
 

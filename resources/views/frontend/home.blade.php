@@ -13,7 +13,7 @@
         {{-- 期刊标头：期数 / 日期 / 坐标 --}}
         <div class="flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.2em] text-ink-3 mb-6">
             <div class="flex items-center gap-3">
-                <span>VOL.01</span>
+                <span>{{ __('ui.home_masthead_vol') }}</span>
                 <span class="w-px h-3 bg-line-2"></span>
                 <span>{{ now()->format('Y/m/d') }}</span>
             </div>
@@ -37,15 +37,14 @@
         <div class="grid grid-cols-12 gap-4 sm:gap-8">
             <div class="col-span-12 sm:col-span-8">
                 <h1 class="font-display font-medium text-[2.125rem] sm:text-[4rem] leading-[1.05] tracking-tight text-ink">
-                    一份<br>
-                    只属于你的<br>
-                    <span class="serif-italic text-warm">公路地图志</span>
+                    {{ __('ui.home_hero_h1_1') }}<br>
+                    {{ __('ui.home_hero_h1_2') }}<br>
+                    <span class="serif-italic text-warm">{{ __('ui.home_hero_h1_3') }}</span>
                 </h1>
             </div>
             <div class="col-span-12 sm:col-span-4 sm:pt-12 flex flex-col justify-end">
                 <p class="text-sm leading-relaxed text-ink-2 border-l border-line-2 pl-4">
-                    记录那些不期而遇的路、值得绕道一公里的店、和凌晨三点的星空。
-                    这里没有算法推荐，只有你和朋友走过的痕迹。
+                    {{ __('ui.home_hero_quote') }}
                 </p>
                 <div class="mt-4 flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.2em] text-ink-3">
                     <span class="bullet-warm"></span>
@@ -66,7 +65,7 @@
                 <circle cx="11" cy="11" r="7"/>
                 <path d="M21 21l-4.5-4.5"/>
             </svg>
-            <input type="search" placeholder="搜索：杭州周边 / 露营 / 川菜 / 日出机位 ..."
+            <input type="search" placeholder="{{ __('ui.home_search_ph') }}"
                    class="bg-transparent border-0 outline-none flex-1 font-mono text-sm placeholder:text-ink-3 text-ink" id="search-input">
             <span class="hidden sm:inline font-mono text-[10px] text-ink-3 border border-line-2 px-1.5 py-0.5">⌘ K</span>
         </div>
@@ -80,28 +79,16 @@
 <section class="border-b border-line">
     <div class="max-w-6xl mx-auto px-5 sm:px-8 py-6">
         <div class="flex items-baseline justify-between mb-4">
-            <span class="eyebrow">§ 01 — 类型索引</span>
-            <span class="font-mono text-[10px] text-ink-3">8 types</span>
+            <span class="eyebrow">{{ __('ui.home_section_types') }}</span>
+            <span class="font-mono text-[10px] text-ink-3">{{ __('ui.home_picks_counter') }}</span>
         </div>
         <div class="grid grid-cols-4 lg:grid-cols-8 gap-px bg-line border border-line">
-            @php
-                $typeIndex = [
-                    ['01', 'self_drive',     '自驾线路',     'self-driving route', '#114B5F'],
-                    ['02', 'play_water',     '玩水点',       'where the water is', '#0D3A4A'],
-                    ['03', 'hiking',         '徒步线路',     'on foot',             '#1A1814'],
-                    ['04', 'sup',            '桨板点',       'stand up',            '#2D5F3F'],
-                    ['05', 'photo',          '拍照点',       'frame the shot',      '#847E72'],
-                    ['06', 'food',           '美食探店',     'eat like a local',    '#C45626'],
-                    ['07', 'camping',        '露营点',       'sleep under stars',   '#1A3A3A'],
-                    ['08', 'sunrise_sunset', '日出日落',     'the light shows up',  '#A1461E'],
-                ];
-            @endphp
-            @foreach($typeIndex as $i => [$no, $key, $label, $en, $color])
-                <a href="{{ url('/type/' . $key) }}"
+            @foreach($types as $i => $t)
+                <a href="{{ url('/type/' . $t['key']) }}"
                    class="group min-w-0 bg-paper hover:bg-paper-2 transition-colors px-2 sm:px-4 py-3 sm:py-5 flex flex-col">
-                    <span class="font-mono text-[9px] sm:text-[10px] tracking-wider text-ink-3 mb-1.5 sm:mb-2">N°{{ $no }}</span>
-                    <span class="font-display text-[13px] sm:text-lg text-ink group-hover:text-warm transition-colors leading-tight truncate">{{ $label }}</span>
-                    <span class="font-mono text-[8px] sm:text-[10px] text-ink-3 mt-1 sm:mt-1.5 italic truncate hidden sm:block">{{ $en }}</span>
+                    <span class="font-mono text-[9px] sm:text-[10px] tracking-wider text-ink-3 mb-1.5 sm:mb-2">{{ $t['icon'] }}</span>
+                    <span class="font-display text-[13px] sm:text-lg text-ink group-hover:text-warm transition-colors leading-tight truncate">{{ $t['label'] }}</span>
+                    <span class="font-mono text-[8px] sm:text-[10px] text-ink-3 mt-1 sm:mt-1.5 italic truncate hidden sm:block">{{ $t['en'] }}</span>
                 </a>
             @endforeach
         </div>
@@ -124,8 +111,8 @@
 <section class="border-b border-line">
     <div class="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
         <div class="flex items-baseline justify-between mb-6">
-            <span class="eyebrow">§ 02 — 本期精选</span>
-            <span class="font-mono text-[10px] text-ink-3">curated · by you</span>
+            <span class="eyebrow">{{ __('ui.home_section_picks') }}</span>
+            <span class="font-mono text-[10px] text-ink-3">{{ __('ui.curated_by_you') }}</span>
         </div>
 
         <div class="grid grid-cols-12 gap-4 sm:gap-6">
@@ -197,40 +184,91 @@
 @endif
 
 {{-- =================================================================
-   06 · ALL FEED（瀑布流 + 标签 tab：编辑感 chip）
+   06 · ALL FEED（8 大类 tab 切换 + 编辑感瀑布流）
+   Phase 17：改成 server-rendered 30 条，?feed=type 切换
    ================================================================= --}}
 <section class="border-b border-line-2" id="feed-section">
     <div class="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
         <div class="flex items-baseline justify-between mb-6">
-            <span class="eyebrow">§ 03 — 全部内容</span>
-            <span class="font-mono text-[10px] text-ink-3" id="feed-counter">loading…</span>
+            <span class="eyebrow">{{ __('ui.home_section_feed') }}</span>
+            <span class="font-mono text-[10px] text-ink-3">{{ count($feedItems) }} {{ __('ui.home_feed_items') }}</span>
         </div>
 
-        {{-- 编辑感 tab：边框 + mono 数字 --}}
-        <div class="flex items-center gap-0 border border-line mb-6 max-w-md">
-            <button data-tab="all" class="feed-tab flex-1 py-2 text-center font-mono text-[11px] uppercase tracking-[0.15em] bg-ink text-paper">
-                <span class="hidden sm:inline">All </span>全部
-            </button>
-            <button data-tab="place" class="feed-tab flex-1 py-2 text-center font-mono text-[11px] uppercase tracking-[0.15em] text-ink-2 hover:text-ink">
-                <span class="hidden sm:inline">Place </span>单点
-            </button>
-            <button data-tab="route" class="feed-tab flex-1 py-2 text-center font-mono text-[11px] uppercase tracking-[0.15em] text-ink-2 hover:text-ink">
-                <span class="hidden sm:inline">Route </span>线路
-            </button>
+        {{-- 8 大类 tab：左滑滚动 + active 边框 --}}
+        <div class="flex items-stretch gap-0 border border-line mb-6 overflow-x-auto no-scrollbar">
+            <a href="{{ url('/') }}"
+               class="feed-tab flex-shrink-0 px-3 sm:px-4 py-2 text-center font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.15em] border-r border-line whitespace-nowrap {{ empty($feedType) ? 'bg-ink text-paper' : 'text-ink-2 hover:text-ink hover:bg-paper-2' }}">
+                {{ __('ui.home_feed_all') }}
+            </a>
+            @foreach($types as $t)
+                <a href="{{ url('/?feed=' . $t['key']) }}"
+                   class="feed-tab flex-shrink-0 px-3 sm:px-4 py-2 text-center font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.15em] border-r border-line whitespace-nowrap {{ ($feedType ?? '') === $t['key'] ? 'bg-ink text-paper' : 'text-ink-2 hover:text-ink hover:bg-paper-2' }}">
+                    <span class="text-[9px] opacity-60 mr-1">{{ $t['icon'] }}</span>{{ $t['label'] }}
+                </a>
+            @endforeach
         </div>
 
-        <div id="feed-grid" class="masonry"></div>
-
-        <div id="feed-loading" class="py-8 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3 hidden">
-            loading…
-        </div>
-        <div id="feed-empty" class="py-16 text-center text-ink-3 hidden">
-            <div class="font-display text-3xl text-ink-2 mb-2">还没有内容</div>
-            <p class="text-sm">发起你的第一次约伴，或者告诉我们哪里值得去</p>
-        </div>
-        <div id="feed-end" class="py-8 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3 hidden">
-            · END ·
-        </div>
+        @if(count($feedItems) > 0)
+            <div class="masonry">
+                @foreach($feedItems as $item)
+                    @php
+                        $g = ['#114B5F', '#0D3A4A', '#2D5F3F', '#0D5C5C', '#A1461E', '#C45626', '#1A3A3A', '#7A4A1A'];
+                        $ratio = ['aspect-[3/4]','aspect-square','aspect-[4/5]','aspect-[3/4]','aspect-[4/3]','aspect-[2/3]'];
+                        $gi = $item['id'] % count($g);
+                        $ri = $item['id'] % count($ratio);
+                        $numStr = str_pad($item['id'], 2, '0', STR_PAD_LEFT);
+                    @endphp
+                    <a href="{{ $item['url'] }}" class="masonry-item group block bg-paper border border-line hover:border-ink transition-colors">
+                        <div class="{{ $ratio[$ri] }} relative overflow-hidden" style="background: linear-gradient(135deg, {{ $item['type_color'] ?? $g[$gi] }} 0%, #1A1814 100%);">
+                            {{-- cover (if has) --}}
+                            @if(! empty($item['cover']) && ! str_contains($item['cover'], 'placeholder'))
+                                <img src="{{ $item['cover'] }}" alt="{{ $item['title'] }}" loading="lazy" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            @else
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span class="font-display text-[5rem] sm:text-[10rem] leading-none text-paper/15 group-hover:text-paper/25 transition-colors select-none">{{ $numStr }}</span>
+                                </div>
+                            @endif
+                            <div class="absolute top-2 left-2 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.2em] text-paper/85">
+                                <span>{{ $item['type_icon'] }}</span>
+                                <span class="w-px h-2.5 bg-paper/30"></span>
+                                <span>{{ $item['type_label'] }}</span>
+                            </div>
+                            @if(! empty($item['rating_label_text']))
+                                <div class="absolute top-2 right-2 font-mono text-[9px] uppercase tracking-[0.2em] px-1.5 py-0.5 border border-paper/50 text-paper bg-ink/30">
+                                    {{ $item['rating_label_text'] }}
+                                </div>
+                            @endif
+                            @if($item['is_multiple'])
+                                <div class="absolute bottom-2 left-2 font-mono text-[9px] uppercase tracking-[0.2em] text-paper/85 bg-ink/30 px-1.5 py-0.5">
+                                    {{ __('ui.home_feed_multi_places') }} · {{ $item['places_count'] }}
+                                </div>
+                            @endif
+                        </div>
+                        <div class="px-3 py-3 border-t border-line">
+                            <h3 class="font-display text-base text-ink leading-tight line-clamp-1">{{ $item['title'] }}</h3>
+                            @if(! empty($item['summary']))
+                                <p class="text-xs text-ink-3 mt-1 line-clamp-2 leading-relaxed">{{ \Illuminate\Support\Str::limit(strip_tags($item['summary']), 60) }}</p>
+                            @endif
+                            <div class="mt-2 flex items-center justify-between font-mono text-[10px] text-ink-3">
+                                <span>{{ $item['city'] ?? '—' }}</span>
+                                <span class="opacity-0 group-hover:opacity-100 text-warm transition-opacity">→</span>
+                            </div>
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+            <div class="py-8 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3">{{ __('ui.home_feed_end') }}</div>
+        @else
+            <div class="py-16 text-center text-ink-3">
+                <div class="font-display text-3xl text-ink-2 mb-2">{{ __('ui.home_feed_empty_title') }}</div>
+                <p class="text-sm mb-4">{{ __('ui.home_feed_empty_desc') }}</p>
+                @auth
+                    <a href="/admin/contents/create" class="font-mono text-[11px] text-warm uppercase tracking-[0.2em] underline underline-offset-4">{{ __('ui.home_feed_empty_cta') }}</a>
+                @else
+                    <a href="/login" class="font-mono text-[11px] text-warm uppercase tracking-[0.2em] underline underline-offset-4">{{ __('ui.home_feed_empty_login') }}</a>
+                @endauth
+            </div>
+        @endif
     </div>
 </section>
 
@@ -251,185 +289,9 @@
 @endsection
 
 @push('scripts')
-<script>
-(function() {
-    const grid = document.getElementById('feed-grid');
-    const loading = document.getElementById('feed-loading');
-    const empty = document.getElementById('feed-empty');
-    const end = document.getElementById('feed-end');
-    const counter = document.getElementById('feed-counter');
-
-    let currentTab = 'all';
-    let page = { all: 1, place: 1, route: 1 };
-    let hasMore = { all: true, place: true, route: true };
-    let totalLoaded = { all: 0, place: 0, route: 0 };
-    let loading_ = false;
-    let observer = null;
-
-    function setActiveTab(tab) {
-        currentTab = tab;
-        document.querySelectorAll('.feed-tab').forEach(btn => {
-            const isActive = btn.dataset.tab === tab;
-            btn.classList.toggle('bg-ink', isActive);
-            btn.classList.toggle('text-paper', isActive);
-            btn.classList.toggle('text-ink-2', !isActive);
-        });
-        grid.innerHTML = '';
-        page[tab] = 1;
-        hasMore[tab] = true;
-        loadMore();
-    }
-
-    async function fetchPage(tab, p) {
-        const promises = [];
-        if (tab === 'all' || tab === 'place') {
-            promises.push(
-                fetch(`/api/v1/places?page=${p}&per_page=12`, { headers: { 'Accept': 'application/json' }})
-                    .then(r => r.json()).catch(() => ({ data: [] }))
-            );
-        } else {
-            promises.push(Promise.resolve({ data: [] }));
-        }
-        if (tab === 'all' || tab === 'route') {
-            promises.push(
-                fetch(`/api/v1/routes?page=${p}&per_page=6`, { headers: { 'Accept': 'application/json' }})
-                    .then(r => r.json()).catch(() => ({ data: [] }))
-            );
-        } else {
-            promises.push(Promise.resolve({ data: [] }));
-        }
-        const [placesData, routesData] = await Promise.all(promises);
-        return { places: placesData.data || [], routes: routesData.data || [] };
-    }
-
-    function escapeHtml(s) {
-        return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    }
-
-    // 编辑感配色（不用 AI 默认 emerald）
-    const GRADS = [
-        ['#114B5F', '#1A1814'],
-        ['#2D5F3F', '#0D3A4A'],
-        ['#C45626', '#1A1814'],
-        ['#847E72', '#1A1814'],
-        ['#0D3A4A', '#2D5F3F'],
-        ['#A1461E', '#1A1814'],
-    ];
-    const RATIOS = ['aspect-[3/4]','aspect-square','aspect-[4/5]','aspect-[3/4]','aspect-[4/3]','aspect-[2/3]'];
-
-    function placeCard(p) {
-        const g = GRADS[p.id % GRADS.length];
-        const r = RATIOS[p.id % RATIOS.length];
-        const typeLabel = p.place_type_label || '';
-        // 不再用 emoji icon，改用 N° 编号 + 大字标签
-        const numStr = String(p.id).padStart(2, '0');
-        return `
-            <a href="/place/${p.id}" class="masonry-item group block bg-paper border border-line hover:border-ink transition-colors">
-                <div class="${r} relative overflow-hidden" style="background: linear-gradient(135deg, ${g[0]} 0%, ${g[1]} 100%);">
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <div class="font-display text-[5rem] sm:text-[10rem] leading-none text-paper/15 group-hover:text-paper/25 transition-colors select-none">${numStr}</div>
-                    </div>
-                    <div class="absolute top-2 left-2 font-mono text-[9px] uppercase tracking-[0.2em] text-paper/80">${escapeHtml(typeLabel)}</div>
-                    ${p.rating_label && p.rating_meta ? `<div class="absolute top-2 right-2 font-mono text-[9px] uppercase tracking-[0.2em] px-1.5 py-0.5 border border-paper/50 text-paper">${escapeHtml(p.rating_meta.label)}</div>` : ''}
-                </div>
-                <div class="px-3 py-3 border-t border-line">
-                    <h3 class="font-display text-base text-ink leading-tight line-clamp-1">${escapeHtml(p.name)}</h3>
-                    ${p.description ? `<p class="text-xs text-ink-3 mt-1 line-clamp-2 leading-relaxed">${escapeHtml(p.description.replace(/<[^>]+>/g,'').slice(0,60))}</p>` : ''}
-                    <div class="mt-2 flex items-center justify-between font-mono text-[10px] text-ink-3">
-                        <span>${escapeHtml(p.city || '—')}</span>
-                        <span class="opacity-0 group-hover:opacity-100 text-warm transition-opacity">→</span>
-                    </div>
-                </div>
-            </a>`;
-    }
-
-    function routeCard(r) {
-        const g = GRADS[r.id % GRADS.length];
-        const r_ratio = RATIOS[r.id % RATIOS.length];
-        const color = r.type_color || '#114B5F';
-        const typeLabel = r.type_label || '';
-        const numStr = String(r.id).padStart(2, '0');
-        return `
-            <a href="/route/${r.id}" class="masonry-item group block bg-paper border border-line hover:border-ink transition-colors">
-                <div class="${r_ratio} relative overflow-hidden" style="background: linear-gradient(135deg, ${color} 0%, #1A1814 100%);">
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <div class="font-display text-[5rem] sm:text-[10rem] leading-none text-paper/15 group-hover:text-paper/25 transition-colors select-none">${numStr}</div>
-                    </div>
-                    <div class="absolute top-2 left-2 font-mono text-[9px] uppercase tracking-[0.2em] text-paper/80">${escapeHtml(typeLabel)}</div>
-                    ${r.rating_meta ? `<div class="absolute top-2 right-2 font-mono text-[9px] uppercase tracking-[0.2em] px-1.5 py-0.5 border border-paper/50 text-paper">${escapeHtml(r.rating_meta.label)}</div>` : ''}
-                    <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-ink/80 to-transparent">
-                        <div class="flex items-center gap-2 text-paper font-mono text-[10px]">
-                            ${r.distance_km ? `<span>${r.distance_km}KM</span>` : ''}
-                            ${r.duration_hours ? `<span>${r.duration_hours}H</span>` : ''}
-                            ${r.view_count > 0 ? `<span>${r.view_count}</span>` : ''}
-                        </div>
-                    </div>
-                </div>
-                <div class="px-3 py-3 border-t border-line">
-                    <h3 class="font-display text-base text-ink leading-tight line-clamp-1">${escapeHtml(r.name)}</h3>
-                    ${r.subtitle ? `<p class="font-mono text-[10px] text-ink-3 mt-1 line-clamp-1 italic">${escapeHtml(r.subtitle)}</p>` : (r.summary ? `<p class="text-xs text-ink-3 mt-1 line-clamp-2 leading-relaxed">${escapeHtml(r.summary)}</p>` : '')}
-                    <div class="mt-2 flex items-center justify-between font-mono text-[10px] text-ink-3">
-                        <span>${escapeHtml(r.city || '—')}</span>
-                        ${r.like_count > 0 ? `<span>+${r.like_count}</span>` : ''}
-                    </div>
-                </div>
-            </a>`;
-    }
-
-    async function loadMore() {
-        if (loading_ || !hasMore[currentTab]) return;
-        loading_ = true;
-        loading.classList.remove('hidden');
-        empty.classList.add('hidden');
-        end.classList.add('hidden');
-
-        try {
-            const { places, routes } = await fetchPage(currentTab, page[currentTab]);
-            const totalNew = places.length + routes.length;
-
-            if (totalNew === 0) {
-                hasMore[currentTab] = false;
-                if (grid.children.length === 0) empty.classList.remove('hidden');
-                else end.classList.remove('hidden');
-                return;
-            }
-
-            const merged = [
-                ...places.map(p => ({ type: 'place', created_at: p.created_at, data: p })),
-                ...routes.map(r => ({ type: 'route', created_at: r.created_at, data: r })),
-            ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-            const html = merged.map(m => m.type === 'place' ? placeCard(m.data) : routeCard(m.data)).join('');
-            grid.insertAdjacentHTML('beforeend', html);
-
-            totalLoaded[currentTab] += totalNew;
-            counter.textContent = `${totalLoaded[currentTab]} items`;
-
-            if (totalNew < 12) {
-                hasMore[currentTab] = false;
-                end.classList.remove('hidden');
-            } else {
-                page[currentTab]++;
-            }
-        } catch (e) {
-            console.error(e);
-            hasMore[currentTab] = false;
-        } finally {
-            loading_ = false;
-            loading.classList.add('hidden');
-        }
-    }
-
-    document.querySelectorAll('.feed-tab').forEach(btn => {
-        btn.addEventListener('click', () => setActiveTab(btn.dataset.tab));
-    });
-
-    observer = new IntersectionObserver(entries => {
-        if (entries.some(e => e.isIntersecting)) loadMore();
-    }, { rootMargin: '200px' });
-    observer.observe(loading);
-
-    setTimeout(loadMore, 100);
-})();
-</script>
+<style>
+/* Hide scrollbar for tab strip on mobile */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
 @endpush

@@ -228,6 +228,84 @@ class Content extends Model
         return $this->comments()->where('is_public', true)->latest();
     }
 
+    // ---------- Phase 17：评分投票聚合 ----------
+
+    public function votes(): HasMany
+    {
+        return $this->hasMany(RatingVote::class);
+    }
+
+    public function getVoteCountAttribute(): int
+    {
+        return $this->votes()->count();
+    }
+
+    public function getVoteDistributionAttribute(): array
+    {
+        // 返回 [value => count] (1..5)
+        $rows = $this->votes()
+            ->selectRaw('rating_value, COUNT(*) as c')
+            ->groupBy('rating_value')
+            ->pluck('c', 'rating_value')
+            ->toArray();
+        $dist = [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0];
+        foreach ($rows as $v => $c) {
+            $dist[(int) $v] = (int) $c;
+        }
+        return $dist;
+    }
+
+    public function getVoteAvgAttribute(): ?float
+    {
+        $avg = $this->votes()->avg('rating_value');
+        return $avg !== null ? round((float) $avg, 2) : null;
+    }
+
+    /**
+     * 聚合 votes → 写入 rating_label cache
+     *  规则：众数 (mode) → label；如果并列，取平均值更接近的档
+     */
+    public function recomputeRating(): void
+    {
+        $dist = $this->vote_distribution;
+        $total = array_sum($dist);
+        if ($total === 0) {
+            $this->rating_label = null;
+            $this->save();
+            return;
+        }
+        $max = max($dist);
+        $candidates = array_keys(array_filter($dist, fn ($c) => $c === $max));
+        $avg = $this->vote_avg;
+        $value = count($candidates) === 1
+            ? (int) $candidates[0]
+            : (int) round($avg ?? array_sum($dist) / $total);
+        $value = max(1, min(5, $value));
+        // value → label (与 Content::RATING_LABELS 顺序对应)
+        $map = [1 => 'terrible', 2 => 'npc', 3 => 'nice', 4 => 'great', 5 => 'amazing'];
+        $this->rating_label = $map[$value];
+        $this->save();
+    }
+
+    /**
+     * 用户投票 (或改票)
+     */
+    public function vote(User $user, int $value): void
+    {
+        $value = max(1, min(5, $value));
+        $map = [1 => 'terrible', 2 => 'npc', 3 => 'nice', 4 => 'great', 5 => 'amazing'];
+        RatingVote::updateOrCreate(
+            ['content_id' => $this->id, 'user_id' => $user->id],
+            ['rating_value' => $value, 'rating_label' => $map[$value]],
+        );
+        $this->recomputeRating();
+    }
+
+    public function userVote(User $user): ?RatingVote
+    {
+        return $this->votes()->where('user_id', $user->id)->first();
+    }
+
     // ---------- 作用域 ----------
 
     public function scopeOwnedBy(Builder $q, User $user): Builder

@@ -72,8 +72,64 @@
                     <div>
                         <div class="eyebrow">RATING</div>
                         <div class="font-display text-3xl mt-1" style="color: {{ $rl['color'] ?? '#1A1814' }}">{{ $rl['label'] ?? '' }}</div>
+                        @if($vote_count > 0)
+                            <div class="font-mono text-[10px] text-ink-3 mt-1">
+                                {{ $vote_count }} {{ __('ui.content_vote_count') }} · avg {{ $vote_avg }}
+                            </div>
+                        @endif
                     </div>
                 @endif
+
+                {{-- Phase 17：投票 UI --}}
+                <div x-data="{
+                    loading: false,
+                    label: '{{ $content->rating_label }}',
+                    count: {{ $vote_count }},
+                    dist: @json(array_values($vote_distribution)),
+                    myVote: {{ $user_vote ? (int) $user_vote->rating_value : 'null' }},
+                    async vote(value) {
+                        if (this.loading) return;
+                        this.loading = true;
+                        try {
+                            const r = await fetch('{{ url('/content/' . $content->id . '/vote') }}', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, 'Accept': 'application/json' },
+                                body: JSON.stringify({ value })
+                            });
+                            if (r.status === 401) { window.location = '/login'; return; }
+                            const j = await r.json();
+                            if (j.ok) {
+                                this.label = j.rating_label;
+                                this.count = j.vote_count;
+                                this.dist = Object.values(j.vote_distribution);
+                                this.myVote = value;
+                            }
+                        } finally { this.loading = false; }
+                    }
+                }">
+                    <div class="eyebrow mb-2">{{ __('ui.content_section_vote') }}</div>
+                    <div class="grid grid-cols-5 gap-1.5">
+                        @php
+                            $tiers = [
+                                1 => ['label_key' => 'ui.rating_terrible', 'color' => '#7f1d1d'],
+                                2 => ['label_key' => 'ui.rating_npc',      'color' => '#6b7280'],
+                                3 => ['label_key' => 'ui.rating_nice',     'color' => '#0ea5e9'],
+                                4 => ['label_key' => 'ui.rating_great',    'color' => '#10b981'],
+                                5 => ['label_key' => 'ui.rating_amazing',  'color' => '#dc2626'],
+                            ];
+                        @endphp
+                        @foreach($tiers as $value => $t)
+                            <button type="button"
+                                    @click="vote({{ $value }})"
+                                    :class="myVote === {{ $value }} ? 'border-ink' : 'border-line hover:border-ink-2'"
+                                    class="text-center py-1.5 border-2 transition-colors">
+                                <div class="font-display text-[11px] sm:text-sm leading-none" style="color: {{ $t['color'] }}">{{ __($t['label_key']) }}</div>
+                                <div class="font-mono text-[8px] mt-0.5 text-ink-3" x-text="dist[{{ $value - 1 }}] || 0"></div>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+
                 @if($content->user)
                     <div>
                         <div class="eyebrow">CURATED BY</div>
@@ -346,39 +402,84 @@
         <div class="eyebrow mb-5">§ 08 — 评论 · {{ $content->publicComments->count() }}</div>
 
         @auth
-            <form method="POST" action="{{ url('/content/' . $content->id . '/comments') }}" class="mb-8 border border-line p-4">
+            <form method="POST" action="{{ url('/content/' . $content->id . '/comments') }}" enctype="multipart/form-data" class="mb-8 border border-line p-4" x-data="{ imageCount: 0, videoCount: 0 }">
                 @csrf
-                <textarea name="body" required rows="3" placeholder="说点什么..." class="w-full bg-transparent border-b border-line-2 focus:border-ink outline-none text-sm resize-none mb-3"></textarea>
+                <textarea name="body" required rows="3" placeholder="{{ __('ui.comment_placeholder') }}" class="w-full bg-transparent border-b border-line-2 focus:border-ink outline-none text-sm resize-none mb-3"></textarea>
+
+                {{-- Phase 17：图片/视频上传 --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="font-mono text-[10px] uppercase tracking-[0.15em] text-ink-3 block mb-1.5">
+                            {{ __('ui.comment_add_image') }} · <span x-text="imageCount"></span>/9
+                        </label>
+                        <input type="file" name="images[]" multiple accept="image/*"
+                               @change="imageCount = $event.target.files.length"
+                               class="block w-full text-xs font-mono text-ink-2 file:mr-2 file:py-1 file:px-3 file:border-0 file:bg-ink file:text-paper file:font-mono file:text-[10px] file:uppercase file:tracking-[0.15em] hover:file:bg-warm">
+                    </div>
+                    <div>
+                        <label class="font-mono text-[10px] uppercase tracking-[0.15em] text-ink-3 block mb-1.5">
+                            {{ __('ui.comment_add_video') }} · <span x-text="videoCount"></span>/3
+                        </label>
+                        <input type="file" name="videos[]" multiple accept="video/*"
+                               @change="videoCount = $event.target.files.length"
+                               class="block w-full text-xs font-mono text-ink-2 file:mr-2 file:py-1 file:px-3 file:border-0 file:bg-ink file:text-paper file:font-mono file:text-[10px] file:uppercase file:tracking-[0.15em] hover:file:bg-warm">
+                    </div>
+                </div>
+
                 <div class="flex items-center justify-between">
                     <select name="rating_label" class="text-xs border border-line-2 px-2 py-1 bg-transparent">
-                        <option value="">不带评分</option>
-                        <option value="terrible">拉垮</option>
-                        <option value="npc">NPC</option>
-                        <option value="nice">NICE</option>
-                        <option value="great">超值</option>
-                        <option value="amazing">夯</option>
+                        <option value="">{{ __('ui.optional') }} · 评分</option>
+                        <option value="terrible">{{ __('ui.rating_terrible') }}</option>
+                        <option value="npc">{{ __('ui.rating_npc') }}</option>
+                        <option value="nice">{{ __('ui.rating_nice') }}</option>
+                        <option value="great">{{ __('ui.rating_great') }}</option>
+                        <option value="amazing">{{ __('ui.rating_amazing') }}</option>
                     </select>
-                    <button type="submit" class="font-mono text-xs uppercase tracking-[0.15em] px-4 py-2 bg-ink text-paper hover:bg-warm transition-colors">发布评论</button>
+                    <button type="submit" class="font-mono text-xs uppercase tracking-[0.15em] px-4 py-2 bg-ink text-paper hover:bg-warm transition-colors">{{ __('ui.comment_post') }}</button>
                 </div>
             </form>
         @else
-            <p class="text-sm text-ink-3 mb-8"><a href="{{ url('/login') }}" class="underline">登录</a> 后可以发表评论</p>
+            <p class="text-sm text-ink-3 mb-8"><a href="{{ url('/login') }}" class="underline">{{ __('ui.login') }}</a> 后可以发表评论</p>
         @endauth
 
         <div class="space-y-5">
             @forelse($content->publicComments as $comment)
                 <div class="border-b border-line-2 pb-4">
                     <div class="flex items-baseline gap-3 mb-2">
-                        <span class="font-display text-sm text-ink">{{ $comment->user?->name ?? '匿名' }}</span>
+                        <span class="font-display text-sm text-ink">{{ $comment->user?->name ?? __('ui.comment_anonymous') }}</span>
                         <span class="font-mono text-[10px] text-ink-3">{{ $comment->created_at?->format('Y-m-d H:i') }}</span>
                         @if($comment->rating_label)
-                            <span class="font-mono text-[10px] text-warm">· {{ \App\Models\Content::RATING_LABELS[$comment->rating_label]['label'] ?? $comment->rating_label }}</span>
+                            @php $crl = \App\Models\Content::RATING_LABELS[$comment->rating_label] ?? null; @endphp
+                            @if($crl)
+                                <span class="font-mono text-[10px] uppercase tracking-[0.15em]" style="color: {{ $crl['color'] }}">· {{ $crl['label'] }}</span>
+                            @endif
                         @endif
                     </div>
-                    <p class="text-sm text-ink-2">{{ $comment->body }}</p>
+                    <p class="text-sm text-ink-2 whitespace-pre-line">{{ $comment->body }}</p>
+
+                    {{-- 评论图片 (3-col grid) --}}
+                    @if($comment->images->isNotEmpty())
+                        <div class="mt-3 grid grid-cols-3 gap-1.5 max-w-md">
+                            @foreach($comment->images as $img)
+                                <a href="{{ $img->url }}" target="_blank" class="block aspect-square overflow-hidden border border-line-2">
+                                    <img src="{{ $img->url }}" alt="" loading="lazy" class="w-full h-full object-cover hover:scale-105 transition-transform">
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
+                    {{-- 评论视频 --}}
+                    @if($comment->videos->isNotEmpty())
+                        <div class="mt-3 space-y-2 max-w-md">
+                            @foreach($comment->videos as $vid)
+                                <div class="video-wrap border border-line-2">
+                                    <video src="{{ $vid->url }}" controls preload="metadata" class="w-full"></video>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
             @empty
-                <p class="text-sm text-ink-3 italic">还没有评论 — 来当第一个吧</p>
+                <p class="text-sm text-ink-3 italic">{{ __('ui.comment_empty') }}</p>
             @endforelse
         </div>
     </div>

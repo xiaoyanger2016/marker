@@ -44,7 +44,8 @@ class ImportFromAmap extends Page implements HasForms
 
     public function mount(): void
     {
-        $this->placeTypes = \App\Models\Place::PLACE_TYPES;
+        // Phase 16: 8 大类从 Content::TYPES 拿（POI 导入后会作为 place 给 Content 用）
+        $this->placeTypes = \App\Models\Content::TYPES;
     }
 
     public function search(): void

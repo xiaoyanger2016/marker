@@ -14,23 +14,32 @@ class HomeController extends Controller
     /**
      * 8 大类内容类型 (与 Content::TYPES / content_type_definitions 表同源)
      * 用于前端 8 个类型菜单 + 搜索筛选
+     * 标签走 __() 翻译，5 语种自动切换
      */
     public const TYPES = [
-        ['key' => 'self_drive',     'label' => '自驾线路', 'icon' => 'N°01', 'color' => '#114B5F', 'desc' => '公路旅行的路径和途经点'],
-        ['key' => 'play_water',     'label' => '玩水点',   'icon' => 'N°02', 'color' => '#0D3A4A', 'desc' => '可下水游泳戏水的地点'],
-        ['key' => 'hiking',         'label' => '徒步线路', 'icon' => 'N°03', 'color' => '#2D5F3F', 'desc' => '行走探索的路径'],
-        ['key' => 'paddle',         'label' => '桨板点',   'icon' => 'N°04', 'color' => '#0D5C5C', 'desc' => '桨板 / SUP 适合的水域'],
-        ['key' => 'photo',          'label' => '拍照点',   'icon' => 'N°05', 'color' => '#A1461E', 'desc' => '值得出片的取景地'],
-        ['key' => 'food',           'label' => '美食探店', 'icon' => 'N°06', 'color' => '#C45626', 'desc' => '值得专程去吃的店'],
-        ['key' => 'camping',        'label' => '露营点',   'icon' => 'N°07', 'color' => '#1A3A3A', 'desc' => '可以过夜的营地'],
-        ['key' => 'sunrise_sunset', 'label' => '日出日落', 'icon' => 'N°08', 'color' => '#7A4A1A', 'desc' => '专门看日出日落的位置'],
+        ['key' => 'self_drive',     'label_key' => 'ui.type_self_drive',     'icon' => 'N°01', 'color' => '#114B5F', 'desc_key' => 'ui.type_desc_self_drive',     'en_key' => 'ui.type_en_self_drive'],
+        ['key' => 'play_water',     'label_key' => 'ui.type_play_water',     'icon' => 'N°02', 'color' => '#0D3A4A', 'desc_key' => 'ui.type_desc_play_water',     'en_key' => 'ui.type_en_play_water'],
+        ['key' => 'hiking',         'label_key' => 'ui.type_hiking',         'icon' => 'N°03', 'color' => '#2D5F3F', 'desc_key' => 'ui.type_desc_hiking',         'en_key' => 'ui.type_en_hiking'],
+        ['key' => 'paddle',         'label_key' => 'ui.type_paddle',         'icon' => 'N°04', 'color' => '#0D5C5C', 'desc_key' => 'ui.type_desc_paddle',         'en_key' => 'ui.type_en_paddle'],
+        ['key' => 'photo',          'label_key' => 'ui.type_photo',          'icon' => 'N°05', 'color' => '#A1461E', 'desc_key' => 'ui.type_desc_photo',          'en_key' => 'ui.type_en_photo'],
+        ['key' => 'food',           'label_key' => 'ui.type_food',           'icon' => 'N°06', 'color' => '#C45626', 'desc_key' => 'ui.type_desc_food',           'en_key' => 'ui.type_en_food'],
+        ['key' => 'camping',        'label_key' => 'ui.type_camping',        'icon' => 'N°07', 'color' => '#1A3A3A', 'desc_key' => 'ui.type_desc_camping',        'en_key' => 'ui.type_en_camping'],
+        ['key' => 'sunrise_sunset', 'label_key' => 'ui.type_sunrise_sunset', 'icon' => 'N°08', 'color' => '#7A4A1A', 'desc_key' => 'ui.type_desc_sunrise_sunset', 'en_key' => 'ui.type_en_sunrise_sunset'],
     ];
 
-    public function home()
+    public function home(Request $request)
     {
+        // 翻译 8 大类标签 (5 语种)
+        $types = collect(self::TYPES)->map(function ($t) {
+            $t['label'] = __($t['label_key']);
+            $t['desc'] = __($t['desc_key']);
+            $t['en'] = __($t['en_key']);
+            return $t;
+        })->all();
+
         // 8 大类各取热度 top 3
         $recommendations = [];
-        foreach (self::TYPES as $type) {
+        foreach ($types as $type) {
             $items = $this->getItemsByType($type['key'], 3);
             if ($items->isNotEmpty()) {
                 $recommendations[] = [
@@ -39,6 +48,18 @@ class HomeController extends Controller
                 ];
             }
         }
+
+        // ALL FEED (server-rendered 30 条) — 支持 ?feed=type key 过滤
+        $feedType = $request->query('feed');
+        $feedQuery = Content::public()->with(['user', 'coverMedia', 'gallery', 'places']);
+        if ($feedType && in_array($feedType, array_column($types, 'key'), true)) {
+            $feedQuery->where('type', $feedType);
+        }
+        $feedItems = $feedQuery
+            ->orderByDesc('view_count')
+            ->limit(30)
+            ->get()
+            ->map(fn ($c) => $this->presentContent($c));
 
         // 全站热度榜
         $hotContents = Content::public()
@@ -55,8 +76,10 @@ class HomeController extends Controller
             ->map(fn ($p) => $this->presentPlace($p));
 
         return view('frontend.home', [
-            'types' => self::TYPES,
+            'types' => $types,
             'recommendations' => $recommendations,
+            'feedItems' => $feedItems,
+            'feedType' => $feedType,
             'hotContents' => $hotContents,
             'recentPlaces' => $recentPlaces,
         ]);
@@ -64,10 +87,14 @@ class HomeController extends Controller
 
     public function type(string $key)
     {
-        $type = collect(self::TYPES)->firstWhere('key', $key);
-        if (! $type) {
+        $typeRaw = collect(self::TYPES)->firstWhere('key', $key);
+        if (! $typeRaw) {
             abort(404);
         }
+        $type = $typeRaw;
+        $type['label'] = __($type['label_key']);
+        $type['desc'] = __($type['desc_key']);
+        $type['en'] = __($type['en_key']);
 
         $items = $this->getItemsByType($key, 30);
 
@@ -114,6 +141,7 @@ class HomeController extends Controller
             'gallery', 'videos',
             'places', 'tags',
             'publicComments.user',
+            'publicComments.media',
         ])
             ->public()
             ->findOrFail($id);
@@ -129,6 +157,8 @@ class HomeController extends Controller
             ->limit(5)
             ->get();
 
+        $userVote = auth()->check() ? $content->userVote(auth()->user()) : null;
+
         return view('frontend.content_show', [
             'content' => $content,
             'cover' => $content->coverMedia ?: $content->gallery->first(),
@@ -136,6 +166,10 @@ class HomeController extends Controller
             'videos' => $content->videos,
             'type' => $content->typeMeta(),
             'rating' => $content->ratingMeta(),
+            'vote_count' => $content->vote_count,
+            'vote_avg' => $content->vote_avg,
+            'vote_distribution' => $content->vote_distribution,
+            'user_vote' => $userVote,
             'activities' => $activities,
         ]);
     }
@@ -388,6 +422,11 @@ class HomeController extends Controller
             'body' => 'required|string|max:2000',
             'parent_id' => 'nullable|integer|exists:comments,id',
             'rating_label' => 'nullable|string|in:terrible,npc,nice,great,amazing',
+            // Phase 17：评论图片/视频 (多文件)
+            'images' => 'nullable|array|max:9',
+            'images.*' => 'image|mimes:jpg,jpeg,png,webp|max:8192',
+            'videos' => 'nullable|array|max:3',
+            'videos.*' => 'file|mimes:mp4,mov,webm|max:51200', // 50MB
         ]);
 
         $modelClass = match ($type) {
@@ -407,7 +446,66 @@ class HomeController extends Controller
         $comment->is_public = true;
         $model->comments()->save($comment);
 
+        // Phase 17：attach uploaded images/videos → media 表 + comment_media 关联
+        $seq = 0;
+        foreach (($request->file('images') ?? []) as $file) {
+            $path = $file->store('comments/' . $comment->id . '/images', 'public');
+            $media = \App\Models\Media::create([
+                'user_id' => auth()->id(),
+                'type' => 'image',
+                'disk' => 'public',
+                'path' => $path,
+                'mime' => $file->getMimeType(),
+                'size' => $file->getSize(),
+            ]);
+            $comment->media()->attach($media->id, [
+                'kind' => 'image',
+                'sequence' => $seq++,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+        $seq = 0;
+        foreach (($request->file('videos') ?? []) as $file) {
+            $path = $file->store('comments/' . $comment->id . '/videos', 'public');
+            $media = \App\Models\Media::create([
+                'user_id' => auth()->id(),
+                'type' => 'video',
+                'disk' => 'public',
+                'path' => $path,
+                'mime' => $file->getMimeType(),
+                'size' => $file->getSize(),
+            ]);
+            $comment->media()->attach($media->id, [
+                'kind' => 'video',
+                'sequence' => $seq++,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
         return back()->with('ok', '评论已发布');
+    }
+
+    // ---- Phase 17：内容评分投票 ----
+    public function vote(Request $request, int $id)
+    {
+        if (! auth()->check()) {
+            return response()->json(['error' => 'auth_required'], 401);
+        }
+        $data = $request->validate([
+            'value' => 'required|integer|min:1|max:5',
+        ]);
+        $content = Content::public()->findOrFail($id);
+        $content->vote(auth()->user(), (int) $data['value']);
+
+        return response()->json([
+            'ok' => true,
+            'rating_label' => $content->fresh()->rating_label,
+            'vote_count' => $content->fresh()->vote_count,
+            'vote_avg' => $content->fresh()->vote_avg,
+            'vote_distribution' => $content->fresh()->vote_distribution,
+        ]);
     }
 
     // ---- helpers ----
@@ -426,13 +524,14 @@ class HomeController extends Controller
     {
         $cover = $c->coverMedia ?: $c->gallery->first();
         $city = $c->places->first()?->city;
+        $typeMeta = $c->typeMeta();
         return [
             'kind'        => 'content',
             'id'          => $c->id,
             'type'        => $c->type,
-            'type_label'  => $c->typeMeta()['label'] ?? $c->type,
-            'type_icon'   => $c->typeMeta()['icon'] ?? 'N°00',
-            'type_color'  => $c->typeMeta()['color'] ?? '#4A4640',
+            'type_label'  => __('ui.type_' . $c->type), // 翻译后的类型标签
+            'type_icon'   => $typeMeta['icon'] ?? 'N°00',
+            'type_color'  => $typeMeta['color'] ?? '#4A4640',
             'title'       => $c->title,
             'name'        => $c->title, // alias for legacy home view
             'subtitle'    => $c->subtitle,
@@ -441,7 +540,7 @@ class HomeController extends Controller
             'cover'       => $cover?->url ?? url('/images/placeholder.png'),
             'city'        => $city,
             'rating_label'   => $c->rating_label,
-            'rating_label_text' => $c->rating_label ? (Content::RATING_LABELS[$c->rating_label]['label'] ?? null) : null,
+            'rating_label_text' => $c->rating_label ? (__('ui.rating_' . $c->rating_label) ?: null) : null,
             'places_count'   => $c->places->count(),
             'is_multiple'    => $c->isMultiplePlaces(),
             'view_count'     => $c->view_count,

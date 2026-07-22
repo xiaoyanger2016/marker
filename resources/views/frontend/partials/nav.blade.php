@@ -36,11 +36,11 @@
                 </div>
                 @php
                     $themes = [
-                        'paper'  => ['label' => '纸刊',     'en' => 'Paper',  'desc' => '暖米白 · 杂志感',     'bg' => '#F2EDE2', 'fg' => '#1A1814', 'swatch' => '#F2EDE2'],
-                        'sand'   => ['label' => '沙黄',     'en' => 'Sand',   'desc' => '傍晚沙漠 · 暖沉',     'bg' => '#E8DCC4', 'fg' => '#2A1F0F', 'swatch' => '#E8DCC4'],
-                        'ink'    => ['label' => '夜读',     'en' => 'Ink',    'desc' => '深夜墨 · 沉浸阅读',   'bg' => '#0E0D0B', 'fg' => '#E8E2D4', 'swatch' => '#0E0D0B'],
-                        'mono'   => ['label' => '高对比',   'en' => 'Mono',   'desc' => '纯黑白 · 极简',       'bg' => '#FFFFFF', 'fg' => '#000000', 'swatch' => '#FFFFFF'],
-                        'auto'   => ['label' => '跟随系统', 'en' => 'Auto',   'desc' => '跟随系统 · 自动切',   'bg' => 'linear-gradient(135deg, #F2EDE2 50%, #0E0D0B 50%)', 'fg' => '#1A1814', 'swatch' => 'linear-gradient(135deg, #F2EDE2 50%, #0E0D0B 50%)'],
+                        'paper'  => ['label' => __('ui.theme_paper'), 'en' => 'Paper', 'desc' => '暖米白 · Magazine', 'bg' => '#F2EDE2', 'fg' => '#1A1814', 'swatch' => '#F2EDE2'],
+                        'sand'   => ['label' => __('ui.theme_sand'),  'en' => 'Sand',  'desc' => '傍晚沙漠 · 暖沉',   'bg' => '#E8DCC4', 'fg' => '#2A1F0F', 'swatch' => '#E8DCC4'],
+                        'ink'    => ['label' => __('ui.theme_ink'),   'en' => 'Ink',   'desc' => '深夜墨 · 沉浸阅读', 'bg' => '#0E0D0B', 'fg' => '#E8E2D4', 'swatch' => '#0E0D0B'],
+                        'mono'   => ['label' => __('ui.theme_mono'),  'en' => 'Mono',  'desc' => '纯黑白 · 极简',     'bg' => '#FFFFFF', 'fg' => '#000000', 'swatch' => '#FFFFFF'],
+                        'auto'   => ['label' => __('ui.theme_auto'),  'en' => 'Auto',  'desc' => '跟随系统 · 自动切', 'bg' => 'linear-gradient(135deg, #F2EDE2 50%, #0E0D0B 50%)', 'fg' => '#1A1814', 'swatch' => 'linear-gradient(135deg, #F2EDE2 50%, #0E0D0B 50%)'],
                     ];
                 @endphp
                 @foreach($themes as $code => $t)

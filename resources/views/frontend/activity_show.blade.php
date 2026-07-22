@@ -36,7 +36,7 @@
             </div>
             <div>
                 <div class="eyebrow">状态</div>
-                <div class="font-display text-base sm:text-xl text-ink mt-1">{{ $activity->status_label }}</div>
+                <div class="font-display text-base sm:text-xl text-ink mt-1">{{ \App\Models\Activity::STATUSES[$activity->status] ?? $activity->status }}</div>
             </div>
         </div>
 
@@ -120,7 +120,7 @@
     </section>
 
     {{-- 关联内容 --}}
-    @if($activity->place || $activity->route)
+    @if($activity->place || $activity->content)
     <section>
         <div class="eyebrow mb-3">§ LINKED</div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -130,10 +130,10 @@
                     <div class="font-display text-lg text-ink mt-1">{{ $activity->place->name }}</div>
                 </a>
             @endif
-            @if($activity->route)
-                <a href="/route/{{ $activity->route->id }}" class="block border border-line p-4 hover:border-ink transition-colors">
-                    <div class="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3">线路 / ROUTE</div>
-                    <div class="font-display text-lg text-ink mt-1">{{ $activity->route->name }}</div>
+            @if($activity->content)
+                <a href="/content/{{ $activity->content->id }}" class="block border border-line p-4 hover:border-ink transition-colors">
+                    <div class="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3">内容 / CONTENT · {{ \App\Models\Content::TYPES[$activity->content->type]['icon'] ?? '' }} {{ \App\Models\Content::TYPES[$activity->content->type]['label'] ?? '' }}</div>
+                    <div class="font-display text-lg text-ink mt-1">{{ $activity->content->title }}</div>
                 </a>
             @endif
         </div>

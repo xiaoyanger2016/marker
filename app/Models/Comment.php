@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -53,6 +54,28 @@ class Comment extends Model
     public function replies(): HasMany
     {
         return $this->hasMany(Comment::class, 'parent_id')->latest();
+    }
+
+    /**
+     * Phase 17：评论图片/视频 (多模态)
+     *  - 中间表 comment_media
+     *  - 复用 media 表 (统一管理 storage + 缩略图)
+     */
+    public function media(): BelongsToMany
+    {
+        return $this->belongsToMany(Media::class, 'comment_media')
+            ->withPivot('kind', 'sequence')
+            ->orderBy('comment_media.sequence');
+    }
+
+    public function images()
+    {
+        return $this->media()->wherePivot('kind', 'image');
+    }
+
+    public function videos()
+    {
+        return $this->media()->wherePivot('kind', 'video');
     }
 
     public function scopePublic($q)
