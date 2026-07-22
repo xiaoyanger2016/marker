@@ -13,33 +13,34 @@ class ListPlaces extends ListRecords
 
     public function getTabs(): array
     {
+        // 编辑感 tab：N°编号 + 中文，去掉所有 emoji
         return [
-            'all' => Tab::make('全部')
-                ->icon('heroicon-o-squares-2x2'),
+            'all' => Tab::make('N°00 · 全部')
+                ->modifyQueryUsing(fn ($query) => $query),
 
-            'camping' => Tab::make('🏕️ 露营点')
+            'camping' => Tab::make('N°01 · 露营')
                 ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'camping')),
 
-            'play_water' => Tab::make('🏊 玩水点')
+            'play_water' => Tab::make('N°02 · 玩水')
                 ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'play_water')),
 
-            'cafe' => Tab::make('☕ 咖啡店')
+            'cafe' => Tab::make('N°03 · 咖啡')
                 ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'cafe')),
 
-            'restaurant' => Tab::make('🍔 美食')
+            'restaurant' => Tab::make('N°04 · 美食')
                 ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'restaurant')),
 
-            'viewpoint' => Tab::make('📸 拍照点')
+            'viewpoint' => Tab::make('N°05 · 拍照')
                 ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'viewpoint')),
 
-            'mountain' => Tab::make('⛰️ 山峰')
+            'mountain' => Tab::make('N°06 · 山峰')
                 ->modifyQueryUsing(fn ($query) => $query->where('place_type', 'mountain')),
 
-            'wishlist' => Tab::make('❤️ 种草中')
+            'wishlist' => Tab::make('种草中')
                 ->modifyQueryUsing(fn ($query) => $query->where('is_wishlist', true))
                 ->badge(fn () => \App\Models\Place::where('is_wishlist', true)->count()),
 
-            'visited' => Tab::make('✅ 已去过')
+            'visited' => Tab::make('已去过')
                 ->modifyQueryUsing(fn ($query) => $query->where('is_visited', true))
                 ->badge(fn () => \App\Models\Place::where('is_visited', true)->count()),
 

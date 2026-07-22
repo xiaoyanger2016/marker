@@ -279,7 +279,7 @@ class RouteResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('type')
                     ->label('类型')
-                    ->options(['self_drive' => '🚗 自驾', 'hiking' => '🥾 徒步'])
+                    ->options(['self_drive' => 'N°01 · 自驾', 'hiking' => 'N°02 · 徒步'])
                     ->multiple(),
 
                 Tables\Filters\SelectFilter::make('rating_label')

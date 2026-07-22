@@ -50,7 +50,7 @@ class PlaceResource extends Resource
                                 ->preload()
                                 ->createOptionForm([
                                     Forms\Components\TextInput::make('name')->required(),
-                                    Forms\Components\TextInput::make('icon')->placeholder('🏕️'),
+                                    Forms\Components\TextInput::make('icon')->placeholder('N°01'),
                                     Forms\Components\ColorPicker::make('color'),
                                 ])
                                 ->createOptionUsing(function (array $data) {
@@ -99,13 +99,13 @@ class PlaceResource extends Resource
                                 ->prefix('¥'),
 
                             Forms\Components\Select::make('rating')
-                                ->label('评分')
+                                ->label('评分（5 档）')
                                 ->options([
-                                    1 => '⭐',
-                                    2 => '⭐⭐',
-                                    3 => '⭐⭐⭐',
-                                    4 => '⭐⭐⭐⭐',
-                                    5 => '⭐⭐⭐⭐⭐',
+                                    1 => '拉垮',
+                                    2 => 'NPC',
+                                    3 => 'NICE',
+                                    4 => '超值',
+                                    5 => '夯',
                                 ])
                                 ->native(false),
                         ])->columns(2),
@@ -332,84 +332,107 @@ class PlaceResource extends Resource
 
     public static function table(Table $table): Table
     {
+        // 编辑感表格：no IconColumn, no badge colors, status 用文字 + mono 标签
         return $table
             ->columns([
-                Tables\Columns\ImageColumn::make('cover')
-                    ->label('封面')
-                    ->getStateUsing(function ($record) {
-                        $first = $record->media()->images()->first();
-                        return $first?->url;
-                    })
-                    ->size(60)
-                    ->defaultImageUrl(url('/images/placeholder.png')),
+                Tables\Columns\TextColumn::make('id')
+                    ->label('N°')
+                    ->formatStateUsing(fn ($state) => str_pad($state, 2, '0', STR_PAD_LEFT))
+                    ->fontFamily('mono')
+                    ->width('60px')
+                    ->color('gray'),
 
                 Tables\Columns\TextColumn::make('name')
                     ->label('名称')
                     ->searchable(['name', 'address', 'city'])
                     ->sortable()
-                    ->weight('bold'),
+                    ->fontFamily('serif')
+                    ->weight('medium')
+                    ->size('lg')
+                    ->wrap(),
 
                 Tables\Columns\TextColumn::make('category.name')
                     ->label('分类')
-                    ->badge()
-                    ->color(fn ($record) => $record->category?->color ?: 'gray')
-                    ->formatStateUsing(fn ($state, $record) => ($record->category?->icon ?? '') . ' ' . $state)
-                    ->searchable(),
+                    ->formatStateUsing(fn ($state, $record) => ($record->category?->icon ? $record->category->icon . ' · ' : '') . ($state ?? '—'))
+                    ->fontFamily('mono')
+                    ->size('xs')
+                    ->color('gray')
+                    ->toggleable(),
 
                 Tables\Columns\TextColumn::make('place_type')
                     ->label('细类')
                     ->formatStateUsing(function ($state) {
+                        if (! $state) return '—';
                         $types = \App\Models\Place::PLACE_TYPES;
-                        return $types[$state]['icon'] . ' ' . ($types[$state]['label'] ?? $state) ?? null;
+                        $t = $types[$state] ?? null;
+                        return $t ? $t['label'] : $state;
                     })
+                    ->fontFamily('mono')
+                    ->size('xs')
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('city')
                     ->label('城市')
                     ->searchable()
+                    ->fontFamily('mono')
+                    ->size('xs')
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('rating')
                     ->label('评分')
-                    ->formatStateUsing(fn ($state) => $state ? str_repeat('⭐', $state) : '-')
+                    ->formatStateUsing(function ($state) {
+                        $labels = \App\Models\Place::RATING_LABELS;
+                        if (! $state) return '—';
+                        $r = $labels[$state] ?? null;
+                        return $r ? $r['label'] : (string) $state;
+                    })
+                    ->fontFamily('serif')
+                    ->size('sm')
                     ->alignCenter(),
 
-                Tables\Columns\IconColumn::make('has_parking')
+                Tables\Columns\TextColumn::make('has_parking')
                     ->label('停车')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-truck')
-                    ->falseIcon('heroicon-o-minus-circle')
-                    ->trueColor('info')
+                    ->formatStateUsing(fn ($state) => $state ? '可' : '—')
+                    ->fontFamily('mono')
+                    ->size('xs')
+                    ->alignCenter()
                     ->toggleable(),
 
-                Tables\Columns\IconColumn::make('has_ticket')
+                Tables\Columns\TextColumn::make('has_ticket')
                     ->label('门票')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-ticket')
-                    ->falseIcon('heroicon-o-minus-circle')
-                    ->trueColor('warning')
+                    ->formatStateUsing(fn ($state) => $state ? '收费' : '免费')
+                    ->fontFamily('mono')
+                    ->size('xs')
+                    ->alignCenter()
                     ->toggleable(),
 
-                Tables\Columns\IconColumn::make('is_visited')
-                    ->label('去过')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-check-circle')
-                    ->falseIcon('heroicon-o-minus-circle'),
+                Tables\Columns\TextColumn::make('is_visited')
+                    ->label('已去')
+                    ->formatStateUsing(fn ($state) => $state ? 'YES' : '—')
+                    ->fontFamily('mono')
+                    ->size('xs')
+                    ->alignCenter(),
 
-                Tables\Columns\IconColumn::make('is_wishlist')
+                Tables\Columns\TextColumn::make('is_wishlist')
                     ->label('种草')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-heart')
-                    ->falseIcon('heroicon-o-minus')
-                    ->trueColor('danger'),
+                    ->formatStateUsing(fn ($state) => $state ? 'YES' : '—')
+                    ->fontFamily('mono')
+                    ->size('xs')
+                    ->alignCenter(),
 
-                Tables\Columns\IconColumn::make('is_public')
-                    ->label('公开')
-                    ->boolean(),
+                Tables\Columns\TextColumn::make('is_public')
+                    ->label('状态')
+                    ->formatStateUsing(fn ($state) => $state ? '上架' : '下架')
+                    ->fontFamily('mono')
+                    ->size('xs')
+                    ->alignCenter(),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('收藏于')
                     ->dateTime('Y-m-d')
+                    ->fontFamily('mono')
+                    ->size('xs')
+                    ->color('gray')
                     ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
@@ -422,7 +445,7 @@ class PlaceResource extends Resource
 
                 Tables\Filters\SelectFilter::make('place_type')
                     ->label('细类')
-                    ->options(collect(\App\Models\Place::PLACE_TYPES)->mapWithKeys(fn ($v, $k) => [$k => $v['icon'] . ' ' . $v['label']])->toArray())
+                    ->options(collect(\App\Models\Place::PLACE_TYPES)->mapWithKeys(fn ($v, $k) => [$k => ($v['icon'] ?? 'N°') . ' ' . $v['label']])->toArray())
                     ->multiple(),
 
                 Tables\Filters\Filter::make('has_parking')
@@ -453,35 +476,32 @@ class PlaceResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('togglePublish')
-                    ->label(fn ($record) => $record->is_public ? '下架' : '上架')
-                    ->icon(fn ($record) => $record->is_public ? 'heroicon-o-eye-slash' : 'heroicon-o-eye')
-                    ->color(fn ($record) => $record->is_public ? 'warning' : 'success')
-                    ->requiresConfirmation()
-                    ->modalHeading(fn ($record) => $record->is_public ? '下架该地点？' : '上架该地点？')
-                    ->modalDescription(fn ($record) => $record->is_public ? '前台将不再展示，公开分享链接也会失效' : '前台将立即展示给所有用户')
-                    ->action(function ($record) {
-                        $record->update(['is_public' => ! $record->is_public]);
-                    }),
-                Tables\Actions\DeleteAction::make(),
-                Tables\Actions\RestoreAction::make(),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make()->label('查看'),
+                    Tables\Actions\EditAction::make()->label('编辑'),
+                    Tables\Actions\Action::make('togglePublish')
+                        ->label(fn ($record) => $record->is_public ? '下架' : '上架')
+                        ->requiresConfirmation()
+                        ->modalHeading(fn ($record) => $record->is_public ? '下架该地点？' : '上架该地点？')
+                        ->modalDescription(fn ($record) => $record->is_public ? '前台将不再展示，公开分享链接也会失效' : '前台将立即展示给所有用户')
+                        ->action(function ($record) {
+                            $record->update(['is_public' => ! $record->is_public]);
+                        }),
+                    Tables\Actions\DeleteAction::make()->label('删除'),
+                ])
+                ->icon('heroicon-o-ellipsis-horizontal')
+                ->iconPosition('after')
+                ->label('操作'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\BulkAction::make('publish')
                         ->label('批量上架')
-                        ->icon('heroicon-o-eye')
                         ->action(fn ($records) => $records->each->update(['is_public' => true])),
                     Tables\Actions\BulkAction::make('unpublish')
                         ->label('批量下架')
-                        ->icon('heroicon-o-eye-slash')
-                        ->color('warning')
                         ->action(fn ($records) => $records->each->update(['is_public' => false])),
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()->label('批量删除'),
                 ]),
             ]);
     }

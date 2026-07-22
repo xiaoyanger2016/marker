@@ -215,7 +215,7 @@ class ImportFromAmap extends Page implements HasForms
             $count++;
         }
 
-        $msg = "✅ 成功导入 {$count} 个";
+        $msg = "已成功导入 {$count} 个";
         if ($skipped > 0) {
             $msg .= "（跳过 {$skipped} 个：已存在或坐标无效）";
         }

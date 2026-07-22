@@ -45,7 +45,7 @@ class CategoryResource extends Resource
                 Forms\Components\Grid::make(2)->schema([
                     Forms\Components\TextInput::make('icon')
                         ->label('图标 (emoji 或文字)')
-                        ->placeholder('🏕️ ☕ 🍔')
+                        ->placeholder('N°01 · 露营')
                         ->maxLength(50),
 
                     Forms\Components\ColorPicker::make('color')
