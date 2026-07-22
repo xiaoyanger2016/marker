@@ -21,6 +21,8 @@ class CollectionResource extends Resource
 
     protected static ?string $modelLabel = '收藏集';
 
+    protected static ?string $pluralModelLabel = '收藏集';
+
     protected static ?int $navigationSort = 15;
 
     public static function form(Form $form): Form

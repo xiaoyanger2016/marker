@@ -37,17 +37,31 @@ class HomeController extends Controller
             return $t;
         })->all();
 
-        // 8 大类各取热度 top 3
-        $recommendations = [];
-        foreach ($types as $type) {
-            $items = $this->getItemsByType($type['key'], 3);
-            if ($items->isNotEmpty()) {
-                $recommendations[] = [
-                    'type' => $type,
-                    'items' => $items,
-                ];
-            }
+        // Phase 18 · Bug 1: "§ 02 — 本期精选"
+        //  1. 先看 content_picks 表 (admin 人工 set, 按 sort 排)
+        //  2. 没有任何 pick → 随机取 10 条 (限制 is_public)
+        $picks = Content::public()
+            ->with(['user', 'coverMedia', 'gallery', 'places', 'pick'])
+            ->whereHas('pick')
+            ->orderBy(
+                \App\Models\ContentPick::select('sort')
+                    ->whereColumn('content_picks.content_id', 'contents.id')
+                    ->orderBy('sort')
+                    ->limit(1)
+            )
+            ->get()
+            ->map(fn ($c) => $this->presentContent($c));
+
+        if ($picks->isEmpty()) {
+            // fallback 随机 10
+            $picks = Content::public()
+                ->with(['user', 'coverMedia', 'gallery', 'places'])
+                ->inRandomOrder()
+                ->limit(10)
+                ->get()
+                ->map(fn ($c) => $this->presentContent($c));
         }
+        $picksRandom = $picks->isEmpty() && Content::public()->count() === 0; // mark "random" for view badge
 
         // ALL FEED (server-rendered 30 条) — 支持 ?feed=type key 过滤
         $feedType = $request->query('feed');
@@ -77,11 +91,35 @@ class HomeController extends Controller
 
         return view('frontend.home', [
             'types' => $types,
-            'recommendations' => $recommendations,
+            'picks' => $picks,
+            'picksRandom' => $picksRandom, // true=fallback 随机, false=admin 手动
             'feedItems' => $feedItems,
             'feedType' => $feedType,
             'hotContents' => $hotContents,
             'recentPlaces' => $recentPlaces,
+        ]);
+    }
+
+    /**
+     * Phase 18 · Bug 1: "查看更多" 页面
+     *  显示全部 picks (有 picked 的) 或全部内容 (fallback 情况)
+     */
+    public function picks(Request $request)
+    {
+        $picks = Content::public()
+            ->with(['user', 'coverMedia', 'gallery', 'places', 'pick'])
+            ->whereHas('pick')
+            ->orderBy(
+                \App\Models\ContentPick::select('sort')
+                    ->whereColumn('content_picks.content_id', 'contents.id')
+                    ->orderBy('sort')
+                    ->limit(1)
+            )
+            ->paginate(30);
+
+        return view('frontend.picks', [
+            'picks' => $picks,
+            'isPickedMode' => true,
         ]);
     }
 
@@ -204,6 +242,8 @@ class HomeController extends Controller
             'places_total'      => Place::where('user_id', $user->id)->count(),
             'collections_total' => $user->collections()->count(),
             'notes_total'       => $user->notes()->count(),
+            'activities_total'  => $user->activities()->count(),
+            'comments_total'    => $user->comments()->count(),
         ];
 
         $recentContents = Content::with('coverMedia')

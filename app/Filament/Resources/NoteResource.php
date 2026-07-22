@@ -21,6 +21,8 @@ class NoteResource extends Resource
 
     protected static ?string $modelLabel = '笔记';
 
+    protected static ?string $pluralModelLabel = '笔记';
+
     protected static ?int $navigationSort = 40;
 
     public static function form(Form $form): Form

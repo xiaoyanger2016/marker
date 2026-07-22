@@ -97,85 +97,83 @@
 
 {{-- =================================================================
    05 · EDITORIAL PICKS（编辑精选 - 不对称网格）
-   第一行：一个大卡（占 2 列）+ 一个小卡（占 1 列）
-   后续：瀑布流
+   Phase 18 · Bug 1: 改成 admin 手动 pinned
+   - 有人工 picks → 按 sort 排序, 无限量
+   - 没有 picks → 随机 10 条 (视图会有 "AUTO" 标识)
+   - 首页只展示前 3 条, 其余 "查看更多 →" 链到 /picks
    ================================================================= --}}
 @php
-    // 把 8 个类型 top items 拍平
-    $picks = collect($recommendations)->filter(fn ($r) => ! empty($r['items']))->values();
     $hero = $picks->first();
-    $heroItem = $hero['items'][0] ?? null;
-    $side = $picks->skip(1)->take(2);
+    $side = $picks->slice(1, 2);
 @endphp
-@if($heroItem)
+@if($hero)
 <section class="border-b border-line">
     <div class="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
         <div class="flex items-baseline justify-between mb-6">
-            <span class="eyebrow">{{ __('ui.home_section_picks') }}</span>
-            <span class="font-mono text-[10px] text-ink-3">{{ __('ui.curated_by_you') }}</span>
+            <div class="flex items-baseline gap-3">
+                <span class="eyebrow">{{ __('ui.home_section_picks') }}</span>
+                @if($picksRandom)
+                    <span class="font-mono text-[9px] uppercase tracking-[0.15em] text-ink-3/70">· AUTO (no picks yet)</span>
+                @endif
+            </div>
+            <a href="{{ url('/picks') }}" class="font-mono text-[10px] text-ink-2 hover:text-ink transition-colors underline underline-offset-4">VIEW ALL · {{ $picks->count() }} →</a>
         </div>
 
         <div class="grid grid-cols-12 gap-4 sm:gap-6">
             {{-- 大卡 7 列 --}}
-            <a href="{{ url('/place/' . $heroItem['id']) }}" class="col-span-12 sm:col-span-7 group block">
+            <a href="{{ url('/content/' . $hero['id']) }}" class="col-span-12 sm:col-span-7 group block">
                 <div class="aspect-[4/5] sm:aspect-[5/6] overflow-hidden border border-line">
-                    @php
-                        $g = ['#114B5F', '#1A3A3A', '#0D3A4A', '#1A1814'];
-                        $gi = $heroItem['id'] % 4;
-                    @endphp
-                    <div class="w-full h-full relative" style="background: linear-gradient(135deg, {{ $g[$gi] }} 0%, #1A1814 100%);">
-                        <div class="absolute inset-0 flex items-center justify-center">
-                            <span class="font-display text-[6rem] sm:text-[12rem] text-paper/15 leading-none select-none">N°{{ str_pad($heroItem['id'], 2, '0', STR_PAD_LEFT) }}</span>
-                        </div>
+                    <div class="w-full h-full relative" style="background: linear-gradient(135deg, {{ $hero['type_color'] ?? '#114B5F' }} 0%, #1A1814 100%);">
+                        @if(! empty($hero['cover']) && ! str_contains($hero['cover'], 'placeholder'))
+                            <img src="{{ $hero['cover'] }}" alt="{{ $hero['title'] }}" class="absolute inset-0 w-full h-full object-cover">
+                        @else
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span class="font-display text-[6rem] sm:text-[12rem] text-paper/15 leading-none select-none">N°{{ str_pad($hero['id'], 2, '0', STR_PAD_LEFT) }}</span>
+                            </div>
+                        @endif
                         <div class="absolute top-3 left-3 flex items-center gap-2">
-                            <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/80">N°01</span>
+                            <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/85">{{ $hero['type_icon'] }}</span>
                             <span class="w-px h-3 bg-paper/30"></span>
-                            <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/80">{{ $hero['type']['label'] }}</span>
+                            <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/85">{{ $hero['type_label'] }}</span>
                         </div>
-                        @if(! empty($heroItem['rating_label']))
-                            @php $rl = \App\Models\Content::RATING_LABELS[$heroItem['rating_label']] ?? null; @endphp
-                            @if($rl)
-                                <div class="absolute top-3 right-3 font-mono text-[10px] uppercase tracking-[0.2em] px-2 py-1 border border-paper/40 text-paper">
-                                    {{ $rl['label'] }}
-                                </div>
-                            @endif
+                        @if(! empty($hero['rating_label_text']))
+                            <div class="absolute top-3 right-3 font-mono text-[10px] uppercase tracking-[0.2em] px-2 py-1 border border-paper/50 text-paper bg-ink/30">
+                                {{ $hero['rating_label_text'] }}
+                            </div>
                         @endif
                         <div class="absolute bottom-0 left-0 right-0 p-5 sm:p-6 bg-gradient-to-t from-ink/80 to-transparent">
-                            <h2 class="font-display text-2xl sm:text-4xl text-paper leading-tight mb-1">{{ $heroItem['name'] }}</h2>
-                            @if(! empty($heroItem['description']))
-                                <p class="font-sans text-sm text-paper/80 line-clamp-2 max-w-md">{{ \Illuminate\Support\Str::limit(strip_tags($heroItem['description']), 80) }}</p>
+                            <h2 class="font-display text-2xl sm:text-4xl text-paper leading-tight mb-1">{{ $hero['title'] }}</h2>
+                            @if(! empty($hero['summary']))
+                                <p class="font-sans text-sm text-paper/80 line-clamp-2 max-w-md">{{ \Illuminate\Support\Str::limit(strip_tags($hero['summary']), 80) }}</p>
                             @endif
                         </div>
                     </div>
                 </div>
                 <div class="mt-3 flex items-center justify-between font-mono text-[10px] text-ink-3">
-                    <span>{{ $heroItem['city'] ?? '—' }}</span>
+                    <span>{{ $hero['city'] ?? '—' }}</span>
                     <span class="text-warm underline underline-offset-4">READ MORE →</span>
                 </div>
             </a>
 
             {{-- 右侧 2 小卡 5 列 --}}
             <div class="col-span-12 sm:col-span-5 flex flex-col gap-4 sm:gap-6">
-                @foreach($side as $i => $rec)
-                    @php $item = $rec['items'][0] ?? null; @endphp
-                    @if($item)
-                        <a href="{{ url('/place/' . $item['id']) }}" class="group flex-1 flex gap-3 sm:gap-4 border border-line p-3 hover:border-ink transition-colors">
-                            <div class="w-20 sm:w-28 flex-shrink-0 aspect-square relative" style="background: linear-gradient(135deg, {{ ['#114B5F', '#2D5F3F', '#C45626'][$i % 3] }} 0%, #1A1814 100%);">
-                                <div class="absolute inset-0 flex items-center justify-center text-paper/25 font-display text-4xl sm:text-3xl select-none">
-                                    N°{{ str_pad($item['id'], 2, '0', STR_PAD_LEFT) }}
-                                </div>
-                                <div class="absolute top-1 left-1 font-mono text-[8px] text-paper/70">N°0{{ $i + 2 }}</div>
+                @foreach($side as $i => $item)
+                    <a href="{{ url('/content/' . $item['id']) }}" class="group flex-1 flex gap-3 sm:gap-4 border border-line p-3 hover:border-ink transition-colors">
+                        <div class="w-20 sm:w-28 flex-shrink-0 aspect-square relative" style="background: linear-gradient(135deg, {{ $item['type_color'] ?? '#114B5F' }} 0%, #1A1814 100%);">
+                            <div class="absolute inset-0 flex items-center justify-center text-paper/25 font-display text-4xl sm:text-3xl select-none">
+                                N°{{ str_pad($item['id'], 2, '0', STR_PAD_LEFT) }}
                             </div>
-                            <div class="flex-1 min-w-0 flex flex-col">
-                                <span class="eyebrow">{{ $rec['type']['label'] }}</span>
-                                <h3 class="font-display text-lg sm:text-xl text-ink mt-1 line-clamp-2 leading-tight">{{ $item['name'] }}</h3>
-                                <div class="mt-auto pt-2 flex items-center justify-between font-mono text-[10px] text-ink-3">
-                                    <span>{{ $item['city'] ?? '—' }}</span>
-                                    <span class="text-ink-2 group-hover:text-warm">→</span>
-                                </div>
+                            <div class="absolute top-1 left-1 font-mono text-[8px] text-paper/70">{{ $item['type_icon'] }}</div>
+                        </div>
+                        <div class="flex-1 min-w-0 flex flex-col">
+                            <span class="eyebrow">{{ $item['type_label'] }}</span>
+                            <h3 class="font-display text-lg sm:text-xl text-ink mt-1 line-clamp-2 leading-tight">{{ $item['title'] }}</h3>
+                            <div class="mt-auto pt-2 flex items-center justify-between font-mono text-[10px] text-ink-3">
+                                <span>{{ $item['city'] ?? '—' }}</span>
+                                <span class="text-ink-2 group-hover:text-warm">→</span>
                             </div>
-                        </a>
-                    @endif
+                        </div>
+                    </a>
                 @endforeach
             </div>
         </div>

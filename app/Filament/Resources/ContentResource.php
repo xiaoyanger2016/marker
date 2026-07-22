@@ -125,6 +125,38 @@ class ContentResource extends Resource
                             Forms\Components\DatePicker::make('visited_at')->label('上次去过时间')->native(false),
                         ]),
                     ]),
+
+                Forms\Components\Section::make('首页推荐（§ 02 本期精选）')
+                    ->collapsible()
+                    ->collapsed(fn (string $context) => $context === 'create')
+                    ->description('勾选后这条内容会出现在首页 § 02 — 本期精选 区域。sort 小的排前，可无限量。')
+                    ->schema([
+                        Forms\Components\Toggle::make('is_picked')
+                            ->label('推送到首页')
+                            ->default(false)
+                            ->inline(false)
+                            ->dehydrated(false) // 不写 contents 表，写 content_picks
+                            ->afterStateHydrated(function ($component, $state, $record) {
+                                $component->state($record?->pick ? true : false);
+                            }),
+                        Forms\Components\TextInput::make('pick_sort')
+                            ->label('排序 (小=靠前)')
+                            ->numeric()
+                            ->default(0)
+                            ->dehydrated(false)
+                            ->afterStateHydrated(function ($component, $state, $record) {
+                                $component->state($record?->pick?->sort ?? 0);
+                            })
+                            ->visible(fn ($get) => $get('is_picked')),
+                        Forms\Components\TextInput::make('pick_note')
+                            ->label('编辑备注 (仅 admin 可见)')
+                            ->maxLength(200)
+                            ->dehydrated(false)
+                            ->afterStateHydrated(function ($component, $state, $record) {
+                                $component->state($record?->pick?->note ?? '');
+                            })
+                            ->visible(fn ($get) => $get('is_picked')),
+                    ]),
             ]);
     }
 
@@ -550,11 +582,35 @@ class ContentResource extends Resource
     public static function afterCreate(\Illuminate\Database\Eloquent\Model $record, array $data): void
     {
         static::syncRelations($record, $data);
+        static::syncPick($record, $data);
     }
 
     public static function afterSave(\Illuminate\Database\Eloquent\Model $record, array $data): void
     {
         static::syncRelations($record, $data);
+        static::syncPick($record, $data);
+    }
+
+    /**
+     * Phase 18 · Bug 1: 同步首页精选 (content_picks)
+     *  is_picked=true → upsert content_picks
+     *  is_picked=false → delete content_picks
+     */
+    protected static function syncPick(Content $content, array $data): void
+    {
+        if (! array_key_exists('is_picked', $data)) return;
+        if ($data['is_picked']) {
+            \App\Models\ContentPick::updateOrCreate(
+                ['content_id' => $content->id],
+                [
+                    'picked_by' => auth()->id(),
+                    'sort'      => (int) ($data['pick_sort'] ?? 0),
+                    'note'      => $data['pick_note'] ?? null,
+                ],
+            );
+        } else {
+            \App\Models\ContentPick::where('content_id', $content->id)->delete();
+        }
     }
 
     /**
@@ -665,6 +721,15 @@ class ContentResource extends Resource
                     })
                     ->formatStateUsing(fn ($state) => Content::TYPES[$state]['icon'] . ' ' . (Content::TYPES[$state]['label'] ?? $state))
                     ->size('sm'),
+
+                Tables\Columns\IconColumn::make('is_picked')
+                    ->label('推首页')
+                    ->boolean()
+                    ->trueIcon('heroicon-s-star')
+                    ->falseIcon('heroicon-o-star')
+                    ->trueColor('warning')
+                    ->getStateUsing(fn ($record) => $record->pick ? true : false)
+                    ->toggleable(),
 
                 Tables\Columns\TextColumn::make('rating_label')
                     ->label('评分')

@@ -20,6 +20,8 @@ class TagResource extends Resource
 
     protected static ?string $modelLabel = '标签';
 
+    protected static ?string $pluralModelLabel = '标签';
+
     protected static ?int $navigationSort = 30;
 
     public static function form(Form $form): Form

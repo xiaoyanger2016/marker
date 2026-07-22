@@ -20,6 +20,8 @@ class MediaResource extends Resource
 
     protected static ?string $modelLabel = '媒体';
 
+    protected static ?string $pluralModelLabel = '媒体库';
+
     protected static ?int $navigationSort = 50;
 
     public static function form(Form $form): Form

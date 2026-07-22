@@ -33,12 +33,12 @@ pb-60 sm:pb-44
                 <div class="eyebrow mb-3">CONTRIBUTIONS</div>
                 <div class="grid grid-cols-3 gap-2">
                     <div class="border border-line p-2 sm:p-3">
-                        <div class="font-display text-2xl sm:text-3xl text-ink">{{ $stats['places_total'] }}</div>
-                        <div class="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3 mt-1">地点</div>
+                        <div class="font-display text-2xl sm:text-3xl text-ink">{{ $stats['contents_total'] }}</div>
+                        <div class="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3 mt-1">内容</div>
                     </div>
                     <div class="border border-line p-2 sm:p-3">
-                        <div class="font-display text-2xl sm:text-3xl text-ink">{{ $stats['routes_total'] }}</div>
-                        <div class="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3 mt-1">线路</div>
+                        <div class="font-display text-2xl sm:text-3xl text-ink">{{ $stats['places_total'] }}</div>
+                        <div class="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3 mt-1">地点</div>
                     </div>
                     <div class="border border-line p-2 sm:p-3">
                         <div class="font-display text-2xl sm:text-3xl text-ink">{{ $stats['collections_total'] }}</div>
@@ -55,15 +55,15 @@ pb-60 sm:pb-44
     <div class="max-w-6xl mx-auto px-5 sm:px-8 py-6 sm:py-8">
         <div class="eyebrow mb-4">SECTIONS</div>
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-0 border-t border-b border-line">
-            <a href="/me/places" class="p-3 sm:p-5 border-r border-line hover:bg-paper-2 transition-colors">
+            <a href="/me/contents" class="p-3 sm:p-5 border-r border-line hover:bg-paper-2 transition-colors">
                 <div class="font-mono text-[10px] text-ink-3">N°01</div>
+                <div class="font-display text-base sm:text-lg text-ink mt-1">我的内容</div>
+                <div class="font-mono text-[10px] text-ink-3 mt-1">{{ $stats['contents_total'] }} items</div>
+            </a>
+            <a href="/me/places" class="p-3 sm:p-5 border-r border-line hover:bg-paper-2 transition-colors">
+                <div class="font-mono text-[10px] text-ink-3">N°02</div>
                 <div class="font-display text-base sm:text-lg text-ink mt-1">我的地点</div>
                 <div class="font-mono text-[10px] text-ink-3 mt-1">{{ $stats['places_total'] }} items</div>
-            </a>
-            <a href="/me/routes" class="p-3 sm:p-5 border-r border-line hover:bg-paper-2 transition-colors">
-                <div class="font-mono text-[10px] text-ink-3">N°02</div>
-                <div class="font-display text-base sm:text-lg text-ink mt-1">我的线路</div>
-                <div class="font-mono text-[10px] text-ink-3 mt-1">{{ $stats['routes_total'] }} items</div>
             </a>
             <a href="/me/collections" class="p-3 sm:p-5 border-r border-line hover:bg-paper-2 transition-colors">
                 <div class="font-mono text-[10px] text-ink-3">N°03</div>

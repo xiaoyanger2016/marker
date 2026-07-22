@@ -41,6 +41,9 @@ Route::get('/', [HomeController::class, 'home'])->name('home');
 // 8 大类列表
 Route::get('/type/{key}', [HomeController::class, 'type'])->name('frontend.type');
 
+// Phase 18 · Bug 1: 全部精选 (admin 手动 pinned 列表)
+Route::get('/picks', [HomeController::class, 'picks'])->name('frontend.picks');
+
 // 内容贴 (8 大类合一)
 Route::get('/content/{id}', [HomeController::class, 'contentShow'])->name('frontend.content');
 // 兼容老链接

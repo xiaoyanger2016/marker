@@ -21,12 +21,21 @@ class User extends Authenticatable implements HasAvatar
         'avatar',
         'bio',
         'is_admin',
+        'role',
         'preferences',
+        'last_login_at',
+        'last_login_ip',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
+    ];
+
+    public const ROLES = [
+        'admin'  => '管理员',
+        'editor' => '编辑',
+        'user'   => '用户',
     ];
 
     protected function casts(): array
@@ -36,17 +45,23 @@ class User extends Authenticatable implements HasAvatar
             'password' => 'hashed',
             'is_admin' => 'boolean',
             'preferences' => 'array',
+            'last_login_at' => 'datetime',
         ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->is_admin || $this->role === 'admin';
+    }
+
+    public function isEditor(): bool
+    {
+        return $this->isAdmin() || $this->role === 'editor';
     }
 
     public function places(): HasMany
     {
         return $this->hasMany(Place::class);
-    }
-
-    public function categories(): HasMany
-    {
-        return $this->hasMany(Category::class);
     }
 
     public function tags(): HasMany
@@ -69,9 +84,24 @@ class User extends Authenticatable implements HasAvatar
         return $this->hasMany(Note::class);
     }
 
-    public function routes(): HasMany
+    public function contents(): HasMany
     {
-        return $this->hasMany(\App\Models\Route::class);
+        return $this->hasMany(Content::class);
+    }
+
+    public function activities(): HasMany
+    {
+        return $this->hasMany(Activity::class);
+    }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    public function votes(): HasMany
+    {
+        return $this->hasMany(RatingVote::class);
     }
 
     /**

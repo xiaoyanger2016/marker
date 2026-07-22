@@ -228,6 +228,17 @@ class Content extends Model
         return $this->comments()->where('is_public', true)->latest();
     }
 
+    // ---------- Phase 18：首页人工 pinned ----------
+    public function pick(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(ContentPick::class);
+    }
+
+    public function scopePicked(Builder $q): Builder
+    {
+        return $q->whereHas('pick');
+    }
+
     // ---------- Phase 17：评分投票聚合 ----------
 
     public function votes(): HasMany
