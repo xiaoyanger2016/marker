@@ -3,7 +3,7 @@
 @section('title', '我的 · Marker 公路杂志')
 
 @section('main_class')
-pb-48 sm:pb-36
+pb-60 sm:pb-44
 @endsection
 
 @section('content')

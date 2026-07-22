@@ -6,7 +6,7 @@
 --}}
 <div class="fixed bottom-0 left-0 right-0 z-50 pointer-events-none safe-bottom">
     <div class="px-4 sm:px-8 pb-3 sm:pb-5 pointer-events-auto">
-        <nav class="relative mx-auto max-w-[280px] sm:max-w-sm bg-paper/95 backdrop-blur-xl border border-ink/15 shadow-dock rounded-2xl">
+        <nav class="relative mx-auto max-w-[280px] sm:max-w-sm bg-paper/80 backdrop-blur-2xl border border-ink/15 shadow-dock rounded-2xl">
             {{-- 顶部拖拽条（视觉提示：这是浮起来的 sheet） --}}
             <div class="flex justify-center pt-1.5 pb-0.5 sm:hidden">
                 <span class="block w-8 h-[3px] rounded-full bg-ink/15"></span>
