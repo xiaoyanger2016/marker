@@ -1,128 +1,158 @@
 <x-filament-panels::page>
-    <x-filament::section>
-        <x-slot name="heading">📥 从高德地图导入 POI</x-slot>
-        <x-slot name="description">
-            输入关键字 + 城市，从高德搜 POI 列表，勾选要导入的批量加入你的收藏。
-        </x-slot>
+    {{-- 头版：编辑感标题 + 步骤编号 --}}
+    <div class="mb-8 pb-6 border-b border-ink/15">
+        <div class="flex items-baseline gap-3 mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3">
+            <span>§ 01</span>
+            <span class="w-px h-3 bg-ink/15"></span>
+            <span>从高德地图导入 POI</span>
+            <span class="w-px h-3 bg-ink/15"></span>
+            <span>2026 · 高德公开 API</span>
+        </div>
+        <h1 class="font-display text-3xl sm:text-4xl text-ink leading-tight">
+            把高德收藏夹的地点，<br>
+            <span class="serif-italic text-warm">搬进你的 Marker</span>
+        </h1>
+        <p class="mt-3 text-sm text-ink-2 max-w-2xl leading-relaxed">
+            两种方式：粘贴高德分享链接自动识别 ugcId，或直接用关键字 + 城市搜 POI 列表。搜出来的地点，勾选后批量加入你的收藏。
+        </p>
+    </div>
 
-        {{-- 方式 1: 粘贴高德收藏夹分享链接 --}}
-        <div class="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-            <h3 class="font-semibold text-amber-900 mb-2">📌 方式 A：粘贴高德分享链接</h3>
-            <p class="text-xs text-amber-700 mb-3">
-                高德收藏夹 web 端需要登录态直接拿不到，<strong>请改用下方关键字搜索</strong>。链接可作为参考（识别 ugcId）：
+    {{-- 方式 A：分享链接 --}}
+    <div class="mb-8 border border-ink/20 bg-paper">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-ink/15 bg-paper-2">
+            <div class="flex items-baseline gap-3">
+                <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3">A</span>
+                <span class="font-display text-base text-ink">分享链接解析</span>
+            </div>
+            <span class="font-mono text-[9px] uppercase tracking-[0.15em] text-ink-3">识别 ugcId</span>
+        </div>
+        <div class="p-5">
+            <p class="text-xs text-ink-2 leading-relaxed mb-4">
+                高德收藏夹 web 端需要登录态，链接直拉受限。建议复制一条收藏夹分享链接 → 解析 ugcId → 用下方方式 B 关键字搜 POI。
             </p>
             <div class="flex gap-2">
                 <input
                     type="text"
                     wire:model="shareUrl"
-                    placeholder="https://guinness.autonavi.com/activity/... 或 amapuri://ajx_favorites/folder?data=..."
-                    class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-400"
+                    placeholder="https://guinness.autonavi.com/activity/... 或 amapuri://..."
+                    class="flex-1 bg-transparent border-0 border-b border-ink/30 focus:border-ink focus:ring-0 outline-none px-0 py-2 text-sm text-ink placeholder:text-ink-3 font-mono"
                 >
                 <button
                     wire:click="parseShareUrl"
                     wire:loading.attr="disabled"
-                    class="px-4 py-2 text-sm bg-amber-500 hover:bg-amber-600 text-white rounded-md whitespace-nowrap"
+                    class="font-mono text-[10px] uppercase tracking-[0.18em] px-5 py-2 bg-ink text-paper border border-ink hover:bg-ink-2 transition-colors disabled:opacity-50"
                 >
-                    解析
+                    <span wire:loading.remove wire:target="parseShareUrl">解析</span>
+                    <span wire:loading wire:target="parseShareUrl">解析中…</span>
                 </button>
             </div>
         </div>
+    </div>
 
-        {{-- 方式 2: 关键字搜索 --}}
-        <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
-            <h3 class="font-semibold text-emerald-900 mb-2">🔍 方式 B：关键字搜索（推荐）</h3>
-            <p class="text-xs text-emerald-700 mb-3">输入地点名（收藏夹里典型地点）+ 城市，搜出完整 POI 列表</p>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
+    {{-- 方式 B：关键字搜索 --}}
+    <div class="mb-8 border border-ink/20 bg-paper">
+        <div class="flex items-center justify-between px-5 py-3 border-b border-ink/15 bg-paper-2">
+            <div class="flex items-baseline gap-3">
+                <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3">B</span>
+                <span class="font-display text-base text-ink">关键字搜索</span>
+            </div>
+            <span class="font-mono text-[9px] uppercase tracking-[0.15em] text-ink-3">推荐</span>
+        </div>
+        <div class="p-5">
+            <p class="text-xs text-ink-2 leading-relaxed mb-4">
+                输入地点名（收藏夹里最典型的 1-2 个）+ 城市。从高德搜完整 POI 列表，按地点名 + 距离匹配。
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3 mb-4">
                 <input
                     type="text"
                     wire:model="keywords"
                     placeholder="如：莫干山、兰州拉面、千岛湖"
-                    class="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-400 md:col-span-2"
+                    class="bg-transparent border-0 border-b border-ink/30 focus:border-ink focus:ring-0 outline-none px-0 py-2 text-sm text-ink placeholder:text-ink-3"
                 >
                 <input
                     type="text"
                     wire:model="city"
-                    placeholder="城市（可选）如：杭州"
-                    class="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                    placeholder="城市（可选）"
+                    class="bg-transparent border-0 border-b border-ink/30 focus:border-ink focus:ring-0 outline-none px-0 py-2 text-sm text-ink placeholder:text-ink-3"
                 >
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-4">
                 <button
                     wire:click="search"
                     wire:loading.attr="disabled"
-                    class="px-4 py-2 text-sm bg-emerald-500 hover:bg-emerald-600 text-white rounded-md flex items-center gap-1"
+                    class="font-mono text-[10px] uppercase tracking-[0.18em] px-5 py-2 bg-ink text-paper border border-ink hover:bg-ink-2 transition-colors disabled:opacity-50"
                 >
-                    <span wire:loading.remove wire:target="search">🔍 搜索</span>
-                    <span wire:loading wire:target="search">搜索中...</span>
+                    <span wire:loading.remove wire:target="search">搜索 POI</span>
+                    <span wire:loading wire:target="search">搜索中…</span>
                 </button>
 
                 @if($searched && count($results) > 0)
-                    <span class="text-xs text-gray-500">共 {{ count($results) }} 个结果</span>
+                    <span class="font-mono text-[10px] uppercase tracking-[0.15em] text-ink-3">
+                        共 {{ count($results) }} 个结果
+                    </span>
                 @endif
             </div>
         </div>
+    </div>
 
-        {{-- 错误信息 --}}
-        @if($error)
-            <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700 whitespace-pre-line">{{ $error }}</div>
-        @endif
+    {{-- 错误 / ugcId 识别结果 --}}
+    @if($error)
+        <div class="mb-6 border border-ink/30 bg-paper-2 p-4 font-mono text-xs text-ink-2 whitespace-pre-line leading-relaxed">{{ $error }}</div>
+    @endif
 
-        {{-- 搜索结果 --}}
-        @if($searched && count($results) > 0)
-            <div class="mb-4 p-3 bg-gray-50 rounded-md flex items-center gap-3">
-                <label class="text-sm font-medium text-gray-700">批量操作：</label>
-                <select
-                    wire:model.live="placeType"
-                    class="text-sm border border-gray-300 rounded px-2 py-1"
-                >
-                    <option value="">— 导入后类型待定 —</option>
-                    @foreach($placeTypes as $key => $meta)
-                        <option value="{{ $key }}">{{ $meta['icon'] }} {{ $meta['label'] }}</option>
-                    @endforeach
-                </select>
-                <span class="text-xs text-gray-500">已选 {{ count($selected) }} / {{ count($results) }}</span>
-                <button
-                    wire:click="importSelected"
-                    wire:loading.attr="disabled"
-                    class="ml-auto px-4 py-1.5 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-md"
-                >
-                    导入所选
-                </button>
-            </div>
-
-            <div class="space-y-1.5 max-h-[500px] overflow-y-auto">
-                @foreach($results as $idx => $poi)
-                    <label class="flex items-start gap-3 p-2.5 border {{ in_array($idx, $selected) ? 'border-emerald-400 bg-emerald-50' : 'border-gray-200 hover:border-gray-300' }} rounded-md cursor-pointer transition-colors">
-                        <input
-                            type="checkbox"
-                            wire:model.live="selected"
-                            value="{{ $idx }}"
-                            class="mt-1 w-4 h-4"
-                        >
-                        <div class="flex-1 min-w-0">
-                            <div class="font-medium text-sm text-gray-900">{{ $poi['name'] }}</div>
-                            <div class="text-xs text-gray-500 mt-0.5">
-                                📍 {{ $poi['pname'] }} {{ $poi['cityname'] }} {{ $poi['adname'] }} · {{ $poi['address'] }}
-                            </div>
-                            <div class="text-[10px] text-gray-400 mt-0.5">
-                                🏷️ {{ $poi['type'] ?: '未分类' }}
-                                @if($poi['tel'])
-                                    · 📞 {{ $poi['tel'] }}
-                                @endif
-                                · 🆔 {{ $poi['id'] }}
-                            </div>
-                        </div>
-                        <div class="text-[10px] text-gray-400 font-mono whitespace-nowrap">
-                            {{ round($poi['longitude'], 5) }},<br>{{ round($poi['latitude'], 5) }}
-                        </div>
-                    </label>
+    {{-- 搜索结果：批量操作 + 列表 --}}
+    @if($searched && count($results) > 0)
+        <div class="mb-6 flex items-center gap-4 px-5 py-3 border border-ink/20 bg-paper-2">
+            <span class="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-3">批量归类</span>
+            <select
+                wire:model.live="placeType"
+                class="bg-transparent border-0 border-b border-ink/30 focus:border-ink focus:ring-0 outline-none px-0 py-1 text-sm text-ink"
+            >
+                <option value="">— 导入后类型待定 —</option>
+                @foreach($placeTypes as $key => $meta)
+                    <option value="{{ $key }}">{{ $meta['icon'] ?? '·' }} {{ $meta['label'] }}</option>
                 @endforeach
-            </div>
-        @elseif($searched)
-            <div class="p-8 text-center text-gray-400">
-                <div class="text-3xl mb-2">😶</div>
-                <p class="text-sm">没有结果，换个关键字试试</p>
-            </div>
-        @endif
-    </x-filament::section>
+            </select>
+            <span class="font-mono text-[10px] text-ink-3">已选 {{ count($selected) }} / {{ count($results) }}</span>
+            <button
+                wire:click="importSelected"
+                wire:loading.attr="disabled"
+                class="ml-auto font-mono text-[10px] uppercase tracking-[0.18em] px-5 py-2 bg-warm text-paper border border-warm hover:bg-warm/90 transition-colors disabled:opacity-50"
+            >
+                导入所选
+            </button>
+        </div>
+
+        <div class="border border-ink/20 divide-y divide-ink/10 max-h-[600px] overflow-y-auto">
+            @foreach($results as $idx => $poi)
+                <label class="flex items-start gap-4 px-5 py-3 {{ in_array($idx, $selected) ? 'bg-ink text-paper' : 'hover:bg-paper-2' }} cursor-pointer transition-colors">
+                    <input
+                        type="checkbox"
+                        wire:model.live="selected"
+                        value="{{ $idx }}"
+                        class="mt-1 w-4 h-4 accent-current {{ in_array($idx, $selected) ? '' : 'opacity-60' }}"
+                    >
+                    <div class="flex-1 min-w-0">
+                        <div class="font-display text-base {{ in_array($idx, $selected) ? 'text-paper' : 'text-ink' }}">{{ $poi['name'] }}</div>
+                        <div class="font-mono text-[10px] mt-1 {{ in_array($idx, $selected) ? 'text-paper/70' : 'text-ink-3' }} tracking-wide">
+                            {{ trim(($poi['pname'] ?? '') . ' ' . ($poi['cityname'] ?? '') . ' ' . ($poi['adname'] ?? '') . ' ' . ($poi['address'] ?? '')) }}
+                        </div>
+                        <div class="font-mono text-[9px] mt-1 {{ in_array($idx, $selected) ? 'text-paper/50' : 'text-ink-3' }} uppercase tracking-wider">
+                            {{ $poi['type'] ?: '未分类' }}
+                            @if($poi['tel']) · {{ $poi['tel'] }} @endif
+                            · {{ $poi['id'] }}
+                        </div>
+                    </div>
+                    <div class="font-mono text-[10px] whitespace-nowrap {{ in_array($idx, $selected) ? 'text-paper/70' : 'text-ink-3' }}">
+                        {{ round($poi['longitude'], 5) }}<br>{{ round($poi['latitude'], 5) }}
+                    </div>
+                </label>
+            @endforeach
+        </div>
+    @elseif($searched)
+        <div class="border border-ink/20 bg-paper p-12 text-center">
+            <div class="font-display text-2xl text-ink-2 mb-2">没有结果</div>
+            <p class="text-sm text-ink-3">换个关键字或城市试试</p>
+        </div>
+    @endif
 </x-filament-panels::page>

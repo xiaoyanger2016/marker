@@ -863,9 +863,21 @@ button.fi-icon-btn svg,
 
 /* sidebar item 改成纯文字 + N°编号 + 衬线标签 */
 .fi-sidebar-item-active .fi-sidebar-item-button,
-.fi-sidebar-item.fi-active .fi-sidebar-item-button {
+.fi-sidebar-item.fi-active .fi-sidebar-item-button,
+.fi-sidebar-item.fi-active .fi-sidebar-item-button:hover {
     background: var(--ink) !important;
     color: var(--paper) !important;
+}
+/* 关键修复：active label 被 Filament 加了 text-primary-600/dark:text-primary-400，
+   在 ink 黑底上完全看不清，必须强制改回 paper */
+.fi-sidebar-item-active .fi-sidebar-item-label,
+.fi-sidebar-item-active .fi-sidebar-item-label:hover,
+.fi-sidebar-item.fi-active .fi-sidebar-item-label,
+.fi-sidebar-item.fi-active .fi-sidebar-item-label:hover,
+.fi-sidebar-group .fi-active .fi-sidebar-item-label {
+    color: var(--paper) !important;
+    font-weight: 500 !important;
+    text-decoration: none !important;
 }
 .fi-sidebar-item .fi-sidebar-item-button {
     padding: 8px 12px !important;
@@ -876,6 +888,7 @@ button.fi-icon-btn svg,
 .fi-sidebar-item .fi-sidebar-item-label {
     font-family: var(--font-family-serif) !important;
     font-size: 14px !important;
+    color: var(--ink) !important;
 }
 
 /* User avatar: 编辑感 — 圆环 + monogram initials (无图片) */

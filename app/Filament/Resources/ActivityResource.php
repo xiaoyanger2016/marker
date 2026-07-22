@@ -46,9 +46,13 @@ class ActivityResource extends Resource
 
                         Forms\Components\Select::make('user_id')
                             ->label('发起人')
-                            ->relationship('user', 'name')
+                            ->options(fn () => \App\Models\User::query()
+                                ->orderBy('id')
+                                ->limit(200)
+                                ->get()
+                                ->mapWithKeys(fn ($u) => [$u->id => $u->name . ($u->email ? ' · ' . $u->email : '')])
+                                ->toArray())
                             ->searchable()
-                            ->preload()
                             ->required()
                             ->default(fn () => auth()->id()),
 
@@ -131,16 +135,26 @@ class ActivityResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('place_id')
                             ->label('关联地点')
-                            ->relationship('place', 'name', fn (Builder $q) => $q->where('is_public', true))
+                            ->options(fn () => \App\Models\Place::query()
+                                ->where('is_public', true)
+                                ->orderBy('id', 'desc')
+                                ->limit(200)
+                                ->get()
+                                ->mapWithKeys(fn ($p) => [$p->id => $p->name])
+                                ->toArray())
                             ->searchable()
-                            ->preload()
                             ->placeholder('可选'),
 
                         Forms\Components\Select::make('route_id')
                             ->label('关联线路')
-                            ->relationship('route', 'name', fn (Builder $q) => $q->where('is_public', true))
+                            ->options(fn () => \App\Models\Route::query()
+                                ->where('is_public', true)
+                                ->orderBy('id', 'desc')
+                                ->limit(200)
+                                ->get()
+                                ->mapWithKeys(fn ($r) => [$r->id => $r->name])
+                                ->toArray())
                             ->searchable()
-                            ->preload()
                             ->placeholder('可选'),
 
                         Forms\Components\Grid::make(2)->schema([

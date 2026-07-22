@@ -28,7 +28,7 @@
                 <span id="theme-label">{{ strtoupper(($theme ?? 'paper')) }}</span>
             </button>
             <div id="theme-panel" data-panel
-                 class="hidden fixed right-3 top-[60px] sm:right-8 sm:top-[60px] bg-paper-2/95 backdrop-blur-md border border-ink/20 w-[280px] z-[60] shadow-dock"
+                 class="hidden fixed right-3 top-[60px] sm:right-8 sm:top-[60px] bg-paper-2 backdrop-blur-md border border-ink/20 w-[280px] z-[60] shadow-dock"
                  style="max-width: calc(100vw - 24px);">
                 <div class="px-3 py-2 border-b border-line flex items-baseline justify-between">
                     <span class="eyebrow">THEME</span>

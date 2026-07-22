@@ -1,12 +1,13 @@
-{{-- 浮动 dock 底栏：pill 样式，明确"浮在内容上"
+{{-- 浮动 dock 底栏：mobile 全宽铺满，PC 居中 + 缩窄
+   - mobile: 几乎全宽，只留少量左右 padding（让圆角可见）
+   - PC (sm+): 居中 max-w-sm pill
    - pointer-events: none 包外层，不挡内容点击
-   - 圆角 + 强阴影 + 边缘大量留白：一眼能看出是浮层
-   - 顶部拖拽条 (drag handle) 暗示悬浮感（iOS bottom sheet 范式）
+   - 顶部拖拽条 (drag handle) 暗示悬浮感
    - safe-bottom：iPhone home indicator 不压字
 --}}
 <div class="fixed bottom-0 left-0 right-0 z-50 pointer-events-none safe-bottom">
-    <div class="px-4 sm:px-8 pb-3 sm:pb-5 pointer-events-auto">
-        <nav class="relative mx-auto max-w-[280px] sm:max-w-sm bg-paper/80 backdrop-blur-2xl border border-ink/15 shadow-dock rounded-2xl">
+    <div class="px-3 sm:px-8 pb-3 sm:pb-5 pointer-events-auto">
+        <nav class="relative mx-auto max-w-full sm:max-w-sm bg-paper/90 backdrop-blur-2xl border border-ink/15 shadow-dock sm:rounded-2xl rounded-xl">
             {{-- 顶部拖拽条（视觉提示：这是浮起来的 sheet） --}}
             <div class="flex justify-center pt-1.5 pb-0.5 sm:hidden">
                 <span class="block w-8 h-[3px] rounded-full bg-ink/15"></span>
