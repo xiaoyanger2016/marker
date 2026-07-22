@@ -185,15 +185,20 @@ class ImportFromAmap extends Page implements HasForms
             return;
         }
 
-        // 因为高德收藏夹 web 端需要登录态拿不到，我们用 ugcId + 关键字搜索作为 fallback
-        $this->error = "✓ 已识别 ugcId = {$ugcId}\n\n"
-            . "高德收藏夹 web 端需要登录态，无法直接拉取列表。\n"
-            . "请改用下方「关键字搜索」：输入收藏夹里最典型的 1-2 个地点名字 + 城市，"
-            . "系统会从高德搜出完整 POI 列表（按地点名 + 距离匹配），你勾选后批量导入。";
+        // 高德收藏夹 web 端需要登录态无法直拉列表 — 把 ugcId 缓存到 session 用作来源标识
+        session(['amap_last_ugc_id' => $ugcId]);
+        $this->searched = false;
+        $this->results = [];
+        $this->selected = [];
+
+        // 状态消息走 info（不占 error 字段），同时把 ugcId 回填到 keywords 触发提示
+        $this->keywords = $ugcId;
 
         Notification::make()
-            ->title('ugcId 已识别 · ugcId: ' . $ugcId)
-            ->body('收藏夹直拉受限，请用关键字搜索方式')
+            ->title('✓ ugcId 已识别')
+            ->body("ugcId = {$ugcId} · 高德收藏夹 web 端需登录态，无法直拉。\n"
+                . "请在下方「关键字搜索」输入收藏夹里典型的 1-2 个地点名 + 城市，"
+                . "再点搜索，系统会用高德公开 API 帮你定位收藏夹里那些 POI 的完整信息。")
             ->info()
             ->persistent()
             ->send();

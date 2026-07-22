@@ -57,6 +57,21 @@
         </div>
     </div>
 </section>
+@else
+{{-- 无封面 fallback：类型色块 + N° 编号 + 类型标签 --}}
+<section class="border-b border-line">
+    <div class="max-w-6xl mx-auto px-0 sm:px-8">
+        <div class="aspect-[16/9] sm:aspect-[21/9] overflow-hidden flex items-center justify-center" style="background: linear-gradient(135deg, {{ $typeColor }} 0%, {{ $typeColor }}cc 100%);">
+            <div class="text-center text-paper px-6">
+                <div class="font-mono text-xs sm:text-sm uppercase tracking-[0.4em] mb-3 opacity-80">MARKER · {{ $typeIcon }}</div>
+                <div class="font-display text-5xl sm:text-8xl font-medium leading-none mb-3">
+                    N°{{ str_pad($content->id, 3, '0', STR_PAD_LEFT) }}
+                </div>
+                <div class="font-mono text-xs sm:text-sm uppercase tracking-[0.3em] opacity-90">{{ $typeLabel }}</div>
+            </div>
+        </div>
+    </div>
+</section>
 @endif
 
 <section class="border-b border-line">
@@ -510,5 +525,72 @@
         </div>
     </div>
 </section>
+
+{{-- 关联笔记 (Phase 19) --}}
+@if($content->notes->isNotEmpty())
+<section class="border-b border-line">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
+        <div class="eyebrow mb-5">§ 09 — 关联笔记 · {{ $content->notes->count() }} NOTES</div>
+        <p class="text-sm text-ink-3 mb-6">从外部平台收录的参考笔记（小红书 / 大众点评 / 马蜂窝 等）。</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            @foreach($content->notes as $note)
+                <article class="border border-line p-4 hover:border-ink transition-colors flex flex-col">
+                    {{-- 封面 --}}
+                    <div class="aspect-[4/3] overflow-hidden border border-line-2 mb-3 bg-ink-3/10">
+                        @php
+                            $coverSrc = $note->coverMedia?->url ?? $note->cover_url;
+                        @endphp
+                        @if($coverSrc)
+                            <img src="{{ $coverSrc }}" alt="" loading="lazy" class="w-full h-full object-cover" referrerpolicy="no-referrer">
+                        @else
+                            <div class="w-full h-full flex items-center justify-center font-mono text-[10px] uppercase tracking-[0.15em] text-ink-3">
+                                {{ $note->source === 'xiaohongshu' ? 'RED NOTE' : ($note->source === 'dianping' ? 'DIANPING' : ($note->source === 'mafengwo' ? 'MAFENGWO' : 'NOTE')) }}
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- 来源 + 角色 --}}
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-mono text-[10px] uppercase tracking-[0.15em] text-ink-3">
+                            @switch($note->source)
+                                @case('xiaohongshu') 小红书 @break
+                                @case('dianping') 大众点评 @break
+                                @case('mafengwo') 马蜂窝 @break
+                                @default 手动
+                            @endswitch
+                        </span>
+                        @php
+                            $roleMap = ['reference' => '参考', 'inspiration' => '灵感', 'detailed' => '详情'];
+                            $role = $note->pivot->role ?? 'reference';
+                        @endphp
+                        <span class="font-mono text-[10px] uppercase tracking-[0.15em] text-warm">{{ $roleMap[$role] ?? '参考' }}</span>
+                    </div>
+
+                    {{-- 标题 --}}
+                    <h3 class="font-display text-base text-ink leading-tight mb-2 line-clamp-2">
+                        @if($note->source_url)
+                            <a href="{{ $note->source_url }}" target="_blank" rel="noopener" class="hover:underline">{{ $note->title }}</a>
+                        @else
+                            {{ $note->title }}
+                        @endif
+                    </h3>
+
+                    {{-- 作者 + 时间 --}}
+                    <div class="flex items-baseline justify-between text-xs text-ink-3 mt-auto">
+                        @if($note->author)<span class="font-mono">@ {{ $note->author }}</span>@else<span></span>@endif
+                        @if($note->published_at)<span class="font-mono text-[10px]">{{ $note->published_at->format('Y-m-d') }}</span>@endif
+                    </div>
+
+                    {{-- 摘录 --}}
+                    @if($note->content)
+                        <p class="text-xs text-ink-2 mt-2 line-clamp-3 whitespace-pre-line">{{ \Illuminate\Support\Str::limit(strip_tags($note->content), 120) }}</p>
+                    @endif
+                </article>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
 
 @endsection

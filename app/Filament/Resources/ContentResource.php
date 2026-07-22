@@ -48,6 +48,7 @@ class ContentResource extends Resource
                 self::basicsTab(),
                 self::coverAndMediaTab(),
                 self::placesTab(),
+                self::notesTab(),
                 self::subtableTab(),
             ])->columnSpanFull(),
         ]);
@@ -297,6 +298,69 @@ class ContentResource extends Resource
             ]);
     }
 
+    // ---------- Tab 3.5: 关联笔记 (Phase 19) ----------
+    protected static function notesTab(): Forms\Components\Tabs\Tab
+    {
+        return Forms\Components\Tabs\Tab::make('关联笔记')
+            ->icon('heroicon-o-book-open')
+            ->badge(fn (Get $get) => is_array($get('notes')) ? count($get('notes')) : 0)
+            ->badgeColor('primary')
+            ->schema([
+                Forms\Components\Placeholder::make('notes_hint')
+                    ->label('')
+                    ->content('关联已收录的小红书 / 大众点评 / 马蜂窝 等笔记作为参考。在此处选择已有笔记，或粘贴新链接快速建笔记。'),
+
+                Forms\Components\Repeater::make('notes')
+                    ->label('笔记列表')
+                    ->schema([
+                        Forms\Components\Select::make('note_id')
+                            ->label('笔记')
+                            ->options(function () {
+                                return \App\Models\Note::query()
+                                    ->where('user_id', auth()->id())
+                                    ->orderBy('id', 'desc')
+                                    ->limit(300)
+                                    ->get()
+                                    ->mapWithKeys(fn ($n) => [
+                                        $n->id => '#' . $n->id . ' · ' . \Illuminate\Support\Str::limit($n->title, 40) . ($n->source ? ' · [' . $n->source . ']' : ''),
+                                    ])->toArray();
+                            })
+                            ->searchable()
+                            ->required()
+                            ->live()
+                            ->columnSpan(3)
+                            ->helperText('先在「笔记/小红书」里建好笔记，再回到这里关联'),
+
+                        Forms\Components\Select::make('role')
+                            ->label('作用')
+                            ->options([
+                                'reference'    => '参考',
+                                'inspiration'  => '灵感来源',
+                                'detailed'     => '详细内容',
+                            ])
+                            ->default('reference')
+                            ->columnSpan(1),
+                    ])
+                    ->columns(4)
+                    ->collapsible()
+                    ->itemLabel(fn (array $state): ?string =>
+                        isset($state['note_id'])
+                            ? '笔记 #' . $state['note_id']
+                            : '新关联')
+                    ->columnSpanFull()
+                    ->addActionLabel('+ 关联一条笔记')
+                    ->reorderable(),
+
+                Forms\Components\Actions::make([
+                    Forms\Components\Actions\Action::make('createNewNote')
+                        ->label('+ 新建笔记（跳出）')
+                        ->url(fn () => route('filament.admin.resources.notes.create'))
+                        ->openUrlInNewTab()
+                        ->color('gray'),
+                ])->columnSpanFull(),
+            ]);
+    }
+
     // ---------- Tab 4: 类型专属 (动态) ----------
     protected static function subtableTab(): Forms\Components\Tabs\Tab
     {
@@ -527,150 +591,8 @@ class ContentResource extends Resource
     }
 
     // ============= mutate hooks =============
-
-    public static function mutateFormDataBeforeFill(array $data): array
-    {
-        if (! isset($data['id'])) return $data;
-
-        $content = Content::with('places', 'gallery', 'videos')->find($data['id']);
-        if (! $content) return $data;
-
-        // 关联地点
-        $data['places'] = $content->places->map(fn ($p) => [
-            'place_id' => $p->id,
-            'notes'    => $p->pivot->notes,
-        ])->values()->toArray();
-
-        // 相册 / 视频
-        $data['gallery'] = $content->gallery->map(fn ($m) => [
-            'path'    => $m->path,
-            'caption' => $m->pivot->caption,
-        ])->values()->toArray();
-
-        $data['videos'] = $content->videos->map(fn ($m) => [
-            'url'     => $m->path,
-            'caption' => $m->pivot->caption,
-        ])->values()->toArray();
-
-        // 1:1 子表
-        $subtable = $content->subTable();
-        if ($subtable) {
-            $key = $content->type;
-            $data[$key] = $subtable->getAttributes();
-            unset($data[$key]['id'], $data[$key]['content_id'], $data[$key]['created_at'], $data[$key]['updated_at']);
-        }
-
-        return $data;
-    }
-
-    public static function mutateFormDataBeforeSave(array $data): array
-    {
-        // 不入主表的字段
-        unset(
-            $data['places'], $data['gallery'], $data['videos'],
-            $data['cover_upload'], $data['cover_media_path'],
-        );
-        // 8 个 subtable key
-        foreach (Content::TYPES as $meta) {
-            if (isset($meta['subtable'])) {
-                unset($data[$meta['subtable']]);
-            }
-        }
-        return $data;
-    }
-
-    public static function afterCreate(\Illuminate\Database\Eloquent\Model $record, array $data): void
-    {
-        static::syncRelations($record, $data);
-        static::syncPick($record, $data);
-    }
-
-    public static function afterSave(\Illuminate\Database\Eloquent\Model $record, array $data): void
-    {
-        static::syncRelations($record, $data);
-        static::syncPick($record, $data);
-    }
-
-    /**
-     * Phase 18 · Bug 1: 同步首页精选 (content_picks)
-     *  is_picked=true → upsert content_picks
-     *  is_picked=false → delete content_picks
-     */
-    protected static function syncPick(Content $content, array $data): void
-    {
-        if (! array_key_exists('is_picked', $data)) return;
-        if ($data['is_picked']) {
-            \App\Models\ContentPick::updateOrCreate(
-                ['content_id' => $content->id],
-                [
-                    'picked_by' => auth()->id(),
-                    'sort'      => (int) ($data['pick_sort'] ?? 0),
-                    'note'      => $data['pick_note'] ?? null,
-                ],
-            );
-        } else {
-            \App\Models\ContentPick::where('content_id', $content->id)->delete();
-        }
-    }
-
-    /**
-     * 同步 places / gallery / videos / subtable
-     */
-    protected static function syncRelations(Content $content, array $data): void
-    {
-        // 1. places
-        $content->places()->detach();
-        if (! empty($data['places'])) {
-            $rows = [];
-            foreach (array_values($data['places']) as $i => $p) {
-                if (empty($p['place_id'])) continue;
-                $rows[$p['place_id']] = [
-                    'sequence' => $i,
-                    'notes'    => $p['notes'] ?? null,
-                ];
-            }
-            $content->places()->attach($rows);
-        }
-
-        // 2. media (gallery + videos)
-        $content->media()->detach();
-        $mediaRows = [];
-        $seq = 0;
-        foreach (($data['gallery'] ?? []) as $g) {
-            if (empty($g['path'])) continue;
-            $media = Media::firstOrCreate(
-                ['disk' => 'public', 'path' => $g['path']],
-                ['type' => 'image', 'user_id' => auth()->id()],
-            );
-            $mediaRows[$media->id] = [
-                'role' => 'gallery', 'sequence' => $seq++, 'caption' => $g['caption'] ?? null,
-            ];
-        }
-        $seq = 0;
-        foreach (($data['videos'] ?? []) as $v) {
-            if (empty($v['url'])) continue;
-            $media = Media::firstOrCreate(
-                ['disk' => 'public', 'path' => $v['url']],
-                ['type' => 'video', 'user_id' => auth()->id()],
-            );
-            $mediaRows[$media->id] = [
-                'role' => 'video', 'sequence' => $seq++, 'caption' => $v['caption'] ?? null,
-            ];
-        }
-        if ($mediaRows) {
-            $content->media()->attach($mediaRows);
-        }
-
-        // 3. 1:1 subtable
-        $type = $content->type;
-        $subKey = Content::TYPES[$type]['subtable'] ?? null;
-        if ($subKey && isset($data[$type]) && is_array($data[$type])) {
-            $sub = $content->subTable() ?? $content->{'selfDrive'}()->getRelated()->newInstance();
-            $sub->content_id = $content->id;
-            $sub->fill($data[$type]);
-            $sub->save();
-        }
-    }
+    // 注意：mutateFormDataBeforeFill / mutateFormDataBeforeSave / afterCreate / afterSave
+    //  都移到 EditContent / CreateContent Page 上 (Filament 不会自动 call Resource 上的同名 static)
 
     // ============= table =============
 

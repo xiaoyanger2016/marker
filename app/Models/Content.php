@@ -135,6 +135,17 @@ class Content extends Model
     }
 
     /**
+     * Phase 19：关联笔记 (小红书/大众点评/马蜂窝 等外部内容参考)
+     * role: reference | inspiration | detailed
+     */
+    public function notes(): BelongsToMany
+    {
+        return $this->belongsToMany(Note::class, 'content_notes')
+            ->withPivot('sequence', 'role')
+            ->orderBy('content_notes.sequence');
+    }
+
+    /**
      * 相册 + 视频集
      * role: 'gallery' | 'video'
      */

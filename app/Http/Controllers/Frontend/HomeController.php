@@ -179,6 +179,7 @@ class HomeController extends Controller
             'coverMedia',
             'gallery', 'videos',
             'places', 'tags',
+            'notes',
             'publicComments.user',
             'publicComments.media',
         ])

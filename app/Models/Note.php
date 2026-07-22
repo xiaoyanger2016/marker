@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Note extends Model
 {
@@ -49,6 +50,16 @@ class Note extends Model
     public function coverMedia(): BelongsTo
     {
         return $this->belongsTo(Media::class, 'cover_media_id');
+    }
+
+    /**
+     * Phase 19：被哪些内容关联
+     */
+    public function contents(): BelongsToMany
+    {
+        return $this->belongsToMany(Content::class, 'content_notes')
+            ->withPivot('sequence', 'role')
+            ->orderBy('content_notes.sequence');
     }
 
     public function scopeFromXiaohongshu(Builder $query): Builder
