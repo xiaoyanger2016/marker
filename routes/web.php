@@ -78,6 +78,23 @@ Route::post('/{type}/{id}/comments', [HomeController::class, 'commentStore'])
 Route::post('/content/{id}/vote', [HomeController::class, 'vote'])
     ->name('frontend.content.vote');
 
+// Phase 18.4：通知系统
+Route::get('/notifications', [HomeController::class, 'notifications'])->name('frontend.notifications');
+Route::get('/notifications/unread-count', [HomeController::class, 'notificationUnreadCount']);
+Route::post('/notifications/{id}/read', [HomeController::class, 'notificationRead']);
+Route::post('/notifications/mark-all-read', [HomeController::class, 'notificationMarkAll']);
+
+// Phase 18.5：关注/粉丝
+Route::get('/u/{name}', [HomeController::class, 'userProfile'])->name('frontend.user');
+Route::post('/users/{id}/follow', [HomeController::class, 'followToggle'])->name('frontend.follow');
+
+// Phase 18.6：Tag 系统
+Route::get('/tags', [HomeController::class, 'tagIndex'])->name('frontend.tags');
+Route::get('/tags/{slug}', [HomeController::class, 'tagShow'])->name('frontend.tag');
+
+// Phase 18.7：内容分享卡 (PNG 生成)
+Route::get('/content/{id}/share-card.png', [HomeController::class, 'shareCard'])->name('frontend.share.card');
+
 // 活动
 Route::get('/activities', [HomeController::class, 'activities'])->name('frontend.activities');
 Route::get('/activities/create', [HomeController::class, 'activityCreate'])->name('frontend.activity.create');

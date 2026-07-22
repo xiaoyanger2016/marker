@@ -59,6 +59,42 @@ class User extends Authenticatable implements HasAvatar
         return $this->isAdmin() || $this->role === 'editor';
     }
 
+    // ---------- Phase 18.5: 关注/粉丝 ----------
+
+    /**
+     * 我关注的人
+     */
+    public function followings(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'follows', 'follower_id', 'following_id')
+            ->withTimestamps();
+    }
+
+    /**
+     * 关注我的人 (粉丝)
+     */
+    public function followers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'follows', 'following_id', 'follower_id')
+            ->withTimestamps();
+    }
+
+    public function isFollowing(User $other): bool
+    {
+        return $this->followings()->where('following_id', $other->id)->exists();
+    }
+
+    public function follow(User $other): void
+    {
+        if ($other->id === $this->id) return;
+        $this->followings()->syncWithoutDetaching([$other->id]);
+    }
+
+    public function unfollow(User $other): void
+    {
+        $this->followings()->detach($other->id);
+    }
+
     public function places(): HasMany
     {
         return $this->hasMany(Place::class);

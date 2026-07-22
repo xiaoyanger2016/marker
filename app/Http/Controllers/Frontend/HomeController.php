@@ -595,7 +595,262 @@ class HomeController extends Controller
             ['activity_id' => $id, 'user_id' => auth()->id()],
             ['status' => 'joined', 'people_count' => $people]
         );
+        // Phase 18.4: 通知活动发起人
+        if ($activity->user && $activity->user->id !== auth()->id()) {
+            $activity->user->notify(new \App\Notifications\ContentInteractionNotification(
+                type: 'activity_joined',
+                title: '有人报名了你的活动「' . mb_substr($activity->title, 0, 20) . '」',
+                message: $people . ' 人 · ' . auth()->user()->name,
+                url: url('/activities/' . $activity->id),
+                activityId: $activity->id,
+            ));
+        }
         return back()->with('ok', '报名成功');
+    }
+
+    /**
+     * Phase 18.4: 通知列表
+     */
+    public function notifications(Request $request)
+    {
+        $user = auth()->user();
+        if (! $user) return redirect('/login');
+
+        $notifs = $user->notifications()->latest()->paginate(30);
+        $unreadCount = $user->unreadNotifications()->count();
+
+        return view('frontend.notifications', [
+            'notifs' => $notifs,
+            'unreadCount' => $unreadCount,
+        ]);
+    }
+
+    public function notificationRead(Request $request, string $id)
+    {
+        $user = auth()->user();
+        if (! $user) return redirect('/login');
+        $notif = $user->notifications()->where('id', $id)->first();
+        if ($notif) {
+            $notif->markAsRead();
+            $url = $notif->data['url'] ?? '/me';
+        }
+        return redirect($url ?? '/notifications');
+    }
+
+    public function notificationMarkAll(Request $request)
+    {
+        $user = auth()->user();
+        if (! $user) return redirect('/login');
+        $user->unreadNotifications->markAsRead();
+        return back()->with('ok', '已全部标记已读');
+    }
+
+    public function notificationUnreadCount()
+    {
+        return response()->json([
+            'count' => auth()->check() ? auth()->user()->unreadNotifications()->count() : 0,
+        ]);
+    }
+
+    // ---- Phase 18.5: 关注/粉丝 ----
+
+    public function userProfile(string $name)
+    {
+        $user = User::where('name', $name)->firstOrFail();
+        $contents = Content::public()
+            ->where('user_id', $user->id)
+            ->with(['coverMedia', 'places'])
+            ->latest()
+            ->limit(20)
+            ->get()
+            ->map(fn ($c) => $this->presentContent($c));
+
+        $isFollowing = auth()->check() ? auth()->user()->isFollowing($user) : false;
+        $stats = [
+            'contents'    => Content::where('user_id', $user->id)->where('is_public', true)->count(),
+            'places'      => Place::where('user_id', $user->id)->count(),
+            'followers'   => $user->followers()->count(),
+            'followings'  => $user->followings()->count(),
+        ];
+
+        return view('frontend.user_profile', [
+            'profile'     => $user,
+            'contents'    => $contents,
+            'isFollowing' => $isFollowing,
+            'stats'       => $stats,
+        ]);
+    }
+
+    public function followToggle(Request $request, int $id)
+    {
+        if (! auth()->check()) {
+            return response()->json(['error' => 'auth_required'], 401);
+        }
+        $user = User::findOrFail($id);
+        if ($user->id === auth()->id()) {
+            return response()->json(['error' => 'cannot_follow_self'], 400);
+        }
+        $me = auth()->user();
+        if ($me->isFollowing($user)) {
+            $me->unfollow($user);
+            $following = false;
+        } else {
+            $me->follow($user);
+            $following = true;
+            // 通知被关注者
+            $user->notify(new \App\Notifications\ContentInteractionNotification(
+                type: 'followed',
+                title: $me->name . ' 关注了你',
+                message: $me->name . ' 现在能在动态里看到你的内容',
+                url: url('/u/' . $me->name),
+            ));
+        }
+        return response()->json([
+            'ok' => true,
+            'following' => $following,
+            'followers_count' => $user->followers()->count(),
+        ]);
+    }
+
+    // ---- Phase 18.6: Tag 标签页 ----
+
+    public function tagIndex(Request $request)
+    {
+        $tags = \App\Models\Tag::query()
+            ->withCount('contents')
+            ->orderBy('contents_count', 'desc')
+            ->limit(200)
+            ->get();
+
+        return view('frontend.tags_index', ['tags' => $tags]);
+    }
+
+    public function tagShow(Request $request, string $slug)
+    {
+        $tag = \App\Models\Tag::where('slug', $slug)->orWhere('name', $slug)->firstOrFail();
+        $contents = Content::public()
+            ->whereHas('tags', fn ($q) => $q->where('tags.id', $tag->id))
+            ->with(['user', 'coverMedia', 'places'])
+            ->latest()
+            ->paginate(24);
+
+        return view('frontend.tag_show', [
+            'tag' => $tag,
+            'contents' => $contents,
+        ]);
+    }
+
+    // ---- Phase 18.7: 内容分享卡 (生成 1200x630 PNG) ----
+
+    /**
+     * 生成内容分享卡 PNG (Open Graph image)
+     *  - 1200x630 (微信/小红书/微博 标准尺寸)
+     *  - 背景: 8 type 颜色 + 深色渐变
+     *  - N° 编号 + type 标签 + 标题 + 副标题 + 作者
+     *  - 缓存到 storage/app/public/share/{id}.png (regenerate on demand)
+     */
+    public function shareCard(int $id)
+    {
+        $c = Content::public()->with(['user', 'places'])->findOrFail($id);
+        $relPath = 'share/content-' . $c->id . '.png';
+        $absPath = \Storage::disk('public')->path($relPath);
+
+        // 缓存: 24h 内不重生成
+        if (file_exists($absPath) && (time() - filemtime($absPath)) < 86400) {
+            return response()->file($absPath, ['Content-Type' => 'image/png']);
+        }
+
+        \Storage::disk('public')->makeDirectory('share');
+        $typeMeta = $c->typeMeta();
+        $color = $typeMeta['color'] ?? '#114B5F';
+        $typeLabel = __('ui.type_' . $c->type);
+
+        $w = 1200; $h = 630;
+        $im = imagecreatetruecolor($w, $h);
+
+        // 颜色
+        [$r, $g, $b] = sscanf($color, "#%02x%02x%02x");
+        $typeColor = imagecolorallocate($im, $r, $g, $b);
+        $ink = imagecolorallocate($im, 26, 24, 20);     // #1A1814
+        $paper = imagecolorallocate($im, 242, 237, 226); // #F2EDE2
+        $ink3 = imagecolorallocate($im, 132, 126, 114);  // #847E72
+        $warm = imagecolorallocate($im, 196, 86, 38);    // #C45626
+
+        // 背景渐变 (从 type 颜色 → 深 ink)
+        for ($y = 0; $y < $h; $y++) {
+            $t = $y / $h;
+            $cr = (int) ($r * (1 - $t) + 26 * $t);
+            $cg = (int) ($g * (1 - $t) + 24 * $t);
+            $cb = (int) ($b * (1 - $t) + 20 * $t);
+            $line = imagecolorallocate($im, $cr, $cg, $cb);
+            imageline($im, 0, $y, $w, $y, $line);
+        }
+
+        // 顶部 mono 文字
+        $fontPath = $this->findSystemFont();
+        $fontBold = $this->findSystemFont(bold: true);
+
+        if ($fontPath) {
+            // 顶部 mono 标签
+            imagettftext($im, 16, 0, 60, 60, $paper, $fontPath, "MARKER · ROAD ATLAS");
+            imagettftext($im, 14, 0, 60, 90, $paper, $fontPath, strtoupper($typeMeta['icon'] ?? 'N°00') . " · " . strtoupper($typeLabel));
+
+            // 标题 (大, 最多 2 行)
+            $title = $c->title;
+            $title = mb_strimwidth($title, 0, 28, '...');
+            imagettftext($im, 56, 0, 60, 280, $paper, $fontBold, $this->safe($title));
+
+            // 副标题
+            if ($c->subtitle) {
+                $sub = mb_strimwidth($c->subtitle, 0, 50, '...');
+                imagettftext($im, 22, 0, 60, 340, $paper, $fontPath, $this->safe($sub));
+            } elseif ($c->summary) {
+                $summary = mb_strimwidth(strip_tags($c->summary), 0, 60, '...');
+                imagettftext($im, 20, 0, 60, 340, $paper, $fontPath, $this->safe($summary));
+            }
+
+            // 底部信息
+            $author = $c->user ? '@' . $c->user->name : '@anonymous';
+            $city = $c->places->first()?->city ?? '';
+            imagettftext($im, 18, 0, 60, 560, $paper, $fontPath, "CURATED BY " . strtoupper($author));
+            if ($city) {
+                imagettftext($im, 14, 0, 60, 590, $paper, $fontPath, strtoupper($city));
+            }
+
+            // 右下大数字
+            $num = sprintf("N°%02d", $c->id);
+            imagettftext($im, 80, 0, 850, 480, $paper, $fontBold, $num);
+        } else {
+            // fallback 简单文字 (用内置字体)
+            imagestring($im, 5, 60, 60, "MARKER", $paper);
+            imagestring($im, 5, 60, 100, strtoupper($typeLabel), $paper);
+        }
+
+        // 底部 hairline
+        imageline($im, 60, 540, $w - 60, 540, $paper);
+        // 左下角 logo 点
+        imagefilledellipse($im, 40, 590, 12, 12, $warm);
+
+        imagepng($im, $absPath, 6);
+        imagedestroy($im);
+
+        return response()->file($absPath, ['Content-Type' => 'image/png']);
+    }
+
+    private function findSystemFont(bool $bold = false): ?string
+    {
+        $candidates = $bold
+            ? ['/System/Library/Fonts/Supplemental/Songti.ttc', '/System/Library/Fonts/PingFang.ttc', '/System/Library/Fonts/Helvetica.ttc', '/Library/Fonts/Arial Bold.ttf', '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf']
+            : ['/System/Library/Fonts/Supplemental/Songti.ttc', '/System/Library/Fonts/PingFang.ttc', '/System/Library/Fonts/Helvetica.ttc', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'];
+        foreach ($candidates as $f) {
+            if (file_exists($f)) return $f;
+        }
+        return null;
+    }
+
+    private function safe(string $s): string
+    {
+        return mb_convert_encoding($s, 'UTF-8', 'UTF-8');
     }
 
     public function activityLeave(Request $request, int $id)
@@ -681,6 +936,28 @@ class HomeController extends Controller
             ]);
         }
 
+        // Phase 18.4: 通知 content/activity/place 作者 (非自己)
+        $owner = $model->user ?? null;
+        if ($owner && $owner->id !== auth()->id()) {
+            $title = match ($type) {
+                'content' => '有人评论了你的内容',
+                'place'   => '有人评论了你的地点',
+                'activity' => '有人评论了你的活动',
+            };
+            $owner->notify(new \App\Notifications\ContentInteractionNotification(
+                type: 'comment',
+                title: $title,
+                message: mb_substr($data['body'], 0, 60) . (mb_strlen($data['body']) > 60 ? '...' : ''),
+                url: match ($type) {
+                    'content' => url('/content/' . $model->id . '#comment-' . $comment->id),
+                    'place'   => url('/place/' . $model->id),
+                    'activity' => url('/activities/' . $model->id),
+                },
+                contentId: $type === 'content' ? $model->id : null,
+                activityId: $type === 'activity' ? $model->id : null,
+            ));
+        }
+
         return back()->with('ok', '评论已发布');
     }
 
@@ -695,6 +972,20 @@ class HomeController extends Controller
         ]);
         $content = Content::public()->findOrFail($id);
         $content->vote(auth()->user(), (int) $data['value']);
+
+        // Phase 18.4: 通知 content 作者 (投票人 != 作者)
+        if ($content->user && $content->user->id !== auth()->id()) {
+            $labels = Content::RATING_LABELS;
+            $v = (int) $data['value'];
+            $ratingLabel = $labels[$content->fresh()->rating_label]['label'] ?? '';
+            $content->user->notify(new \App\Notifications\ContentInteractionNotification(
+                type: 'vote',
+                title: '有人给「' . mb_substr($content->title, 0, 20) . '」投了' . ($labels[array_key_first(array_filter($labels, fn ($l) => $l['label'] === ($labels[$content->fresh()->rating_label]['label'] ?? ''))) ?? 'nice'] ?? $ratingLabel),
+                message: '当前共 ' . $content->fresh()->vote_count . ' 票 · avg ' . $content->fresh()->vote_avg,
+                url: url('/content/' . $content->id),
+                contentId: $content->id,
+            ));
+        }
 
         return response()->json([
             'ok' => true,

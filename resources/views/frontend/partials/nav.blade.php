@@ -83,6 +83,13 @@
         </div>
 
         @auth
+            {{-- 通知 icon (Phase 18.4) --}}
+            <a href="{{ url('/notifications') }}" class="relative font-mono text-[10px] uppercase tracking-[0.15em] text-ink-2 hover:text-ink transition-colors px-1.5 py-1 border border-transparent hover:border-line-2" title="通知">
+                <svg class="w-4 h-4 inline" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 0 0 4 0"/>
+                </svg>
+                <span id="notif-dot" class="hidden absolute -top-0.5 -right-0.5 w-2 h-2 bg-warm"></span>
+            </a>
             <a href="{{ url('/me') }}" class="font-sans text-sm text-ink hover:text-warm transition-colors hidden sm:inline">
                 {{ auth()->user()->name }}
             </a>

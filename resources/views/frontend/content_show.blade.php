@@ -4,6 +4,14 @@
 
 @section('head')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+{{-- Phase 18.7: Open Graph / 微信分享卡 --}}
+<meta property="og:title" content="{{ $content->title }}">
+<meta property="og:description" content="{{ \Illuminate\Support\Str::limit(strip_tags($content->summary ?? $content->subtitle ?? ''), 100) }}">
+<meta property="og:image" content="{{ url('/content/' . $content->id . '/share-card.png') }}">
+<meta property="og:url" content="{{ url('/content/' . $content->id) }}">
+<meta property="og:type" content="article">
+<meta name="wechat:card_title" content="{{ $content->title }}">
+<meta name="wechat:card_description" content="{{ \Illuminate\Support\Str::limit(strip_tags($content->summary ?? ''), 80) }}">
 <style>
     .gallery-image {
         width: 100%;
@@ -139,6 +147,24 @@
                 <div>
                     <div class="eyebrow">VIEWS</div>
                     <div class="font-display text-2xl text-ink mt-1">{{ $content->view_count }}</div>
+                </div>
+
+                {{-- Phase 18.7: 分享 --}}
+                <div x-data="{ copied: false }">
+                    <div class="eyebrow mb-1.5">SHARE</div>
+                    <div class="flex items-center gap-1.5">
+                        <button @click="navigator.clipboard.writeText('{{ url("/content/" . $content->id) }}'); copied = true; setTimeout(() => copied = false, 1500)"
+                                class="flex-1 font-mono text-[10px] uppercase tracking-[0.15em] border border-ink px-2 py-1.5 hover:bg-ink hover:text-paper transition-colors flex items-center justify-center gap-1"
+                                :class="copied ? 'bg-ink text-paper' : ''">
+                            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                            <span x-text="copied ? '已复制' : '链接'"></span>
+                        </button>
+                        <a href="{{ url('/content/' . $content->id . '/share-card.png') }}" download="marker-{{ $content->id }}.png"
+                           class="flex-1 font-mono text-[10px] uppercase tracking-[0.15em] border border-ink px-2 py-1.5 hover:bg-ink hover:text-paper transition-colors text-center flex items-center justify-center gap-1">
+                            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="0"/><path d="M3 9h18M9 3v18"/></svg>
+                            <span>卡</span>
+                        </a>
+                    </div>
                 </div>
                 <div>
                     <div class="eyebrow">STATUS</div>
