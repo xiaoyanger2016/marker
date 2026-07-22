@@ -146,7 +146,7 @@
                             <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-paper/80">{{ $hero['type']['label'] }}</span>
                         </div>
                         @if(! empty($heroItem['rating_label']))
-                            @php $rl = \App\Models\Place::RATING_LABELS[$heroItem['rating_label']] ?? null; @endphp
+                            @php $rl = \App\Models\Content::RATING_LABELS[$heroItem['rating_label']] ?? null; @endphp
                             @if($rl)
                                 <div class="absolute top-3 right-3 font-mono text-[10px] uppercase tracking-[0.2em] px-2 py-1 border border-paper/40 text-paper">
                                     {{ $rl['label'] }}

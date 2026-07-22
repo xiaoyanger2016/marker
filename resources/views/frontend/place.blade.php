@@ -28,11 +28,7 @@
 @section('content')
 
 @php
-    $pt = \App\Models\Place::PLACE_TYPES[$place->place_type] ?? null;
-    $ptColor = $pt['color'] ?? '#4A4640';
-    $ptLabel = $pt['label'] ?? '';
-    $ptIcon = $pt['icon'] ?? 'N°00';
-    $rl = $place->rating_label ? (\App\Models\Place::RATING_LABELS[$place->rating_label] ?? null) : null;
+    $rl = $place->rating_label ? (\App\Models\Content::RATING_LABELS[$place->rating_label] ?? null) : null;
 @endphp
 
 {{-- =================================================================
@@ -49,9 +45,13 @@
             <span>N°{{ str_pad($place->id, 4, '0', STR_PAD_LEFT) }}</span>
         </div>
 
-        @if($ptLabel)
-            <div class="mb-3">
-                <span class="tag" style="background: {{ $ptColor }}; color: var(--color-paper);">{{ $ptIcon }} · {{ $ptLabel }}</span>
+        @if($place->contents->count() > 0)
+            <div class="mb-3 flex flex-wrap gap-2">
+                @foreach($place->contents as $c)
+                    <a href="{{ url('/content/' . $c->id) }}" class="tag" style="background: {{ \App\Models\Content::TYPES[$c->type]['color'] ?? '#4A4640' }}; color: var(--color-paper);">
+                        {{ \App\Models\Content::TYPES[$c->type]['icon'] ?? 'N°00' }} · {{ \App\Models\Content::TYPES[$c->type]['label'] ?? $c->type }}
+                    </a>
+                @endforeach
             </div>
         @endif
 

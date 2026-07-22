@@ -61,9 +61,10 @@ class ActivityController extends Controller
                     'name' => $activity->place->name,
                     'type' => $activity->place->place_type,
                 ] : null,
-                'route' => $activity->route ? [
-                    'id' => $activity->route->id,
-                    'name' => $activity->route->name,
+                'route' => $activity->content ? [
+                    'id' => $activity->content->id,
+                    'name' => $activity->content->title,
+                    'type' => $activity->content->type,
                 ] : null,
                 'participants' => $joined,
                 'is_joined' => $request->user()
@@ -82,7 +83,7 @@ class ActivityController extends Controller
             'cover_image' => 'nullable|string|max:500',
 
             'place_id' => 'nullable|integer|exists:places,id',
-            'route_id' => 'nullable|integer|exists:routes,id',
+            'content_id' => 'nullable|integer|exists:contents,id',
 
             'start_at' => 'required|date',
             'end_at' => 'nullable|date|after:start_at',
@@ -182,9 +183,10 @@ class ActivityController extends Controller
                 'id'   => $a->place->id,
                 'name' => $a->place->name,
             ] : null,
-            'route' => $a->route ? [
-                'id'   => $a->route->id,
-                'name' => $a->route->name,
+            'route' => $a->content ? [
+                'id'   => $a->content->id,
+                'name' => $a->content->title,
+                'type' => $a->content->type,
             ] : null,
             'created_at' => $a->created_at?->toIso8601String(),
         ];

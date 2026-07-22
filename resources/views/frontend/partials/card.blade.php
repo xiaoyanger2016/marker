@@ -5,23 +5,24 @@
      - 4px 圆角 + 细线
 --}}
 @php
-    $isRoute = ($item['kind'] ?? null) === 'route';
+    $isContent = ($item['kind'] ?? null) === 'content';
 
     // 错开高度（瀑布流效果）
     $ratios = ['aspect-[3/4]', 'aspect-square', 'aspect-[4/5]', 'aspect-[3/4]', 'aspect-[4/3]', 'aspect-[2/3]'];
     $ratio = $ratios[$item['id'] % count($ratios)];
 
     // 封面用 type 颜色（编辑感低饱和度）
-    $typeColor = $isRoute
-        ? ($item['type_color'] ?? '#114B5F')
-        : (\App\Models\Place::PLACE_TYPES[$item['place_type'] ?? '']['color'] ?? '#4A4640');
-    $typeLabel = $isRoute ? ($item['type_label'] ?? '') : ($item['place_type_label'] ?? '');
+    $typeColor = $isContent
+        ? ($item['type_color'] ?? \App\Models\Content::TYPES[$item['type'] ?? '']['color'] ?? '#4A4640')
+        : (\App\Models\Content::TYPES[$item['type'] ?? '']['color'] ?? '#4A4640');
+    $typeLabel = $isContent ? ($item['type_label'] ?? '') : ($item['type_label'] ?? '');
 
     $numStr = str_pad((string) ($item['id'] % 100), 2, '0', STR_PAD_LEFT);
     $hasCover = !empty($item['cover']) && $item['cover'] !== url('/images/placeholder.png');
 
     // 评分（从 meta 拿，icon 已无 emoji）
-    $rating = $item['rating_meta'] ?? null;
+    $rating = $item['rating_label'] ?? null;
+    $ratingLabel = $rating ? (\App\Models\Content::RATING_LABELS[$rating]['label'] ?? null) : null;
 @endphp
 
 <a href="{{ $item['url'] }}" class="masonry-item group block bg-paper border border-line hover:border-ink transition-colors">
@@ -47,24 +48,18 @@
         @endif
 
         {{-- 评分角标 --}}
-        @if($rating && !empty($rating['label']))
+        @if($ratingLabel)
             <div class="absolute top-2 right-2">
                 <span class="font-mono text-[9px] uppercase tracking-[0.2em] px-1.5 py-0.5 border border-paper/50 text-paper" style="background: rgba(26, 24, 20, 0.4);">
-                    {{ $rating['label'] }}
+                    {{ $ratingLabel }}
                 </span>
             </div>
         @endif
 
         {{-- 线路：底部数据条 --}}
-        @if($isRoute)
+        @if($isContent && ($item['is_multiple'] ?? false))
             <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-ink/85 to-transparent">
                 <div class="flex items-center gap-2 text-paper font-mono text-[10px]">
-                    @if(!empty($item['distance_km']))
-                        <span>{{ $item['distance_km'] }}KM</span>
-                    @endif
-                    @if(!empty($item['duration_hours']))
-                        <span>{{ $item['duration_hours'] }}H</span>
-                    @endif
                     @if(!empty($item['places_count']) && $item['places_count'] > 0)
                         <span>{{ $item['places_count'] }} STOPS</span>
                     @endif
@@ -84,9 +79,7 @@
 
         <div class="mt-2 flex items-center justify-between font-mono text-[10px] text-ink-3">
             <span>{{ $item['city'] ?? '—' }}</span>
-            @if($isRoute && ($item['like_count'] ?? 0) > 0)
-                <span>+{{ $item['like_count'] }}</span>
-            @elseif(!$isRoute && !empty($item['is_wishlist']))
+            @if(!empty($item['is_wishlist']))
                 <span class="text-warm">种草中</span>
             @else
                 <span class="opacity-0 group-hover:opacity-100 text-warm transition-opacity">→</span>

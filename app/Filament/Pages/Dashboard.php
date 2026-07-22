@@ -3,13 +3,11 @@
 namespace App\Filament\Pages;
 
 use App\Models\Activity;
-use App\Models\Category;
+use App\Models\Content;
 use App\Models\Place;
 use App\Models\Region;
-use App\Models\Route;
 use App\Models\User;
 use Filament\Pages\Page;
-use Illuminate\Support\Facades\DB;
 
 class Dashboard extends Page
 {
@@ -40,20 +38,19 @@ class Dashboard extends Page
     {
         // 8 大类分别统计
         $byType = [];
-        foreach (\App\Models\Place::PLACE_TYPES as $key => $meta) {
-            $byType[$key] = Place::where('place_type', $key)->count();
+        foreach (Content::TYPES as $key => $meta) {
+            $byType[$key] = Content::where('type', $key)->count();
         }
 
         return [
             'stats' => [
                 // 主 metric cards
+                'contents'           => Content::count(),
+                'contents_today'     => Content::where('created_at', '>=', now()->subDay())->count(),
+                'contents_public'    => Content::where('is_public', true)->count(),
+                'contents_visited'   => Content::where('is_visited', true)->count(),
+                'contents_wishlist'  => Content::where('is_wishlist', true)->count(),
                 'places'             => Place::count(),
-                'places_today'       => Place::where('created_at', '>=', now()->subDay())->count(),
-                'places_visited'     => Place::where('is_visited', true)->count(),
-                'places_wishlist'    => Place::where('is_wishlist', true)->count(),
-                'routes'             => Route::count(),
-                'routes_self_drive'  => Route::where('type', 'self_drive')->count(),
-                'routes_hiking'      => Route::where('type', 'hiking')->count(),
                 'activities'         => Activity::count(),
                 'activities_open'    => Activity::where('status', 'open')->count(),
                 'activities_full'    => Activity::where('status', 'full')->count(),
@@ -61,14 +58,12 @@ class Dashboard extends Page
                 'users_active_7d'    => User::where('created_at', '>=', now()->subDays(7))->count(),
 
                 // sidebar 快捷入口计数
-                'categories'         => Category::count(),
                 'regions'            => Region::count(),
 
                 // 8 大类分布 (按 N°01-08 顺序)
                 'by_type'            => $byType,
             ],
-            'recent_places' => Place::orderBy('created_at', 'desc')->limit(8)->get(['id', 'name', 'city', 'place_type', 'created_at']),
+            'recent_contents' => Content::orderBy('created_at', 'desc')->limit(8)->get(['id', 'title', 'type', 'created_at', 'is_public']),
         ];
     }
 }
-

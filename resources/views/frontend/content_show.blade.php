@@ -1,0 +1,387 @@
+@extends('frontend.layout')
+
+@section('title', $content->title . ' · Marker')
+
+@section('head')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<style>
+    .gallery-image {
+        width: 100%;
+        height: 240px;
+        object-fit: cover;
+        display: block;
+    }
+    .video-wrap { position: relative; padding-bottom: 56.25%; height: 0; }
+    .video-wrap video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    .gallery-image { width: 100%; height: 240px; object-fit: cover; display: block; }
+</style>
+@endsection
+
+@section('content')
+
+@php
+    $typeMeta = $content->typeMeta();
+    $typeIcon = $typeMeta['icon'] ?? 'N°00';
+    $typeLabel = $typeMeta['label'] ?? $content->type;
+    $typeColor = $typeMeta['color'] ?? '#1A1814';
+    $sub = $content->subTable();
+@endphp
+
+{{-- HEADER: N° 编号 + 类型 + 标题 --}}
+<section class="border-b border-line-2">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 pt-4 pb-2">
+        <div class="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3">
+            <a href="/" class="hover:text-ink transition-colors">← BACK</a>
+            <span class="w-px h-3 bg-line-2"></span>
+            <span>N°{{ str_pad($content->id, 3, '0', STR_PAD_LEFT) }}</span>
+            <span class="w-px h-3 bg-line-2"></span>
+            <span style="color: {{ $typeColor }}">{{ $typeIcon }} · {{ $typeLabel }}</span>
+        </div>
+    </div>
+</section>
+
+{{-- HERO: cover + title + meta --}}
+@if($cover)
+<section class="border-b border-line">
+    <div class="max-w-6xl mx-auto px-0 sm:px-8">
+        <div class="aspect-[16/9] sm:aspect-[21/9] overflow-hidden bg-ink-3">
+            <img src="{{ $cover->url }}" alt="{{ $content->title }}" class="w-full h-full object-cover">
+        </div>
+    </div>
+</section>
+@endif
+
+<section class="border-b border-line">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
+        <div class="grid grid-cols-12 gap-6 sm:gap-12">
+            <div class="col-span-12 sm:col-span-8">
+                @if($content->subtitle)
+                    <p class="font-display italic text-xl text-ink-2 mb-3">{{ $content->subtitle }}</p>
+                @endif
+                <h1 class="font-display font-medium text-3xl sm:text-5xl leading-[1.05] text-ink">
+                    {{ $content->title }}
+                </h1>
+                @if($content->summary)
+                    <p class="font-sans text-base text-ink-2 mt-5 leading-relaxed max-w-2xl">{{ $content->summary }}</p>
+                @endif
+            </div>
+
+            <div class="col-span-12 sm:col-span-4 sm:pt-4 space-y-4">
+                @if($content->rating_label)
+                    @php $rl = $rating ?? null; @endphp
+                    <div>
+                        <div class="eyebrow">RATING</div>
+                        <div class="font-display text-3xl mt-1" style="color: {{ $rl['color'] ?? '#1A1814' }}">{{ $rl['label'] ?? '' }}</div>
+                    </div>
+                @endif
+                @if($content->user)
+                    <div>
+                        <div class="eyebrow">CURATED BY</div>
+                        <div class="font-display text-lg text-ink mt-1">{{ $content->user->name }}</div>
+                    </div>
+                @endif
+                <div>
+                    <div class="eyebrow">VIEWS</div>
+                    <div class="font-display text-2xl text-ink mt-1">{{ $content->view_count }}</div>
+                </div>
+                <div>
+                    <div class="eyebrow">STATUS</div>
+                    <div class="font-mono text-xs text-ink-2 mt-1">
+                        @if($content->is_visited) <span class="text-info">已去过</span> @endif
+                        @if($content->is_wishlist) <span class="text-warm">种草中</span> @endif
+                        @if($content->is_public) <span class="text-success">公开</span> @else <span class="text-ink-3">草稿</span> @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{{-- 关联地点 (单/多地点) --}}
+@if($content->places->count() > 0)
+<section class="border-b border-line">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
+        <div class="eyebrow mb-5">§ 02 — {{ $content->isMultiplePlaces() ? '沿途地点' : '地点' }} · {{ $content->places->count() }} STOPS</div>
+        <ol class="space-y-4">
+            @foreach($content->places as $i => $place)
+                <li class="border-b border-line-2 pb-4 flex gap-4">
+                    <span class="font-mono text-xs text-ink-3 w-8 flex-shrink-0 pt-1">{{ $content->isMultiplePlaces() ? str_pad($i + 1, 2, '0', STR_PAD_LEFT) : 'N°' . str_pad($place->id, 2, '0', STR_PAD_LEFT) }}</span>
+                    <div class="flex-1 min-w-0">
+                        <a href="{{ url('/place/' . $place->id) }}" class="font-display text-lg text-ink hover:text-warm transition-colors">
+                            {{ $place->name }}
+                        </a>
+                        @if($place->city || $place->address)
+                            <div class="font-mono text-[10px] uppercase tracking-[0.15em] text-ink-3 mt-1">
+                                {{ trim($place->city . ($place->address ? ' · ' . $place->address : '')) }}
+                            </div>
+                        @endif
+                        @if($place->pivot->notes)
+                            <p class="text-sm text-ink-2 mt-2 italic">{{ $place->pivot->notes }}</p>
+                        @endif
+                    </div>
+                </li>
+            @endforeach
+        </ol>
+    </div>
+</section>
+@endif
+
+{{-- 类型专属 (sub table) --}}
+@if($sub)
+<section class="border-b border-line">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
+        <div class="eyebrow mb-5">§ 03 — {{ $typeLabel }} · 详细信息</div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-4">
+            @php
+                $fields = match($content->type) {
+                    'self_drive' => [
+                        ['label' => '距离', 'value' => $sub->distance_km, 'unit' => 'km'],
+                        ['label' => '预计时长', 'value' => $sub->duration_minutes, 'unit' => '分钟'],
+                        ['label' => '最高海拔', 'value' => $sub->altitude_meters, 'unit' => 'm'],
+                        ['label' => '难度', 'value' => ['easy' => '轻松', 'moderate' => '中等', 'hard' => '困难'][$sub->difficulty ?? ''] ?? $sub->difficulty],
+                        ['label' => '路况', 'value' => ['paved' => '全程铺装', 'mostly_paved' => '大部分铺装', 'mixed' => '混合', 'offroad' => '越野'][$sub->road_condition ?? ''] ?? $sub->road_condition],
+                        ['label' => '最佳季节', 'value' => is_array($sub->best_season) ? implode(' / ', array_map(fn($s) => ['spring' => '春', 'summer' => '夏', 'autumn' => '秋', 'winter' => '冬'][$s] ?? $s, $sub->best_season)) : null],
+                        ['label' => '加油站', 'value' => is_array($sub->gas_stations) ? count($sub->gas_stations) . ' 处' : null],
+                        ['label' => '两步路', 'value' => $sub->two_foot_route_id, 'mono' => true],
+                    ],
+                    'hiking' => [
+                        ['label' => '距离', 'value' => $sub->distance_km, 'unit' => 'km'],
+                        ['label' => '预计时长', 'value' => $sub->duration_minutes, 'unit' => '分钟'],
+                        ['label' => '最高海拔', 'value' => $sub->altitude_meters, 'unit' => 'm'],
+                        ['label' => '累计爬升', 'value' => $sub->elevation_gain, 'unit' => 'm'],
+                        ['label' => '难度', 'value' => ['easy' => '轻松', 'moderate' => '中等', 'hard' => '困难', 'expert' => '专业'][$sub->difficulty ?? ''] ?? $sub->difficulty],
+                        ['label' => '线路类型', 'value' => ['loop' => '环形', 'out_back' => '往返', 'one_way' => '单程'][$sub->route_type ?? ''] ?? $sub->route_type],
+                        ['label' => '最佳季节', 'value' => is_array($sub->best_season) ? implode(' / ', array_map(fn($s) => ['spring' => '春', 'summer' => '夏', 'autumn' => '秋', 'winter' => '冬'][$s] ?? $s, $sub->best_season)) : null],
+                        ['label' => '两步路', 'value' => $sub->two_foot_route_id, 'mono' => true],
+                    ],
+                    'play_water' => [
+                        ['label' => '水域', 'value' => ['lake' => '湖', 'river' => '河', 'sea' => '海', 'pool' => '潭', 'reservoir' => '水库'][$sub->water_type ?? ''] ?? $sub->water_type],
+                        ['label' => '水深', 'value' => $sub->water_depth],
+                        ['label' => '可游泳', 'value' => $sub->is_swimmable ? '✓' : '—'],
+                        ['label' => '免费', 'value' => $sub->is_free ? '✓' : '—'],
+                        ['label' => '门票', 'value' => $sub->ticket],
+                        ['label' => '有救生员', 'value' => $sub->has_lifeguard ? '✓' : '—'],
+                        ['label' => '停车', 'value' => ['free' => '免费', 'paid' => '收费', 'limited' => '有限', 'no' => '无'][$sub->parking ?? ''] ?? $sub->parking],
+                    ],
+                    'paddle' => [
+                        ['label' => '水深', 'value' => $sub->water_depth],
+                        ['label' => '水流情况', 'value' => ['calm' => '平静', 'mild' => '缓流', 'moderate' => '中流', 'strong' => '急流'][$sub->water_current ?? ''] ?? $sub->water_current],
+                        ['label' => '难度', 'value' => ['easy' => '轻松', 'moderate' => '中等', 'hard' => '困难'][$sub->difficulty ?? ''] ?? $sub->difficulty],
+                        ['label' => '装备租赁', 'value' => $sub->rental_available ? '✓' : '—'],
+                        ['label' => '最佳时间', 'value' => $sub->best_time],
+                    ],
+                    'photo' => [
+                        ['label' => '最佳时间', 'value' => $sub->best_time],
+                        ['label' => '最佳光影', 'value' => $sub->best_light],
+                        ['label' => '机位数量', 'value' => $sub->viewpoint_count],
+                        ['label' => '可飞无人机', 'value' => $sub->is_drone_allowed ? '✓' : '—'],
+                        ['label' => '需要许可', 'value' => $sub->permit_required ? '✓' : '—'],
+                        ['label' => '停车', 'value' => ['free' => '免费', 'paid' => '收费', 'limited' => '有限', 'no' => '无'][$sub->parking ?? ''] ?? $sub->parking],
+                    ],
+                    'food' => [
+                        ['label' => '人均', 'value' => $sub->price_per_person, 'unit' => '元'],
+                        ['label' => '菜系', 'value' => $sub->cuisine_type],
+                        ['label' => '营业时间', 'value' => $sub->business_hours],
+                        ['label' => '招牌菜', 'value' => is_array($sub->signature_dishes) ? implode(' / ', $sub->signature_dishes) : null],
+                        ['label' => '预订方式', 'value' => $sub->reservation],
+                        ['label' => '联系方式', 'value' => $sub->contact],
+                    ],
+                    'camping' => [
+                        ['label' => '海拔', 'value' => $sub->altitude_meters, 'unit' => 'm'],
+                        ['label' => '免费', 'value' => $sub->is_free ? '✓' : '—'],
+                        ['label' => '有水源', 'value' => $sub->has_water ? '✓' : '—'],
+                        ['label' => '有厕所', 'value' => $sub->has_toilet ? '✓' : '—'],
+                        ['label' => '可明火', 'value' => $sub->fire_allowed ? '✓' : '—'],
+                        ['label' => '有信号', 'value' => $sub->has_signal ? '✓' : '—'],
+                        ['label' => '停车', 'value' => ['free' => '免费', 'paid' => '收费', 'limited' => '有限', 'no' => '无'][$sub->parking ?? ''] ?? $sub->parking],
+                    ],
+                    'sunrise_sunset' => [
+                        ['label' => '方位', 'value' => ['east' => '东 (日出)', 'west' => '西 (日落)', 'both' => '都能看'][$sub->direction ?? ''] ?? $sub->direction],
+                        ['label' => '最佳时间', 'value' => $sub->best_time],
+                        ['label' => '机位数量', 'value' => $sub->viewpoint_count],
+                        ['label' => '抵达难度', 'value' => ['easy' => '轻松', 'moderate' => '中等', 'hard' => '困难'][$sub->difficulty ?? ''] ?? $sub->difficulty],
+                        ['label' => '可飞无人机', 'value' => $sub->is_drone_allowed ? '✓' : '—'],
+                    ],
+                    default => [],
+                };
+            @endphp
+            @foreach($fields as $f)
+                @if(!empty($f['value']) && $f['value'] !== '—')
+                <div>
+                    <div class="eyebrow">{{ $f['label'] }}</div>
+                    <div class="font-display text-base text-ink mt-1 {{ !empty($f['mono']) ? 'font-mono' : '' }}">
+                        {{ $f['value'] }}{{ !empty($f['unit']) ? ' <span class="text-ink-3 text-sm">' . $f['unit'] . '</span>' : '' }}
+                    </div>
+                </div>
+                @endif
+            @endforeach
+        </div>
+
+        @if($sub->description ?? null)
+            <div class="prose prose-sm max-w-none mt-6 text-ink-2">{!! $sub->description !!}</div>
+        @endif
+
+        @if($content->type === 'self_drive' && is_array($sub->waypoints) && count($sub->waypoints) > 0)
+            <div class="mt-6">
+                <div class="eyebrow mb-3">途经点</div>
+                <ol class="space-y-1">
+                    @foreach($sub->waypoints as $wp)
+                        <li class="text-sm text-ink-2 font-mono">{{ $wp }}</li>
+                    @endforeach
+                </ol>
+            </div>
+        @endif
+
+        @if($content->type === 'hiking' && is_array($sub->waypoints) && count($sub->waypoints) > 0)
+            <div class="mt-6">
+                <div class="eyebrow mb-3">途经点</div>
+                <ol class="space-y-1">
+                    @foreach($sub->waypoints as $wp)
+                        <li class="text-sm text-ink-2 font-mono">{{ $wp }}</li>
+                    @endforeach
+                </ol>
+            </div>
+        @endif
+
+        @if(is_array($sub->gear_checklist) && count($sub->gear_checklist) > 0)
+            <div class="mt-6">
+                <div class="eyebrow mb-3">装备清单</div>
+                <div class="flex flex-wrap gap-2">
+                    @foreach($sub->gear_checklist as $g)
+                        <span class="text-xs font-mono border border-line-2 px-2 py-1">{{ $g }}</span>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
+        @if(is_array($sub->safety_notes) && count($sub->safety_notes) > 0)
+            <div class="mt-6">
+                <div class="eyebrow mb-3">安全提示</div>
+                <ul class="space-y-1">
+                    @foreach($sub->safety_notes as $s)
+                        <li class="text-sm text-ink-2">· {{ $s }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+    </div>
+</section>
+@endif
+
+{{-- 详情描述 --}}
+@if($content->description)
+<section class="border-b border-line">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
+        <div class="eyebrow mb-5">§ 04 — 详细描述</div>
+        <div class="prose prose-sm max-w-none text-ink-2">{!! $content->description !!}</div>
+    </div>
+</section>
+@endif
+
+{{-- 相册 + 视频 --}}
+@if($gallery->count() > 0)
+<section class="border-b border-line">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
+        <div class="eyebrow mb-5">§ 05 — 相册 · {{ $gallery->count() }} PHOTOS</div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            @foreach($gallery as $img)
+                <a href="{{ $img->url }}" target="_blank" class="block aspect-square overflow-hidden border border-line-2">
+                    <img src="{{ $img->thumbnail_url ?? $img->url }}" alt="{{ $img->pivot->caption ?? '' }}" class="gallery-image">
+                </a>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
+@if($videos->count() > 0)
+<section class="border-b border-line">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
+        <div class="eyebrow mb-5">§ 06 — 视频集 · {{ $videos->count() }} VIDEOS</div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            @foreach($videos as $v)
+                <div class="border border-line-2">
+                    @if(str_starts_with($v->path, 'http'))
+                        <div class="video-wrap">
+                            <video src="{{ $v->path }}" controls></video>
+                        </div>
+                    @else
+                        <div class="aspect-video bg-ink-3 flex items-center justify-center font-mono text-xs text-paper-2">{{ $v->path }}</div>
+                    @endif
+                    @if($v->pivot->caption)
+                        <div class="px-3 py-2 text-sm text-ink-2">{{ $v->pivot->caption }}</div>
+                    @endif
+                </div>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
+{{-- 关联活动 --}}
+@if($activities->count() > 0)
+<section class="border-b border-line">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
+        <div class="eyebrow mb-5">§ 07 — 关联约伴 · {{ $activities->count() }}</div>
+        <div class="space-y-3">
+            @foreach($activities as $act)
+                <a href="{{ url('/activities/' . $act->id) }}" class="block border border-line p-4 hover:border-ink transition-colors">
+                    <div class="flex items-baseline justify-between">
+                        <h3 class="font-display text-lg text-ink">{{ $act->title }}</h3>
+                        <span class="font-mono text-[10px] text-ink-3">{{ $act->start_at?->format('Y-m-d H:i') }}</span>
+                    </div>
+                    <div class="font-mono text-[10px] text-ink-3 mt-1">
+                        {{ $act->meeting_point ?? '—' }} · {{ $act->joined_count }}/{{ $act->max_participants ?: '∞' }} · {{ \App\Models\Activity::STATUSES[$act->status] ?? $act->status }}
+                    </div>
+                </a>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
+{{-- 评论 --}}
+<section class="border-b border-line">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
+        <div class="eyebrow mb-5">§ 08 — 评论 · {{ $content->publicComments->count() }}</div>
+
+        @auth
+            <form method="POST" action="{{ url('/content/' . $content->id . '/comments') }}" class="mb-8 border border-line p-4">
+                @csrf
+                <textarea name="body" required rows="3" placeholder="说点什么..." class="w-full bg-transparent border-b border-line-2 focus:border-ink outline-none text-sm resize-none mb-3"></textarea>
+                <div class="flex items-center justify-between">
+                    <select name="rating_label" class="text-xs border border-line-2 px-2 py-1 bg-transparent">
+                        <option value="">不带评分</option>
+                        <option value="terrible">拉垮</option>
+                        <option value="npc">NPC</option>
+                        <option value="nice">NICE</option>
+                        <option value="great">超值</option>
+                        <option value="amazing">夯</option>
+                    </select>
+                    <button type="submit" class="font-mono text-xs uppercase tracking-[0.15em] px-4 py-2 bg-ink text-paper hover:bg-warm transition-colors">发布评论</button>
+                </div>
+            </form>
+        @else
+            <p class="text-sm text-ink-3 mb-8"><a href="{{ url('/login') }}" class="underline">登录</a> 后可以发表评论</p>
+        @endauth
+
+        <div class="space-y-5">
+            @forelse($content->publicComments as $comment)
+                <div class="border-b border-line-2 pb-4">
+                    <div class="flex items-baseline gap-3 mb-2">
+                        <span class="font-display text-sm text-ink">{{ $comment->user?->name ?? '匿名' }}</span>
+                        <span class="font-mono text-[10px] text-ink-3">{{ $comment->created_at?->format('Y-m-d H:i') }}</span>
+                        @if($comment->rating_label)
+                            <span class="font-mono text-[10px] text-warm">· {{ \App\Models\Content::RATING_LABELS[$comment->rating_label]['label'] ?? $comment->rating_label }}</span>
+                        @endif
+                    </div>
+                    <p class="text-sm text-ink-2">{{ $comment->body }}</p>
+                </div>
+            @empty
+                <p class="text-sm text-ink-3 italic">还没有评论 — 来当第一个吧</p>
+            @endforelse
+        </div>
+    </div>
+</section>
+
+@endsection

@@ -13,7 +13,7 @@ class Activity extends Model
 
     protected $fillable = [
         'user_id', 'title', 'description', 'cover_image',
-        'place_id', 'route_id',
+        'place_id', 'content_id',
         'start_at', 'end_at', 'signup_deadline',
         'meeting_point', 'latitude', 'longitude',
         'max_participants', 'transport',
@@ -48,9 +48,9 @@ class Activity extends Model
         return $this->belongsTo(Place::class);
     }
 
-    public function route(): BelongsTo
+    public function content(): BelongsTo
     {
-        return $this->belongsTo(Route::class, 'route_id');
+        return $this->belongsTo(Content::class);
     }
 
     public function participants(): HasMany

@@ -3,33 +3,46 @@
 @section('title', $type['label'] . ' · Marker')
 
 @section('content')
-<section class="px-4 py-4 text-white" style="background: linear-gradient(135deg, {{ $type['color'] }}, {{ $type['color'] }}aa);">
-    <div class="max-w-2xl mx-auto flex items-center gap-3">
-        <a href="{{ url('/') }}" class="text-white/80">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-        </a>
-        <div class="flex-1">
-            <h1 class="text-xl font-bold flex items-center gap-2">
-                <span class="text-2xl">{{ $type['icon'] }}</span>
-                {{ $type['label'] }}
-            </h1>
-            <p class="text-sm text-white/80 mt-0.5">{{ $type['desc'] }}</p>
+
+{{-- 期刊 header --}}
+<section class="border-b border-line-2">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 pt-4 pb-2">
+        <div class="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3">
+            <a href="/" class="hover:text-ink transition-colors">← BACK</a>
+            <span class="w-px h-3 bg-line-2"></span>
+            <span>{{ $type['icon'] }} · {{ strtoupper($type['label']) }}</span>
         </div>
     </div>
 </section>
 
-<section class="px-4 py-3">
-    <div class="text-xs text-gray-500 max-w-2xl mx-auto mb-2">共 {{ $items->count() }} 个</div>
-    <div class="masonry max-w-2xl mx-auto">
-        @forelse($items as $item)
-            @include('frontend.partials.card', ['item' => $item])
-        @empty
-            <div class="col-span-full py-20 text-center text-gray-400">
-                <div class="text-5xl mb-2">{{ $type['icon'] }}</div>
-                <p class="text-sm">还没有{{ $type['label'] }}内容</p>
-                <a href="{{ url('/admin/places/create') }}" class="text-emerald-600 text-sm">+ 添加一个</a>
-            </div>
-        @endforelse
+{{-- HERO --}}
+<section class="border-b border-line">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 py-8 sm:py-12">
+        <h1 class="font-display font-medium text-4xl sm:text-6xl text-ink leading-[1.05]">
+            <span class="font-mono text-[14px] sm:text-[16px] text-ink-3 align-top block mb-2 sm:mb-3">{{ $type['icon'] }}</span>
+            {{ $type['label'] }}
+        </h1>
+        <p class="font-display italic text-lg sm:text-xl text-ink-2 mt-4 max-w-2xl">{{ $type['desc'] }}</p>
+        <div class="font-mono text-[10px] text-ink-3 mt-4 uppercase tracking-[0.2em]">
+            共 {{ $items->count() }} 条 · 按热度排序
+        </div>
     </div>
 </section>
+
+{{-- 列表 --}}
+<div class="max-w-6xl mx-auto px-5 sm:px-8 py-8">
+    @if($items->isNotEmpty())
+        <div class="masonry grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            @foreach($items as $item)
+                @include('frontend.partials.card', ['item' => $item])
+            @endforeach
+        </div>
+    @else
+        <div class="py-20 text-center">
+            <div class="font-display text-5xl text-ink-2 mb-3">{{ $type['icon'] }}</div>
+            <div class="font-display text-2xl text-ink-2 mb-2">还没有{{ $type['label'] }}内容</div>
+            <a href="/admin/contents/create" class="font-mono text-[11px] text-warm uppercase tracking-[0.2em] underline underline-offset-4">+ 添加一个</a>
+        </div>
+    @endif
+</div>
 @endsection

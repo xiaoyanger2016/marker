@@ -90,7 +90,7 @@ pb-60 sm:pb-44
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
             @foreach($recentPlaces as $p)
                 <a href="/place/{{ $p->id }}" class="block border border-line p-3 hover:border-ink transition-colors">
-                    <div class="font-mono text-[10px] text-ink-3 uppercase tracking-[0.2em]">{{ \App\Models\Place::PLACE_TYPES[$p->place_type]['label'] ?? '' }}</div>
+                    <div class="font-mono text-[10px] text-ink-3 uppercase tracking-[0.2em]">N°{{ str_pad($p->id, 2, '0', STR_PAD_LEFT) }} · LOCATION</div>
                     <div class="font-display text-base text-ink mt-1 line-clamp-1">{{ $p->name }}</div>
                     <div class="font-mono text-[10px] text-ink-3 mt-1">{{ $p->city ?? '—' }} · {{ $p->created_at->diffForHumans() }}</div>
                 </a>

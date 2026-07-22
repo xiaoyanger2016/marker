@@ -17,7 +17,6 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RegionSeeder::class,
-            SystemCategorySeeder::class,
         ]);
 
         // User::factory(10)->create();

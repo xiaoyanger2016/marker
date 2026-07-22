@@ -136,24 +136,25 @@ class ActivityResource extends Resource
                         Forms\Components\Select::make('place_id')
                             ->label('关联地点')
                             ->options(fn () => \App\Models\Place::query()
-                                ->where('is_public', true)
                                 ->orderBy('id', 'desc')
                                 ->limit(200)
                                 ->get()
-                                ->mapWithKeys(fn ($p) => [$p->id => $p->name])
+                                ->mapWithKeys(fn ($p) => [$p->id => '#' . $p->id . ' · ' . $p->name])
                                 ->toArray())
                             ->searchable()
                             ->placeholder('可选'),
 
-                        Forms\Components\Select::make('route_id')
-                            ->label('关联线路')
-                            ->options(fn () => \App\Models\Route::query()
-                                ->where('is_public', true)
-                                ->orderBy('id', 'desc')
-                                ->limit(200)
-                                ->get()
-                                ->mapWithKeys(fn ($r) => [$r->id => $r->name])
-                                ->toArray())
+                        Forms\Components\Select::make('content_id')
+                            ->label('关联内容（8 大类）')
+                            ->options(function () {
+                                return \App\Models\Content::query()
+                                    ->orderBy('id', 'desc')
+                                    ->limit(200)
+                                    ->get()
+                                    ->mapWithKeys(fn ($c) => [
+                                        $c->id => (\App\Models\Content::TYPES[$c->type]['icon'] ?? 'N°00') . ' · ' . $c->title,
+                                    ])->toArray();
+                            })
                             ->searchable()
                             ->placeholder('可选'),
 

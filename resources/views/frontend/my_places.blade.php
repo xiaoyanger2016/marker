@@ -45,7 +45,7 @@
                 <div class="col-span-7 sm:col-span-7">
                     <h3 class="font-display text-lg text-ink group-hover:text-warm transition-colors leading-tight">{{ $p->name }}</h3>
                     <div class="font-mono text-[10px] text-ink-3 mt-1.5 uppercase tracking-[0.15em]">
-                        {{ \App\Models\Place::PLACE_TYPES[$p->place_type]['label'] ?? '' }} · {{ $p->city ?? '—' }} · {{ $p->created_at->diffForHumans() }}
+                        N°{{ str_pad($p->id, 2, '0', STR_PAD_LEFT) }} · LOCATION · {{ $p->city ?? '—' }} · {{ $p->created_at->diffForHumans() }}
                     </div>
                 </div>
                 <div class="col-span-3 text-right flex flex-col items-end gap-1">
