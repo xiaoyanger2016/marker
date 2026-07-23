@@ -6,8 +6,10 @@ use App\Models\Place;
 use App\Models\User;
 use App\Repository\v1\PlaceRepository;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 class PlaceService
@@ -167,6 +169,117 @@ class PlaceService
 
         Storage::disk($media->disk)->delete($media->path);
         $media->delete();
+    }
+
+    /**
+     * Phase 20：高德 geocode — 详细地址 → 经纬度 + 省/市/区
+     *
+     * @return array{
+     *   success: bool,
+     *   longitude: ?float,
+     *   latitude: ?float,
+     *   province: ?string,
+     *   city: ?string,
+     *   district: ?string,
+     *   formatted_address: ?string,
+     *   level: ?string,
+     *   message: ?string
+     * }
+     */
+    public function geocodeFromAddress(string $address, ?string $city = null): array
+    {
+        $result = [
+            'success' => false,
+            'longitude' => null,
+            'latitude' => null,
+            'province' => null,
+            'city' => null,
+            'district' => null,
+            'formatted_address' => null,
+            'level' => null,
+            'message' => null,
+        ];
+
+        $address = trim($address);
+        if (! $address) {
+            $result['message'] = '地址为空';
+            return $result;
+        }
+
+        $key = config('services.amap.key');
+        if (! $key || $key === 'your_amap_web_key_here') {
+            $result['message'] = '高德 API Key 未配置（.env 里的 AMAP_WEB_KEY）';
+            return $result;
+        }
+
+        try {
+            $params = [
+                'key'     => $key,
+                'address' => $address,
+                'output'  => 'json',
+            ];
+            if ($city) {
+                $params['city'] = $city;
+            }
+
+            $resp = Http::timeout(8)->get('https://restapi.amap.com/v3/geocode/geo', $params);
+            if (! $resp->ok()) {
+                $result['message'] = '高德 API 请求失败: HTTP ' . $resp->status();
+                return $result;
+            }
+
+            $data = $resp->json();
+            if (($data['status'] ?? '0') !== '1') {
+                $info = $data['info'] ?? '未知';
+                $infocode = $data['infocode'] ?? '';
+                $hint = match ($infocode) {
+                    '10001' => '（高德 API Key 不存在或已禁用，去 lbs.amap.com 控制台查）',
+                    '10003' => '（绑定的 IP/域名不在白名单，本机测试把 127.0.0.1 + localhost 加到白名单）',
+                    '10004' => '（Key 未启用 Web 服务平台，进控制台 → 添加 Key → 服务平台选「Web 服务」）',
+                    '10005' => '（请求过于频繁，被风控，等会儿再试）',
+                    '10006' => '（余额不足 / 配额耗尽）',
+                    '10007' => '（Key 已过期）',
+                    '10008' => '（IP 白名单不匹配，加 127.0.0.1 / localhost）',
+                    '10009' => '（请求路径与白名单不符）',
+                    '10010' => '（Key 与平台不匹配，本场景需要「Web 服务」平台）',
+                    '10011' => '（日调用量超限）',
+                    '10012' => '（USER_DAILY_QUERY_OVER_LIMIT）',
+                    '10013' => '（USER_RECYCLE_QUERY_OVER_LIMIT）',
+                    '10014' => '（云图存量 key 不允许调用地理 API）',
+                    '10020' => '（USER_KEY_PLAT_NOMATCH）',
+                    '20000' => '（请求参数无效）',
+                    '30000' => '（权限不足）',
+                    default => '',
+                };
+                $result['message'] = "高德 geocode 失败: {$info} [infocode: {$infocode}] {$hint}";
+                return $result;
+            }
+
+            $geocodes = $data['geocodes'] ?? [];
+            if (empty($geocodes)) {
+                $result['message'] = "高德没找到「{$address}」的坐标。试加城市 (如：浙江省绍兴市西施岩村)";
+                return $result;
+            }
+
+            $gc = $geocodes[0];
+            $location = explode(',', $gc['location'] ?? '0,0');
+            $result['success'] = true;
+            $result['longitude'] = (float) ($location[0] ?? 0);
+            $result['latitude']  = (float) ($location[1] ?? 0);
+            $result['province']  = $gc['province']  ?? null;
+            $result['city']      = $gc['city']      ?? null;
+            $result['district']  = $gc['district']  ?? null;
+            $result['formatted_address'] = $gc['formatted_address'] ?? null;
+            $result['level']     = $gc['level']     ?? null;
+
+            return $result;
+        } catch (ConnectionException $e) {
+            $result['message'] = '网络错误: ' . $e->getMessage();
+            return $result;
+        } catch (\Throwable $e) {
+            $result['message'] = '错误: ' . $e->getMessage();
+            return $result;
+        }
     }
 
     // ---- 权限 ----

@@ -55,7 +55,9 @@ class NoteLinkParser
      *   published_at: ?\Carbon\Carbon,
      *   external_meta: array,
      *   success: bool,
-     *   warning: ?string
+     *   warning: ?string,
+     *   needs_manual: bool,    // 哪些字段需要用户手动补全
+     *   fillable: array        // 实际可填的字段 (UI 友好提示)
      * }
      */
     public function parse(string $url): array
@@ -74,6 +76,8 @@ class NoteLinkParser
             'external_meta' => [],
             'success'       => false,
             'warning'       => null,
+            'needs_manual'  => false,
+            'fillable'      => ['source_url', 'source'],
         ];
 
         if (! $url) {
@@ -99,6 +103,7 @@ class NoteLinkParser
 
         $cfg = self::PLATFORMS[$platform];
         $result['source'] = $platform;
+        $result['fillable'][] = 'source';
 
         // 1. 提外部 ID
         $externalId = null;
@@ -115,29 +120,72 @@ class NoteLinkParser
             $query = parse_url($url, PHP_URL_QUERY) ?? '';
             parse_str($query, $params);
             $result['xhs_xsec_token'] = $params['xsec_token'] ?? null;
+            $result['fillable'][] = 'xhs_note_id';
+            $result['fillable'][] = 'xhs_xsec_token';
         }
 
         // 2. 试 fetch og tags (timeout 5s, 不致命)
         $og = $this->fetchOg($url);
         $result['external_meta']['og'] = $og;
-        if (! empty($og['title'])) {
+        $ogHit = false;
+        if (! empty($og['title']) && ! $this->looksLikeAntiBot($og['title'], $platform)) {
             $result['title'] = $this->cleanText($og['title']);
+            $result['fillable'][] = 'title';
+            $ogHit = true;
         }
-        if (! empty($og['image'])) {
+        if (! empty($og['image']) && ! $this->looksLikeAntiBot($og['image'], $platform)) {
             $result['cover_url'] = $og['image'];
+            $result['fillable'][] = 'cover_url';
+            $ogHit = true;
         }
-        if (! empty($og['description'])) {
+        if (! empty($og['description']) && ! $this->looksLikeAntiBot($og['description'], $platform)) {
             $result['content'] = $this->cleanText($og['description']);
+            $result['fillable'][] = 'content';
+            $ogHit = true;
         }
         if (! empty($og['site_name']) && ! $result['author']) {
             $result['author'] = $this->cleanText($og['site_name']);
+            $result['fillable'][] = 'author';
         }
 
         $result['success'] = true;
-        if (! $externalId) {
-            $result['warning'] = "未提取到 {$cfg['name']} 笔记 ID（已尽力解析 OG meta）";
+        $result['needs_manual'] = ! $ogHit;
+
+        // Phase 20：anti-bot 平台给明确提示
+        $autoFilled = array_diff($result['fillable'], ['source_url', 'source']);
+        if ($result['needs_manual']) {
+            $platformName = $cfg['name'];
+            $manualFields = array_values(array_diff(['title', 'cover_url', 'content', 'author'], $autoFilled));
+            $result['warning'] = "✓ 已识别「{$platformName}」笔记 ID，但标题/封面/正文需手动补全。\n"
+                . "原因：{$platformName} web 端对非登录用户 anti-bot，不返回 og meta。\n"
+                . "建议：从小红书 APP 复制笔记文本 + 截图，手动粘贴到下方对应字段。\n"
+                . "已自动填写：" . implode(' / ', array_merge(['source_url', 'source'], $result['fillable'] ? array_diff($result['fillable'], ['source_url', 'source']) : []));
+        } else {
+            if (! $externalId) {
+                $result['warning'] = "未提取到 {$cfg['name']} 笔记 ID（已尽力解析 OG meta）";
+            }
         }
         return $result;
+    }
+
+    /**
+     * 检测 anti-bot 平台返回的占位/空内容
+     *  - 小红书 web 端返: "小红书" / "当前内容仅支持在小红书 APP 内查看"
+     *  - 大众点评返: 通用首页 title
+     *  - 马蜂窝返: 空 HTML
+     */
+    protected function looksLikeAntiBot(string $text, string $platform): bool
+    {
+        $lower = mb_strtolower($text);
+        $signals = [
+            'xiaohongshu' => ['小红书', 'xhs', '当前内容仅支持', 'app 内查看', '打开 app', '打开小程序'],
+            'dianping'    => ['美食, 餐厅餐饮', '大众点评网', '大众点评, 本地'],
+            'mafengwo'    => [],
+        ];
+        foreach ($signals[$platform] ?? [] as $sig) {
+            if (Str::contains($lower, $sig)) return true;
+        }
+        return false;
     }
 
     /**

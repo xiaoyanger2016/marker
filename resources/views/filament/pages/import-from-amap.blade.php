@@ -41,6 +41,46 @@
         </p>
     </div>
 
+    {{-- Phase 20: 状态 banner (替代堆叠的 Notification) --}}
+    @if($bannerType)
+        @php
+            $bannerStyles = [
+                'success' => 'border-grass/40 bg-grass/5 text-ink',
+                'warning' => 'border-warm/50 bg-warm/5 text-ink',
+                'danger'  => 'border-blood/50 bg-blood/5 text-ink',
+                'info'    => 'border-accent/40 bg-accent/5 text-ink',
+            ];
+            $bannerIcons = [
+                'success' => '✓',
+                'warning' => '⚠',
+                'danger'  => '✕',
+                'info'    => 'ⓘ',
+            ];
+            $cls = $bannerStyles[$bannerType] ?? $bannerStyles['info'];
+            $ico = $bannerIcons[$bannerType] ?? 'ⓘ';
+        @endphp
+        <div class="mb-6 border {{ $cls }} p-4 relative">
+            <div class="flex items-start gap-3 pr-8">
+                <div class="font-mono text-base mt-0.5 leading-none">{{ $ico }}</div>
+                <div class="flex-1 min-w-0">
+                    <div class="font-display text-base mb-1">{{ $bannerTitle }}</div>
+                    @if($bannerBody)
+                        <div class="text-sm text-ink-2 whitespace-pre-line leading-relaxed">{{ $bannerBody }}</div>
+                    @endif
+                    @if($bannerExtra)
+                        <div class="mt-2 text-xs text-ink-3 font-mono break-all">{{ $bannerExtra }}</div>
+                    @endif
+                </div>
+            </div>
+            <button
+                type="button"
+                wire:click="dismissBanner"
+                class="absolute top-3 right-3 w-6 h-6 flex items-center justify-center text-ink-3 hover:text-ink hover:bg-ink/5 transition-colors font-mono text-sm"
+                aria-label="关闭"
+            >✕</button>
+        </div>
+    @endif
+
     {{-- 方式 A：分享链接 --}}
     <div class="mb-8 border border-ink/20 bg-paper">
         <div class="flex items-center justify-between px-5 py-3 border-b border-ink/15 bg-paper-2">
@@ -48,11 +88,11 @@
                 <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3">A</span>
                 <span class="font-display text-base text-ink">分享链接解析</span>
             </div>
-            <span class="font-mono text-[9px] uppercase tracking-[0.15em] text-ink-3">识别 ugcId</span>
+            <span class="font-mono text-[9px] uppercase tracking-[0.15em] text-ink-3">识别 ugcId · 自动搜 POI</span>
         </div>
         <div class="p-5">
             <p class="text-xs text-ink-2 leading-relaxed mb-4">
-                高德收藏夹 web 端需要登录态，链接直拉受限。建议复制一条收藏夹分享链接 → 解析 ugcId → 用下方方式 B 关键字搜 POI。
+                高德收藏夹 web 端需要登录态，链接直拉受限。建议复制一条收藏夹分享链接 → 解析 ugcId → 自动触发关键字搜索（用 ugcId 当 keyword）→ 进一步换成具体地点名。
             </p>
             <div class="flex gap-2">
                 <input
@@ -118,11 +158,6 @@
             </div>
         </div>
     </div>
-
-    {{-- 错误 / ugcId 识别结果 --}}
-    @if($error)
-        <div class="mb-6 border border-ink/30 bg-paper-2 p-4 font-mono text-xs text-ink-2 whitespace-pre-line leading-relaxed">{{ $error }}</div>
-    @endif
 
     {{-- 搜索结果：批量操作 + 列表 --}}
     @if($searched && count($results) > 0)

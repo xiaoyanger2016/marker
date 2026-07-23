@@ -75,6 +75,9 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                // Phase 20: SetLocale + DetectDevice 加到 panel middleware (Filament routes 不走 web group)
+                \App\Http\Middleware\SetLocale::class,
+                \App\Http\Middleware\DetectDevice::class,
             ])
             ->authMiddleware([
                 Authenticate::class,

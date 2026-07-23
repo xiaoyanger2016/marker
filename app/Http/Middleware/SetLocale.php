@@ -30,6 +30,12 @@ class SetLocale
         }
 
         App::setLocale($locale);
+        // Phase 20: 短横 zh-CN/zh-TW 给 App 用，下划线版给 Filament vendor 翻译用
+        $underscore = str_replace('-', '_', $locale);
+        if ($underscore !== $locale) {
+            \Illuminate\Support\Facades\Lang::setLocale($underscore);
+        }
+
         $request->session()->put('locale', $locale);
         view()->share('locale', $locale);
         view()->share('availableLocales', self::SUPPORTED);

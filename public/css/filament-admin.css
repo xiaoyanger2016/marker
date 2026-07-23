@@ -562,8 +562,7 @@ h1.fi-header-heading,
     background: transparent !important;
 }
 
-.fi-input-wrp,
-.fi-fo-field-wrp {
+.fi-input-wrp {
     background: transparent !important;
     border: 0 !important;
     border-bottom: 1px solid var(--line-2) !important;
@@ -571,9 +570,24 @@ h1.fi-header-heading,
     border-radius: 0 !important;
     transition: border-color 0.2s !important;
 }
-.fi-input-wrp:focus-within,
-.fi-fo-field-wrp:focus-within {
+.fi-input-wrp:focus-within {
     border-bottom-color: var(--ink) !important;
+}
+
+/* Phase 20: 去掉 field wrapper 外层 border-bottom（之前每个 field 下方都有横线） */
+.fi-fo-field-wrp {
+    background: transparent !important;
+    border: 0 !important;
+    border-bottom: 0 !important;
+    padding: 0 !important;
+}
+.fi-fo-field-wrp:focus-within {
+    border-bottom-color: transparent !important;
+}
+/* field 之间留空隙 */
+.fi-fo-field-wrp + .fi-fo-field-wrp,
+.fi-fo-component-ctn > .fi-fo-field-wrp {
+    margin-top: 1rem !important;
 }
 
 .fi-input,
@@ -754,17 +768,72 @@ h1.fi-header-heading,
     letter-spacing: 0.06em !important;
     color: var(--ink-3) !important;
 }
-.fi-btn.fi-btn-color-primary {
-    width: 100% !important;
-    padding: 8px 14px !important;
-    border-radius: 0 !important;
-    background: var(--accent) !important;
-    color: white !important;
-    font-family: var(--font-family) !important;
-    font-size: 13px !important;
+.fi-btn.fi-btn-color-primary,
+.fi-btn.fi-color-primary,
+.fi-btn.fi-color-custom.fi-btn-color-primary,
+button.fi-btn.fi-color-primary.fi-btn-color-primary,
+button.fi-btn-color-primary {
+    /* Phase 20: 不再强制 width 100% + 紫色全宽块，改为 ink + paper 胶囊 */
+    width: auto !important;
+    padding: 8px 20px !important;
+    border-radius: 9999px !important;
+    background: var(--ink) !important;
+    color: var(--paper) !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    font-family: var(--font-family-mono) !important;
+    font-size: 11px !important;
     font-weight: 500 !important;
-    text-transform: none !important;
-    letter-spacing: 0 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.12em !important;
+    transition: background 0.2s, color 0.2s !important;
+}
+.fi-btn.fi-btn-color-primary:hover,
+.fi-btn.fi-color-primary:hover,
+.fi-btn.fi-color-custom.fi-btn-color-primary:hover {
+    background: var(--accent) !important;
+    color: var(--paper) !important;
+}
+/* 压过 Filament Tailwind 的 bg-custom-* / text-white 工具类 */
+.fi-btn.fi-btn-color-primary.bg-custom-600,
+.fi-btn.fi-btn-color-primary.text-white,
+.fi-btn.fi-btn-color-primary.dark\:bg-custom-500 {
+    background: var(--ink) !important;
+    color: var(--paper) !important;
+}
+.fi-btn.fi-btn-color-primary.bg-custom-600:hover {
+    background: var(--accent) !important;
+}
+
+/* Phase 20: 底部 form actions 排版重设 */
+.fi-form-actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 0.75rem !important;
+    padding: 1.25rem 0 0.5rem !important;
+    margin-top: 1.5rem !important;
+    border-top: 1px solid var(--line) !important;
+    background: transparent !important;
+}
+.fi-form-actions > * {
+    margin: 0 !important;
+}
+/* Cancel / Back 按钮 ghost 风格 */
+.fi-form-actions .fi-btn:not(.fi-btn-color-primary) {
+    background: transparent !important;
+    color: var(--ink-2) !important;
+    border: 1px solid var(--line-2) !important;
+    border-radius: 9999px !important;
+    padding: 8px 18px !important;
+    font-family: var(--font-family-mono) !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.12em !important;
+}
+.fi-form-actions .fi-btn:not(.fi-btn-color-primary):hover {
+    color: var(--ink) !important;
+    border-color: var(--ink) !important;
 }
 
 /* =========================================================================
