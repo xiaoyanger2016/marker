@@ -805,15 +805,17 @@ button.fi-btn-color-primary {
     background: var(--accent) !important;
 }
 
-/* Phase 20: 底部 form actions 排版重设 */
+/* Phase 20: 底部 form actions 排版重设
+ * Phase 22: 去掉 border-top hairline (领导说"地下都有一条横线")
+ *          改用更宽松的 padding + 透明背景，让按钮与 form 融在一起 */
 .fi-form-actions {
     display: flex !important;
     align-items: center !important;
     justify-content: flex-end !important;
-    gap: 0.75rem !important;
-    padding: 1.25rem 0 0.5rem !important;
-    margin-top: 1.5rem !important;
-    border-top: 1px solid var(--line) !important;
+    gap: 0.5rem !important;
+    padding: 2rem 0 1rem !important;
+    margin-top: 1rem !important;
+    border: 0 !important;
     background: transparent !important;
 }
 .fi-form-actions > * {

@@ -136,6 +136,7 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('role')
                     ->label('角色')
                     ->badge()
+                    ->getStateUsing(fn ($record) => $record->is_admin ? 'admin' : $record->role)
                     ->color(fn (string $state): string => match ($state) {
                         'admin' => 'danger',
                         'editor' => 'warning',

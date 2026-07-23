@@ -186,8 +186,11 @@ class RegionResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('level')
-            ->defaultSort('sort');
+            ->modifyQueryUsing(fn ($query) => $query
+                ->orderByRaw("CASE level WHEN 'country' THEN 1 WHEN 'province' THEN 2 WHEN 'city' THEN 3 ELSE 4 END")
+                ->orderBy('sort')
+                ->orderBy('code')
+            );
     }
 
     public static function getPages(): array

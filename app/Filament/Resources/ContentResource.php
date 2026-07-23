@@ -644,19 +644,38 @@ class ContentResource extends Resource
                     ->formatStateUsing(fn ($state) => Content::TYPES[$state]['icon'] . ' ' . (Content::TYPES[$state]['label'] ?? $state))
                     ->size('sm'),
 
-                Tables\Columns\IconColumn::make('is_picked')
+                Tables\Columns\ToggleColumn::make('is_picked')
                     ->label('推首页')
-                    ->boolean()
-                    ->trueIcon('heroicon-s-star')
-                    ->falseIcon('heroicon-o-star')
-                    ->trueColor('warning')
-                    ->getStateUsing(fn ($record) => $record->pick ? true : false)
-                    ->toggleable(),
+                    ->getStateUsing(fn ($record) => (bool) $record->pick)
+                    ->updateStateUsing(function ($record, $state) {
+                        if ($state) {
+                            // 推到首页 (本期精选 = sort=0 or 1)
+                            \App\Models\ContentPick::updateOrCreate(
+                                ['content_id' => $record->id],
+                                ['is_featured' => true, 'sort' => 0]
+                            );
+                        } else {
+                            \App\Models\ContentPick::where('content_id', $record->id)->delete();
+                        }
+                    })
+                    ->onIcon('heroicon-s-star')
+                    ->offIcon('heroicon-o-star')
+                    ->onColor('warning')
+                    ->offColor('gray')
+                    ->tooltip(fn ($record) => $record->pick ? '已推首页 · 点击取消' : '未推首页 · 点击推到首页精选'),
 
                 Tables\Columns\TextColumn::make('rating_label')
                     ->label('评分')
-                    ->formatStateUsing(fn ($state) => $state ? (Content::RATING_LABELS[$state]['label'] ?? $state) : '—')
-                    ->size('sm')
+                    ->badge()
+                    ->color(fn ($state) => match ($state) {
+                        'amazing' => 'danger',
+                        'great' => 'success',
+                        'nice' => 'info',
+                        'npc' => 'gray',
+                        'terrible' => 'warning',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn ($state) => $state ? (Content::RATING_LABELS[$state]['label'] ?? $state) : '未评')
                     ->alignCenter(),
 
                 Tables\Columns\TextColumn::make('votes_count')
@@ -679,7 +698,7 @@ class ContentResource extends Resource
                     ->label('媒体')
                     ->counts('media')
                     ->badge()
-                    ->color('gray')
+                    ->color('info')
                     ->alignCenter()
                     ->toggleable(),
 
@@ -687,30 +706,28 @@ class ContentResource extends Resource
                     ->label('评论')
                     ->counts('comments')
                     ->badge()
-                    ->color('warning')
+                    ->color('info')
                     ->alignCenter()
                     ->toggleable(),
 
-                Tables\Columns\IconColumn::make('is_public')
+                Tables\Columns\ToggleColumn::make('is_public')
                     ->label('上架')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-eye')
-                    ->falseIcon('heroicon-o-eye-slash')
-                    ->trueColor('success')
-                    ->falseColor('gray'),
+                    ->onIcon('heroicon-o-eye')
+                    ->offIcon('heroicon-o-eye-slash')
+                    ->onColor('success')
+                    ->offColor('gray')
+                    ->tooltip(fn ($record) => $record->is_public ? '已公开 · 点击改为草稿' : '草稿态 · 点击发布'),
 
-                Tables\Columns\IconColumn::make('is_visited')
+                Tables\Columns\ToggleColumn::make('is_visited')
                     ->label('已去')
-                    ->boolean()
-                    ->trueColor('info')
-                    ->falseColor('gray')
+                    ->onColor('info')
+                    ->offColor('gray')
                     ->toggleable(),
 
-                Tables\Columns\IconColumn::make('is_wishlist')
+                Tables\Columns\ToggleColumn::make('is_wishlist')
                     ->label('种草')
-                    ->boolean()
-                    ->trueColor('warning')
-                    ->falseColor('gray')
+                    ->onColor('warning')
+                    ->offColor('gray')
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('view_count')

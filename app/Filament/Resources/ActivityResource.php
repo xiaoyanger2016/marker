@@ -213,13 +213,24 @@ class ActivityResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->label('状态')
                     ->badge()
+                    ->getStateUsing(function ($record) {
+                        // 自动判断：过了出发时间但状态还是 open → 显示"已结束"
+                        if (in_array($record->status, ['open', 'full'], true) && $record->start_at && $record->start_at->isPast()) {
+                            return 'finished';
+                        }
+                        return $record->status;
+                    })
                     ->color(fn (string $state) => match ($state) {
                         'open' => 'success',
                         'full' => 'warning',
+                        'finished' => 'gray',
                         'closed', 'cancelled' => 'danger',
                         default => 'gray',
                     })
-                    ->formatStateUsing(fn (string $state) => Activity::STATUSES[$state] ?? $state),
+                    ->formatStateUsing(fn (string $state) => match ($state) {
+                        'finished' => '已结束',
+                        default => Activity::STATUSES[$state] ?? $state,
+                    }),
 
                 Tables\Columns\IconColumn::make('is_public')
                     ->label('公开')
