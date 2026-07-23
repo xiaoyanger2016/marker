@@ -63,7 +63,7 @@ class EditPlace extends EditRecord
                     ]);
 
                     Notification::make()
-                        ->title('✓ 识别成功')
+                        ->title('识别成功')
                         ->body(sprintf(
                             "经纬度：%s, %s · 行政区：%s · 匹配度：%s",
                             number_format($r['longitude'], 6),

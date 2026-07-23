@@ -35,6 +35,10 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 \App\Filament\Pages\Dashboard::class,
             ])
+            // Phase 22.2: 侧栏永远展开，避免折叠后内容区无 sidebar
+            // 不用 collapsible / fullyCollapsible 减少"找不到菜单"的可能性
+            ->sidebarCollapsibleOnDesktop(false)
+            ->sidebarFullyCollapsibleOnDesktop(false)
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 // AccountWidget / FilamentInfoWidget 都不要（AI 味）

@@ -75,9 +75,9 @@ class UserResource extends Resource
                         Forms\Components\Placeholder::make('role_hint')
                             ->label('权限说明')
                             ->content(fn ($get) => match ($get('role')) {
-                                'admin' => '✓ 访问全部后台 / 编辑任何内容 / 管理用户',
-                                'editor' => '✓ 编辑内容/活动/评论 · ✗ 管理用户',
-                                'user' => '✓ 浏览/创建自己的内容',
+                                'admin' => '[ 访问全部后台 ] / 编辑任何内容 / 管理用户',
+                                'editor' => '[ 编辑 ] 内容/活动/评论 · [ × ] 管理用户',
+                                'user' => '[ 浏览/创建 ] 自己的内容',
                                 default => '—',
                             }),
                     ])->columns(2),

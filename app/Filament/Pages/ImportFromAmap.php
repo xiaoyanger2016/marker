@@ -34,6 +34,12 @@ class ImportFromAmap extends Page implements HasForms
 
     protected static string $view = 'filament.pages.import-from-amap';
 
+    // Phase 22.2: 去掉 Filament 自带的 page heading (英文 "Import From Amap") —
+    // 视图里已经画了 § 01 + 杂志感大标题，重复会让用户迷惑
+    protected ?string $heading = '';
+
+    protected ?string $subheading = '';
+
     public ?string $keywords = null;
     public ?string $city = null;
     public ?string $shareUrl = null;
@@ -161,7 +167,7 @@ class ImportFromAmap extends Page implements HasForms
                 $this->setBanner('warning', "步骤 2/3 · 搜不到「{$this->keywords}」相关 POI", $hint);
             } else {
                 $bannerBody = "步骤 3/3 · 搜到 {$count} 个 POI · 在下方勾选要导入的 → 顶部选 8 大类归类 → 「导入所选」一键加入你的位置库。";
-                $this->setBanner('success', "✓ 搜索完成 · 「{$this->keywords}」· {$count} 个结果", $bannerBody);
+                $this->setBanner('success', "[ 完成 ] 搜索「{$this->keywords}」· {$count} 个结果", $bannerBody);
             }
         } catch (ConnectionException $e) {
             $this->setBanner('danger', '网络错误', $e->getMessage());
@@ -231,8 +237,8 @@ class ImportFromAmap extends Page implements HasForms
         $this->results = [];
         $this->selected = [];
 
-        $this->setBanner('info', "✓ 步骤 1/3 · ugcId 已识别 · ugcId = {$ugcId}",
-            "⚠ 高德收藏夹 web 端需要登录态，没开放直拉列表 API。\n"
+        $this->setBanner('info', "[ 步骤 1/3 ] ugcId 已识别 · ugcId = {$ugcId}",
+            "注意 · 高德收藏夹 web 端需要登录态，没开放直拉列表 API。\n"
             . "接下来：在下方「关键字搜索」输入收藏夹里 1-2 个最典型的地点名 + 城市 → 点「搜索 POI」→ 勾选要导入的 → 一键批量加入你的位置库。\n"
             . "（你也可以跳过 ugcId 步骤，直接在下方输地点名 + 城市搜）"
         );
@@ -324,22 +330,22 @@ class ImportFromAmap extends Page implements HasForms
     protected function amapInfocodeHint(string $infocode): string
     {
         $hints = [
-            '10001' => "❌ INVALID_USER_KEY\nKey 不存在或已禁用 → 去 lbs.amap.com 控制台「应用管理」查 Key 状态",
-            '10003' => "❌ 访问频次超限 / IP 白名单 / 域名白名单 拒绝\n本机测试把 127.0.0.1 + localhost 加到 Web 服务 Key 的白名单",
-            '10004' => "❌ Key 未启用 Web 服务平台\n进控制台 → 应用 → Key 设置 → 服务平台勾选「Web 服务」",
-            '10005' => "❌ Key 与请求平台不匹配\n如果是服务端调用 (而不是浏览器 JS) → 改用 Web 服务 Key，不是 JS API Key",
-            '10006' => "❌ 配额超限（个人账户 2000 次/日）\n明日 0 点重置，或申请企业认证提额",
-            '10007' => "❌ 引用已被使用 / 签名错误\n检查 key 是否被复制错位",
-            '10008' => "❌ IP / 域名白名单未通过\n本机测试用 127.0.0.1，部署后用真实域名",
-            '10009' => "❌ 私钥未配置 HTTPS\nWeb 服务 Key 必须配 TLS",
-            '10010' => "❌ IP 备案未通过\n国内 Key 需要服务器 IP 备案",
-            '10011' => "❌ 余额不足\n个人开发者基本不会遇到",
-            '10012' => "❌ 超出 Key 配额\nWeb 服务 Key 个人 2000/日",
-            '10013' => "❌ Key 被冻结\n违规或被举报，去控制台解封",
-            '10014' => "❌ Key 已删除\n重新创建一个",
-            '10020' => "❌ 服务端异常\n高德服务临时挂了，过会儿重试",
-            '20000' => "❌ 请求参数非法\nkeywords/city 有非法字符",
-            '30000' => "❌ 未知错误\n重试，或联系高德客服",
+            '10001' => "[ INVALID_USER_KEY ]\nKey 不存在或已禁用 → 去 lbs.amap.com 控制台「应用管理」查 Key 状态",
+            '10003' => "[ 白名单 / 频次超限 ]\n本机测试把 127.0.0.1 + localhost 加到 Web 服务 Key 的白名单",
+            '10004' => "[ 未启用 Web 服务平台 ]\n进控制台 → 应用 → Key 设置 → 服务平台勾选「Web 服务」",
+            '10005' => "[ Key 平台不匹配 ]\n如果是服务端调用 (而不是浏览器 JS) → 改用 Web 服务 Key，不是 JS API Key",
+            '10006' => "[ 配额超限 ]\n个人账户 2000 次/日，明日 0 点重置，或申请企业认证提额",
+            '10007' => "[ 引用已被使用 / 签名错误 ]\n检查 key 是否被复制错位",
+            '10008' => "[ IP / 域名白名单未通过 ]\n本机测试用 127.0.0.1，部署后用真实域名",
+            '10009' => "[ 私钥未配置 HTTPS ]\nWeb 服务 Key 必须配 TLS",
+            '10010' => "[ IP 备案未通过 ]\n国内 Key 需要服务器 IP 备案",
+            '10011' => "[ 余额不足 ]\n个人开发者基本不会遇到",
+            '10012' => "[ 超出 Key 配额 ]\nWeb 服务 Key 个人 2000/日",
+            '10013' => "[ Key 被冻结 ]\n违规或被举报，去控制台解封",
+            '10014' => "[ Key 已删除 ]\n重新创建一个",
+            '10020' => "[ 服务端异常 ]\n高德服务临时挂了，过会儿重试",
+            '20000' => "[ 请求参数非法 ]\nkeywords/city 有非法字符",
+            '30000' => "[ 未知错误 ]\n重试，或联系高德客服",
         ];
         return $hints[$infocode] ?? ("infocode={$infocode}，参考：https://lbs.amap.com/api/webservice/guide/tools/info");
     }
