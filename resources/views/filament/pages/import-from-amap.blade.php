@@ -88,11 +88,12 @@
                 <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3">A</span>
                 <span class="font-display text-base text-ink">分享链接解析</span>
             </div>
-            <span class="font-mono text-[9px] uppercase tracking-[0.15em] text-ink-3">识别 ugcId · 自动搜 POI</span>
+            <span class="font-mono text-[9px] uppercase tracking-[0.15em] text-ink-3">步骤 1/3 · 识别 ugcId</span>
         </div>
         <div class="p-5">
             <p class="text-xs text-ink-2 leading-relaxed mb-4">
-                高德收藏夹 web 端需要登录态，链接直拉受限。建议复制一条收藏夹分享链接 → 解析 ugcId → 自动触发关键字搜索（用 ugcId 当 keyword）→ 进一步换成具体地点名。
+                从高德 APP 复制一条收藏夹分享链接，粘贴到这里 → 解析。识别成功后，在下方「关键字搜索」输入收藏夹里 1-2 个典型地点名 + 城市，再点搜索。
+                <span class="text-ink-3 font-mono">（高德 web 端要登录态，没开放收藏夹直拉 API — 这是高德策略，不是我们能做到的）</span>
             </p>
             <div class="flex gap-2">
                 <input
@@ -110,6 +111,11 @@
                     <span wire:loading wire:target="parseShareUrl">解析中…</span>
                 </button>
             </div>
+            @if($lastUgcId)
+                <div class="mt-3 text-xs text-ink-3 font-mono">
+                    上次识别的 ugcId：<span class="text-ink-2">{{ $lastUgcId }}</span>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -120,17 +126,30 @@
                 <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3">B</span>
                 <span class="font-display text-base text-ink">关键字搜索</span>
             </div>
-            <span class="font-mono text-[9px] uppercase tracking-[0.15em] text-ink-3">推荐</span>
+            <span class="font-mono text-[9px] uppercase tracking-[0.15em] text-ink-3">步骤 2/3</span>
         </div>
         <div class="p-5">
             <p class="text-xs text-ink-2 leading-relaxed mb-4">
-                输入地点名（收藏夹里最典型的 1-2 个）+ 城市。从高德搜完整 POI 列表，按地点名 + 距离匹配。
+                @if($lastUgcId)
+                    你刚解析的 ugcId 是数字，高德公开 API 搜不到。<strong class="text-ink">输收藏夹里 1-2 个最典型地点名 + 城市</strong>（如：<span class="font-mono text-warm">莫干山 西施岩村</span>），再点搜索。
+                @else
+                    输入地点名（1-2 个最典型的）+ 城市。从高德搜完整 POI 列表，按地点名 + 距离匹配。
+                @endif
             </p>
             <div class="grid grid-cols-1 md:grid-cols-[1fr_180px] gap-3 mb-4">
                 <input
                     type="text"
                     wire:model="keywords"
-                    placeholder="如：莫干山、兰州拉面、千岛湖"
+                    placeholder="{{ $lastUgcId ? '如：莫干山、西施岩村、千岛湖' : '如：莫干山、兰州拉面、千岛湖' }}"
+                    x-ref="kwInput"
+                    data-amap-keywords-input
+                    x-on:amap-parsed.window="
+                        const el = $el;
+                        if (el) {
+                            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            setTimeout(() => el.focus(), 350);
+                        }
+                    "
                     class="bg-transparent border-0 border-b border-ink/30 focus:border-ink focus:ring-0 outline-none px-0 py-2 text-sm text-ink placeholder:text-ink-3"
                 >
                 <input
@@ -152,7 +171,7 @@
 
                 @if($searched && count($results) > 0)
                     <span class="font-mono text-[10px] uppercase tracking-[0.15em] text-ink-3">
-                        共 {{ count($results) }} 个结果
+                        共 {{ count($results) }} 个结果 · 勾选 → 选类型 → 批量导入
                     </span>
                 @endif
             </div>
@@ -161,6 +180,11 @@
 
     {{-- 搜索结果：批量操作 + 列表 --}}
     @if($searched && count($results) > 0)
+        <div class="mb-3 flex items-baseline gap-2">
+            <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3">§ 03</span>
+            <span class="w-px h-3 bg-ink/15"></span>
+            <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-3">步骤 3/3 · 批量导入</span>
+        </div>
         <div class="mb-6 flex items-center gap-4 px-5 py-3 border border-ink/20 bg-paper-2">
             <span class="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-3">批量归类</span>
             <select
@@ -174,11 +198,19 @@
             </select>
             <span class="font-mono text-[10px] text-ink-3">已选 {{ count($selected) }} / {{ count($results) }}</span>
             <button
+                wire:click="toggleAll(true)"
+                class="text-xs font-mono text-ink-3 hover:text-ink underline-offset-2 hover:underline"
+            >全选</button>
+            <button
+                wire:click="toggleAll(false)"
+                class="text-xs font-mono text-ink-3 hover:text-ink underline-offset-2 hover:underline"
+            >清空</button>
+            <button
                 wire:click="importSelected"
                 wire:loading.attr="disabled"
                 class="ml-auto font-mono text-[10px] uppercase tracking-[0.18em] px-5 py-2 bg-warm text-paper border border-warm hover:bg-warm/90 transition-colors disabled:opacity-50"
             >
-                导入所选
+                导入所选（{{ count($selected) }}）
             </button>
         </div>
 
