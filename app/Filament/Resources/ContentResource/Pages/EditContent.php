@@ -62,6 +62,24 @@ class EditContent extends EditRecord
             unset($data[$key]['id'], $data[$key]['content_id'], $data[$key]['created_at'], $data[$key]['updated_at']);
         }
 
+        // 强制保证 3 个 array 字段是 array (从 DB 读出可能是 JSON string 或 null)
+        $type = $data['type'] ?? $record->type;
+        if ($type && isset(Content::TYPES[$type])) {
+            $subKey = $type;
+            if (! isset($data[$subKey]) || ! is_array($data[$subKey])) {
+                $data[$subKey] = [];
+            }
+            foreach (['best_season', 'gear_checklist', 'safety_notes'] as $k) {
+                $val = $data[$subKey][$k] ?? null;
+                if (is_string($val)) {
+                    $decoded = json_decode($val, true);
+                    $data[$subKey][$k] = is_array($decoded) ? $decoded : [];
+                } elseif (! is_array($val)) {
+                    $data[$subKey][$k] = [];
+                }
+            }
+        }
+
         return $data;
     }
 
@@ -136,14 +154,17 @@ class EditContent extends EditRecord
             $content->media()->attach($mediaRows);
         }
 
-        // 3. 1:1 subtable
+        // 3. 1:1 subtable — 根据 type 动态选 sub table model class
         $type = $content->type;
         $subKey = Content::TYPES[$type]['subtable'] ?? null;
         if ($subKey && isset($data[$type]) && is_array($data[$type])) {
-            $sub = $content->subTable() ?? $content->{'selfDrive'}()->getRelated()->newInstance();
-            $sub->content_id = $content->id;
-            $sub->fill($data[$type]);
-            $sub->save();
+            $subClass = 'App\\Models\\' . \Illuminate\Support\Str::studly($subKey);
+            if (class_exists($subClass)) {
+                $sub = $content->subTable() ?? new $subClass();
+                $sub->content_id = $content->id;
+                $sub->fill($data[$type]);
+                $sub->save();
+            }
         }
 
         // 4. 关联笔记 (Phase 19)

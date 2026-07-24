@@ -456,24 +456,76 @@ h1.fi-header-heading,
 }
 
 /* =========================================================================
- * 6. Section / Card：去阴影 + hairline
+ * 6. Section / Card：去阴影 + 顶部 hairline (Phase 22.3: 去左右下边框避免呆板)
  * ========================================================================= */
 .fi-card,
 .fi-section {
-    background: var(--paper) !important;
-    border: 1px solid var(--line) !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-top: 1px solid var(--line) !important;
     box-shadow: none !important;
     padding: 0 !important;
+    border-radius: 0 !important;
+    --tw-ring-shadow: 0 0 #0000 !important;
+    --tw-ring-offset-shadow: 0 0 #0000 !important;
+}
+/* 第一个 section 顶部不要 hairline (page 本身已经有 padding) */
+.fi-page .fi-card:first-child,
+.fi-page .fi-section:first-child {
+    border-top: 0 !important;
 }
 
-.fi-section-header {
-    border-bottom: 1px solid var(--line) !important;
-    padding: 14px 20px !important;
+/* 去掉 section header 自带的 hr/分割线 + section content 内部多余横线 */
+.fi-section-header,
+.fi-card-header {
+    border-bottom: 0 !important;
+    padding: 14px 0 6px !important;
+}
+.fi-section-header::after,
+.fi-card-header::after,
+.fi-section-header::before,
+.fi-card-header::before,
+.fi-section > hr,
+.fi-card > hr {
+    display: none !important;
+    content: none !important;
+    border: 0 !important;
+}
+
+/* 去掉 section 内嵌套的 Grid/Fieldset/builder 的边框 */
+.fi-section .fi-fo-fieldset,
+.fi-section .fi-fo-tabs,
+.fi-section .fi-fo-builder,
+.fi-section .fi-fo-repeater,
+.fi-section .fi-fo-grid,
+.fi-section > * > hr {
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
 }
 
 .fi-section-content,
 .fi-card-content {
-    padding: 20px !important;
+    padding: 6px 0 20px !important;
+}
+
+/* 去掉 section 内部 grid/items 之间的横线 (Fieldset 等的 ::after) */
+.fi-fo-fieldset,
+.fi-fo-tabs,
+.fi-fo-builder,
+.fi-fo-repeater {
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+/* 去掉 section content container 顶部边框 (View / Infolist 也用同一个 class) */
+.fi-section-content-ctn,
+.fi-section-content-ctn.border-t,
+.fi-card-content-ctn,
+.fi-card-content-ctn.border-t {
+    border-top: 0 !important;
+    border-color: transparent !important;
 }
 
 /* =========================================================================
@@ -1279,12 +1331,6 @@ svg.fi-icon.fi-sidebar-item-icon {
     border-radius: 0 !important;
     box-shadow: none !important;
     padding: 16px !important;
-}
-.fi-card-header,
-.fi-section-header {
-    padding: 0 0 12px 0 !important;
-    border-bottom: 1px solid var(--line) !important;
-    margin-bottom: 16px !important;
 }
 
 /* --- Input / Select：Linear 1px border 紧凑 --- */

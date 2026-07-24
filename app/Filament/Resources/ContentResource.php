@@ -70,11 +70,22 @@ class ContentResource extends Resource
                             ->mapWithKeys(fn ($v, $k) => [$k => ($v['icon'] ?? '') . ' ' . $v['label']])->toArray())
                         ->live()
                         ->afterStateUpdated(function (Set $set, ?string $state) {
-                            // 切换 type: 清空 subtable 数据 + places
+                            // 切换 type: 清空所有 subtable + 强制把当前 type 的 array 字段初始化为 [] (避免 Livewire 把 CheckboxList 当 boolean 绑)
                             foreach (Content::TYPES as $key => $meta) {
                                 $set($meta['subtable'], null);
                             }
                             $set('places', []);
+                            $set('notes', []);
+                            $set('gallery', []);
+                            $set('videos', []);
+                            if ($state && isset(Content::TYPES[$state])) {
+                                $subKey = Content::TYPES[$state]['subtable'];
+                                $set($subKey, [
+                                    'best_season'    => [],
+                                    'gear_checklist' => [],
+                                    'safety_notes'   => [],
+                                ]);
+                            }
                         })
                         ->helperText('切换类型会清空下方类型专属字段与关联地点'),
 
@@ -186,10 +197,12 @@ class ContentResource extends Resource
                     ]),
 
                 Forms\Components\Section::make('相册')
-                    ->description('点击 + 添加图片，可拖动排序')
+                    ->description('点击 + 添加图片，可拖动排序。允许为空 — 没图也能发布。')
                     ->schema([
                         Forms\Components\Repeater::make('gallery')
                             ->label('')
+                            ->defaultItems(0)
+                            ->addActionLabel('+ 添加一张图片')
                             ->schema([
                                 Forms\Components\FileUpload::make('path')
                                     ->label('图片')
@@ -197,7 +210,6 @@ class ContentResource extends Resource
                                     ->directory('contents/gallery')
                                     ->image()
                                     ->maxSize(5120)
-                                    ->required()
                                     ->columnSpan(2),
                                 Forms\Components\TextInput::make('caption')
                                     ->label('说明')
@@ -211,15 +223,16 @@ class ContentResource extends Resource
                     ]),
 
                 Forms\Components\Section::make('视频集')
-                    ->description('点击 + 添加视频链接或上传')
+                    ->description('点击 + 添加视频链接或上传。允许为空。')
                     ->schema([
                         Forms\Components\Repeater::make('videos')
                             ->label('')
+                            ->defaultItems(0)
+                            ->addActionLabel('+ 添加一个视频')
                             ->schema([
                                 Forms\Components\TextInput::make('url')
                                     ->label('视频链接 / 上传路径')
                                     ->maxLength(500)
-                                    ->required()
                                     ->columnSpan(3),
                                 Forms\Components\TextInput::make('caption')
                                     ->label('说明')
@@ -256,6 +269,8 @@ class ContentResource extends Resource
 
                 Forms\Components\Repeater::make('places')
                     ->label('地点列表')
+                    ->defaultItems(0)
+                    ->addActionLabel('+ 关联一个地点')
                     ->schema([
                         Forms\Components\Select::make('place_id')
                             ->label('地点')
@@ -269,7 +284,6 @@ class ContentResource extends Resource
                                     ])->toArray();
                             })
                             ->searchable()
-                            ->required()
                             ->live()
                             ->columnSpan(3),
 
@@ -312,6 +326,7 @@ class ContentResource extends Resource
 
                 Forms\Components\Repeater::make('notes')
                     ->label('笔记列表')
+                    ->defaultItems(0)  // 关联笔记是非必须的，0 默认空
                     ->schema([
                         Forms\Components\Select::make('note_id')
                             ->label('笔记')
@@ -326,7 +341,6 @@ class ContentResource extends Resource
                                     ])->toArray();
                             })
                             ->searchable()
-                            ->required()
                             ->live()
                             ->columnSpan(3)
                             ->helperText('先在「笔记/小红书」里建好笔记，再回到这里关联'),
@@ -396,10 +410,11 @@ class ContentResource extends Resource
      */
     protected static function fieldsForType(string $type): array
     {
-        $sharedSeasons = Forms\Components\CheckboxList::make("{$type}.best_season")
+        $sharedSeasons = Forms\Components\CheckboxList::make('best_season')
             ->label('最佳季节')
-            ->options(['spring' => '春', 'summer' => '夏', 'autumn' => '秋', 'winter' => '冬', 'all' => '四季'])
-            ->columns(5);
+            ->options(['春' => '春', '夏' => '夏', '秋' => '秋', '冬' => '冬', '四季' => '四季'])
+            ->columns(5)
+            ->statePath("{$type}.best_season");
 
         $sharedGear = Forms\Components\TagsInput::make("{$type}.gear_checklist")
             ->label('装备清单')
